@@ -93,10 +93,10 @@ export function Tasks() {
       {confetti && <Confetti trigger={true} x={confetti.x} y={confetti.y} />}
 
       {/* Header */}
-      <div className="px-5 pb-4 bg-background sticky top-0 z-20 header-safe-top">
-        <div className="flex items-start justify-between mb-4.5">
-          <div>
-            <p className="text-xs font-medium text-muted-foreground mb-0.5">
+      <div className="px-5 pb-5 bg-background sticky top-0 z-20 header-safe-top">
+        <div className="flex items-start justify-between mb-5">
+          <div className="pt-0.5">
+            <p className="text-xs font-medium text-muted-foreground mb-2">
               {new Date().toLocaleDateString('th-TH', { weekday: 'long', day: 'numeric', month: 'long' })}
             </p>
             <h1 className="text-[2.25rem] font-black text-foreground leading-[0.96] tracking-[-0.04em]">
@@ -106,7 +106,7 @@ export function Tasks() {
               }
             </h1>
           </div>
-          <div className="flex items-center gap-2 mt-1">
+          <div className="flex items-center gap-2 mt-2">
             <motion.button
               whileTap={{ scale: 0.85 }}
               onClick={() => setShowArchivePage(true)}
@@ -143,7 +143,7 @@ export function Tasks() {
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: 'auto', opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
-              className="overflow-hidden mb-4"
+              className="overflow-hidden mb-5"
             >
               <div className="relative mt-1">
                 <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
@@ -165,7 +165,7 @@ export function Tasks() {
         </AnimatePresence>
 
         {/* Priority filter pills */}
-        <div className="flex gap-2 mt-3 overflow-x-auto no-scrollbar">
+        <div className="flex gap-2 mt-1 overflow-x-auto no-scrollbar">
           {FILTERS.map((f) => {
             const isActive = filter === f
             const colors = {

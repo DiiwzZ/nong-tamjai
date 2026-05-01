@@ -295,20 +295,20 @@ export function Subscriptions() {
   return (
     <div className="flex flex-col h-full">
       {/* ── Header editorial ── */}
-      <div className="px-5 pb-4 bg-background sticky top-0 z-20 header-safe-top">
+      <div className="px-5 pb-5 bg-background sticky top-0 z-20 header-safe-top">
         <div className="flex items-start justify-between mb-0">
-          <div>
-            <p className="text-xs font-medium text-muted-foreground mb-0.5">
+          <div className="pt-0.5">
+            <p className="text-xs font-medium text-muted-foreground mb-2">
               {new Date().toLocaleDateString('th-TH', { weekday: 'long', day: 'numeric', month: 'long' })}
             </p>
-            <h1 className="text-2xl font-bold text-foreground leading-tight tracking-tight">
+            <h1 className="text-2xl font-bold text-foreground leading-[1.02] tracking-tight">
               {active.length > 0
                 ? <>จ่าย <span className="text-primary">{formatCurrency(monthly)}</span><br/>ต่อเดือน</>
-                : <>น้องเตือน<br/><span className="text-muted-foreground text-xl">ยังไม่มีรายจ่าย</span></>
+                : <>น้องเตือน<br/><span className="text-muted-foreground text-xl inline-block mt-1.5">ยังไม่มีรายจ่าย</span></>
               }
             </h1>
           </div>
-          <div className="flex items-center gap-1.5 mt-1">
+          <div className="flex items-center gap-1.5 mt-2">
             {subscriptions.length > 0 && (
               <div className="flex gap-1 bg-muted rounded-xl p-1">
                 <button
@@ -338,7 +338,7 @@ export function Subscriptions() {
 
       {/* ── Summary stats row ── */}
       {active.length > 0 && (
-        <div className="px-5 pt-4 pb-3">
+        <div className="px-5 pt-5 pb-3">
           <motion.div
             initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
@@ -357,7 +357,7 @@ export function Subscriptions() {
         </div>
       )}
 
-      <div className="flex-1 overflow-y-auto no-scrollbar px-5 pt-4 safe-bottom">
+      <div className="flex-1 overflow-y-auto no-scrollbar px-5 pt-5 safe-bottom">
         {loading ? (
           <>{[0,1,2].map((i) => <SubSkeleton key={i} />)}</>
         ) : subscriptions.length === 0 ? (

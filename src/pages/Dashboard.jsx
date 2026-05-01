@@ -63,29 +63,29 @@ export function Dashboard() {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="px-5 pb-4 bg-background sticky top-0 z-20 header-safe-top">
+      <div className="px-5 pb-5 bg-background sticky top-0 z-20 header-safe-top">
         <div className="flex items-start justify-between">
-          <div>
-            <p className="text-xs font-medium text-muted-foreground mb-0.5">
+          <div className="pt-0.5">
+            <p className="text-xs font-medium text-muted-foreground mb-2">
               {new Date().toLocaleDateString('th-TH', { weekday: 'long', day: 'numeric', month: 'long' })}
             </p>
             <h1 className="text-[2.2rem] font-black text-foreground leading-[0.98] tracking-[-0.04em]">
               ภาพรวม<br />
-              <span className="text-primary">
+              <span className="text-primary inline-block mt-1">
                 {completedToday.length}/{activeTasks.length + completedToday.length} งาน
               </span>
             </h1>
           </div>
           <motion.button
             whileTap={{ scale: 0.85 }}
-            className="w-9 h-9 rounded-2xl mt-1 flex items-center justify-center bg-muted text-primary"
+            className="w-9 h-9 rounded-2xl mt-2 flex items-center justify-center bg-muted text-primary"
           >
             <ChartNoAxesColumn size={17} />
           </motion.button>
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto no-scrollbar px-5 pt-4 pb-6 safe-bottom">
+      <div className="flex-1 overflow-y-auto no-scrollbar px-5 pt-6 pb-6 safe-bottom">
         <div className="grid grid-cols-2 gap-3.5 mb-7">
           <StatCard
             icon={CheckCircle2}
