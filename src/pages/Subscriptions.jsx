@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
-import { Plus, CreditCard, X, List, CalendarDays } from 'lucide-react'
+import { Plus, CreditCard, List, CalendarDays } from 'lucide-react'
 import { Sheet } from '@/components/ui/Sheet'
 import { Input } from '@/components/ui/Input'
-import { Header } from '@/components/layout/Header'
 import { CalendarView } from '@/components/subscriptions/CalendarView'
 import { QuickAddFAB } from '@/components/ui/QuickAdd'
 import { Button } from '@/components/ui/Button'
@@ -12,9 +11,9 @@ import { useStore } from '@/store/useStore'
 import { SubSkeleton } from '@/components/ui/Skeleton'
 
 const STATUS_LABELS = {
-  active:    { label: 'Active',  color: 'text-emerald-400 bg-emerald-400/15' },
-  paused:    { label: 'Paused',  color: 'text-amber-400 bg-amber-400/15' },
-  trial:     { label: 'Trial',   color: 'text-primary bg-primary/15' },
+  active: { label: 'Active', color: 'text-emerald-400 bg-emerald-400/15' },
+  paused: { label: 'Paused', color: 'text-amber-400 bg-amber-400/15' },
+  trial: { label: 'Trial', color: 'text-primary bg-primary/15' },
   cancelled: { label: 'ยกเลิก', color: 'text-muted-foreground bg-muted' },
 }
 
@@ -51,33 +50,28 @@ function SubCard({ sub, onTap, index = 0 }) {
       whileTap={{ scale: 0.985 }}
       onClick={() => onTap(sub)}
       className={cn(
-        'rounded-2xl p-4 mb-4 cursor-pointer select-none shadow-[0_10px_24px_-16px_rgba(0,0,0,0.85)]',
-        'border transition-colors duration-150',
-        isUrgent
-          ? 'bg-red-950/20 border-red-900/60'
-          : 'bg-card border-border'
+        'cursor-pointer select-none rounded-[1.65rem] border p-[18px] shadow-[0_18px_38px_-26px_rgba(0,0,0,0.95)] transition-colors duration-150',
+        isUrgent ? 'border-red-900/60 bg-red-950/20' : 'border-white/6 bg-card/92'
       )}
     >
-      <div className="flex items-center gap-3">
-        {/* logo avatar */}
+      <div className="flex items-center gap-3.5">
         <div
-          className="w-11 h-11 rounded-2xl flex items-center justify-center text-white text-base font-bold flex-shrink-0"
+          className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-[1rem] text-base font-bold text-white"
           style={{ backgroundColor: sub.color || '#6b7280' }}
         >
           {sub.name?.[0]?.toUpperCase()}
         </div>
 
-        <div className="flex-1 min-w-0">
+        <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
-            <p className="text-sm font-semibold text-foreground truncate">{sub.name}</p>
-            <span className={cn('text-[10px] font-bold px-2 py-0.5 rounded-full flex-shrink-0', status.color)}>
+            <p className="truncate text-sm font-semibold text-foreground">{sub.name}</p>
+            <span className={cn('flex-shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold', status.color)}>
               {status.label}
             </span>
           </div>
-          <div className="flex items-center gap-2 mt-0.5">
-            {sub.paymentMethod && (
-              <span className="text-xs text-muted-foreground">{sub.paymentMethod}</span>
-            )}
+
+          <div className="mt-1 flex items-center gap-2">
+            {sub.paymentMethod && <span className="text-xs text-muted-foreground">{sub.paymentMethod}</span>}
             {sub.nextBillingDate && days !== null && (
               <span className={cn('text-xs font-medium', isUrgent ? 'text-red-400' : 'text-muted-foreground')}>
                 {days === 0 ? 'จ่ายวันนี้' : days === 1 ? 'จ่ายพรุ่งนี้' : `อีก ${days} วัน`}
@@ -86,7 +80,7 @@ function SubCard({ sub, onTap, index = 0 }) {
           </div>
         </div>
 
-        <div className="text-right flex-shrink-0">
+        <div className="flex-shrink-0 text-right">
           <p className="text-[15px] font-black tracking-[-0.02em] text-foreground">{formatCurrency(sub.amount)}</p>
           {sub.billingCycle === 'yearly' && (
             <p className="text-[10px] text-muted-foreground">{formatCurrency(monthlyAmount)}/เดือน</p>
@@ -104,32 +98,41 @@ function SubForm({ open, onClose, sub }) {
   const { addSubscription, updateSubscription } = useStore()
   const isEdit = !!sub
 
-  const [form, setForm] = useState({
-    name: sub?.name || '',
-    amount: sub?.amount || '',
-    billingCycle: sub?.billingCycle || 'monthly',
-    nextBillingDate: sub?.nextBillingDate?.slice(0, 10) || '',
-    paymentMethod: sub?.paymentMethod || 'เดบิต',
-    status: sub?.status || 'active',
-    alertDays: sub?.alertDays || 3,
-    color: sub?.color || '#6b7280',
-    note: sub?.note || '',
+  const createInitialForm = (currentSub) => ({
+    name: currentSub?.name || '',
+    amount: currentSub?.amount || '',
+    billingCycle: currentSub?.billingCycle || 'monthly',
+    nextBillingDate: currentSub?.nextBillingDate?.slice(0, 10) || '',
+    paymentMethod: currentSub?.paymentMethod || 'เดบิต',
+    status: currentSub?.status || 'active',
+    alertDays: currentSub?.alertDays || 3,
+    color: currentSub?.color || '#6b7280',
+    note: currentSub?.note || '',
   })
+
+  const [form, setForm] = useState(createInitialForm(sub))
+
+  useEffect(() => {
+    if (open) setForm(createInitialForm(sub))
+  }, [open, sub])
 
   const set = (key, val) => setForm((f) => ({ ...f, [key]: val }))
 
   const handleSubmit = () => {
     if (!form.name.trim() || !form.amount) return
+
     const data = {
       ...form,
       amount: parseFloat(form.amount),
       nextBillingDate: form.nextBillingDate ? new Date(form.nextBillingDate).toISOString() : null,
     }
+
     if (isEdit) {
       updateSubscription(sub.id, data)
     } else {
       addSubscription(data)
     }
+
     onClose()
   }
 
@@ -140,18 +143,18 @@ function SubForm({ open, onClose, sub }) {
 
   return (
     <Sheet open={open} onClose={onClose} title={isEdit ? 'แก้ไข Subscription' : 'Subscription ใหม่'}>
-      <div className="px-5 py-4 flex flex-col gap-4 pb-8">
+      <div className="flex flex-col gap-4 px-5 py-4 pb-8">
         {!isEdit && (
           <div className="flex flex-col gap-2">
             <label className="text-sm font-medium text-foreground">บริการยอดนิยม</label>
-            <div className="flex gap-2 flex-wrap">
+            <div className="flex flex-wrap gap-2">
               {POPULAR_SUBS.map((item) => (
                 <button
                   key={item.name}
                   onClick={() => selectPopular(item)}
                   className={cn(
-                    'px-3 py-1.5 rounded-xl text-xs font-medium text-white transition-all',
-                    form.name === item.name ? 'ring-2 ring-white/50 scale-105' : 'opacity-80'
+                    'rounded-xl px-3 py-1.5 text-xs font-medium text-white transition-all',
+                    form.name === item.name ? 'scale-105 ring-2 ring-white/50' : 'opacity-80'
                   )}
                   style={{ backgroundColor: item.color }}
                 >
@@ -162,12 +165,7 @@ function SubForm({ open, onClose, sub }) {
           </div>
         )}
 
-        <Input
-          label="ชื่อ"
-          placeholder="ชื่อ subscription..."
-          value={form.name}
-          onChange={(e) => set('name', e.target.value)}
-        />
+        <Input label="ชื่อ" placeholder="ชื่อ subscription..." value={form.name} onChange={(e) => set('name', e.target.value)} />
 
         <Input
           label="ราคา (บาท)"
@@ -186,10 +184,8 @@ function SubForm({ open, onClose, sub }) {
                 key={b.id}
                 onClick={() => set('billingCycle', b.id)}
                 className={cn(
-                  'flex-1 py-2 rounded-xl text-xs font-medium border transition-all',
-                  form.billingCycle === b.id
-                    ? 'bg-primary text-white border-primary'
-                    : 'bg-muted text-muted-foreground border-transparent'
+                  'flex-1 rounded-xl border py-2 text-xs font-medium transition-all',
+                  form.billingCycle === b.id ? 'border-primary bg-primary text-white' : 'border-transparent bg-muted text-muted-foreground'
                 )}
               >
                 {b.label}
@@ -207,16 +203,14 @@ function SubForm({ open, onClose, sub }) {
 
         <div className="flex flex-col gap-1">
           <label className="text-sm font-medium text-foreground">ช่องทางชำระเงิน</label>
-          <div className="flex gap-2 flex-wrap">
+          <div className="flex flex-wrap gap-2">
             {PAYMENT_METHODS.map((m) => (
               <button
                 key={m}
                 onClick={() => set('paymentMethod', m)}
                 className={cn(
-                  'px-3 py-1.5 rounded-xl text-xs font-medium border transition-all',
-                  form.paymentMethod === m
-                    ? 'bg-primary text-white border-primary'
-                    : 'bg-muted text-muted-foreground border-transparent'
+                  'rounded-xl border px-3 py-1.5 text-xs font-medium transition-all',
+                  form.paymentMethod === m ? 'border-primary bg-primary text-white' : 'border-transparent bg-muted text-muted-foreground'
                 )}
               >
                 {m}
@@ -227,16 +221,14 @@ function SubForm({ open, onClose, sub }) {
 
         <div className="flex flex-col gap-1">
           <label className="text-sm font-medium text-foreground">สถานะ</label>
-          <div className="flex gap-2 flex-wrap">
+          <div className="flex flex-wrap gap-2">
             {Object.entries(STATUS_LABELS).map(([key, val]) => (
               <button
                 key={key}
                 onClick={() => set('status', key)}
                 className={cn(
-                  'px-3 py-1.5 rounded-xl text-xs font-medium border transition-all',
-                  form.status === key
-                    ? 'bg-primary text-white border-primary'
-                    : 'bg-muted text-muted-foreground border-transparent'
+                  'rounded-xl border px-3 py-1.5 text-xs font-medium transition-all',
+                  form.status === key ? 'border-primary bg-primary text-white' : 'border-transparent bg-muted text-muted-foreground'
                 )}
               >
                 {val.label}
@@ -246,9 +238,7 @@ function SubForm({ open, onClose, sub }) {
         </div>
 
         <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium text-foreground">
-            แจ้งเตือนล่วงหน้า: {form.alertDays} วัน
-          </label>
+          <label className="text-sm font-medium text-foreground">แจ้งเตือนล่วงหน้า: {form.alertDays} วัน</label>
           <input
             type="range"
             min="1"
@@ -259,11 +249,29 @@ function SubForm({ open, onClose, sub }) {
           />
         </div>
 
-        <Button onClick={handleSubmit} className="w-full mt-2">
+        <Button onClick={handleSubmit} className="mt-2 w-full">
           {isEdit ? 'บันทึก' : 'เพิ่ม Subscription'}
         </Button>
       </div>
     </Sheet>
+  )
+}
+
+function EmptyState() {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="flex flex-col items-center justify-center gap-4 py-20 text-center"
+    >
+      <div className="flex h-20 w-20 items-center justify-center rounded-[1.7rem] bg-primary/10">
+        <CreditCard size={36} className="text-primary" />
+      </div>
+      <div className="space-y-1.5">
+        <p className="font-semibold text-foreground">ยังไม่มีรายจ่ายประจำตอนนี้</p>
+        <p className="text-sm text-muted-foreground">กด + เพื่อให้น้องช่วยเตือนรายการแรก</p>
+      </div>
+    </motion.div>
   )
 }
 
@@ -273,7 +281,11 @@ export function Subscriptions() {
   const [editSub, setEditSub] = useState(null)
   const [view, setView] = useState('list')
   const [loading, setLoading] = useState(true)
-  useEffect(() => { const t = setTimeout(() => setLoading(false), 400); return () => clearTimeout(t) }, [])
+
+  useEffect(() => {
+    const t = setTimeout(() => setLoading(false), 400)
+    return () => clearTimeout(t)
+  }, [])
 
   const active = subscriptions.filter((s) => s.status !== 'cancelled')
   const monthly = active.reduce((sum, s) => {
@@ -293,102 +305,116 @@ export function Subscriptions() {
   }
 
   return (
-    <div className="flex flex-col h-full">
-      {/* ── Header editorial ── */}
-      <div className="px-6 pb-6 bg-background sticky top-0 z-20 header-safe-top">
-        <div className="flex items-start justify-between mb-4">
-          <p className="text-xs font-medium text-muted-foreground pt-1.5">
-            {new Date().toLocaleDateString('th-TH', { weekday: 'long', day: 'numeric', month: 'long' })}
-          </p>
-          <div className="flex items-center gap-1.5">
-            {subscriptions.length > 0 && (
-              <div className="flex gap-1 bg-muted rounded-xl p-1">
-                <button
-                  onClick={() => setView('list')}
-                  className={cn('p-1.5 rounded-lg transition-colors', view === 'list' ? 'bg-card shadow-sm text-foreground' : 'text-muted-foreground')}
-                >
-                  <List size={16} />
-                </button>
-                <button
-                  onClick={() => setView('calendar')}
-                  className={cn('p-1.5 rounded-lg transition-colors', view === 'calendar' ? 'bg-card shadow-sm text-foreground' : 'text-muted-foreground')}
-                >
-                  <CalendarDays size={16} />
-                </button>
+    <div className="flex h-full flex-col">
+      <div className="sticky top-0 z-20 bg-background/84 px-6 pb-4 backdrop-blur-xl header-safe-top">
+        <div className="rounded-[1.9rem] border border-white/6 bg-card/74 px-5 py-5 shadow-[0_22px_50px_-34px_rgba(0,0,0,0.96)] backdrop-blur-xl">
+          <div className="mb-5 flex items-start justify-between gap-3">
+            <p className="pt-1.5 text-xs font-medium text-muted-foreground">
+              {new Date().toLocaleDateString('th-TH', { weekday: 'long', day: 'numeric', month: 'long' })}
+            </p>
+
+            <div className="flex items-center gap-1.5">
+              {subscriptions.length > 0 && (
+                <div className="flex gap-1 rounded-[1rem] bg-muted/88 p-1">
+                  <button
+                    onClick={() => setView('list')}
+                    className={cn(
+                      'rounded-[0.85rem] p-1.5 transition-colors',
+                      view === 'list' ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground'
+                    )}
+                  >
+                    <List size={16} />
+                  </button>
+                  <button
+                    onClick={() => setView('calendar')}
+                    className={cn(
+                      'rounded-[0.85rem] p-1.5 transition-colors',
+                      view === 'calendar' ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground'
+                    )}
+                  >
+                    <CalendarDays size={16} />
+                  </button>
+                </div>
+              )}
+
+              <motion.button
+                whileTap={{ scale: 0.85 }}
+                onClick={() => {
+                  setEditSub(null)
+                  setFormOpen(true)
+                }}
+                className="flex h-10 w-10 items-center justify-center rounded-[1rem] bg-primary text-white"
+              >
+                <Plus size={18} />
+              </motion.button>
+            </div>
+          </div>
+
+          <div className="space-y-5">
+            <div className="max-w-[15rem]">
+              <h1 className="text-balance text-[2.06rem] font-black leading-[0.98] tracking-[-0.045em] text-foreground">
+                {active.length > 0 ? (
+                  <>
+                    จ่าย <span className="text-primary">{formatCurrency(monthly)}</span>
+                    <br />
+                    ต่อเดือน
+                  </>
+                ) : (
+                  <>
+                    น้องเตือน
+                    <br />
+                    ยังไม่มีรายจ่าย
+                  </>
+                )}
+              </h1>
+            </div>
+
+            {active.length > 0 && (
+              <div className="grid grid-cols-2 gap-3">
+                <div className="rounded-[1.35rem] border border-white/6 bg-background/72 p-4">
+                  <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">รายปี</p>
+                  <p className="text-[15px] font-black tracking-[-0.02em] text-foreground">{formatCurrency(monthly * 12)}</p>
+                </div>
+                <div className="rounded-[1.35rem] border border-white/6 bg-background/72 p-4">
+                  <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">รายการ</p>
+                  <p className="text-[15px] font-black tracking-[-0.02em] text-foreground">{active.length} รายการ</p>
+                </div>
               </div>
             )}
-            <motion.button
-              whileTap={{ scale: 0.85 }}
-              onClick={() => { setEditSub(null); setFormOpen(true) }}
-              className="w-9 h-9 rounded-xl flex items-center justify-center bg-primary text-white"
-            >
-              <Plus size={18} />
-            </motion.button>
           </div>
-        </div>
-
-        <div className="max-w-[14rem]">
-          <h1 className="text-[2rem] font-black text-foreground leading-[1.02] tracking-[-0.04em] text-balance">
-            {active.length > 0
-              ? <>จ่าย <span className="text-primary">{formatCurrency(monthly)}</span><br/>ต่อเดือน</>
-              : <>น้องเตือน<br/><span className="text-muted-foreground text-xl inline-block mt-1.5">ยังไม่มีรายจ่าย</span></>
-            }
-          </h1>
         </div>
       </div>
 
-      {/* ── Summary stats row ── */}
-      {active.length > 0 && (
-        <div className="px-6 pt-5 pb-3">
-          <motion.div
-            initial={{ opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ type: 'spring', stiffness: 300, damping: 28 }}
-            className="flex gap-3.5"
-          >
-            <div className="flex-1 bg-card border border-border rounded-2xl p-3.5">
-              <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1">รายปี</p>
-              <p className="text-[15px] font-black text-foreground tracking-[-0.02em]">{formatCurrency(monthly * 12)}</p>
-            </div>
-            <div className="flex-1 bg-card border border-border rounded-2xl p-3.5">
-              <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1">รายการ</p>
-              <p className="text-[15px] font-black text-foreground tracking-[-0.02em]">{active.length} รายการ</p>
-            </div>
-          </motion.div>
-        </div>
-      )}
-
-      <div className="flex-1 overflow-y-auto no-scrollbar px-6 pt-5 safe-bottom">
+      <div className="flex-1 overflow-y-auto px-6 pt-3 no-scrollbar safe-bottom">
         {loading ? (
-          <>{[0,1,2].map((i) => <SubSkeleton key={i} />)}</>
-        ) : subscriptions.length === 0 ? (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="flex flex-col items-center justify-center gap-4 py-20 text-center"
-          >
-            <div className="w-20 h-20 rounded-2xl bg-primary/10 flex items-center justify-center">
-              <CreditCard size={36} className="text-primary" />
-            </div>
-            <div>
-              <p className="font-semibold text-foreground">ยังไม่มีรายจ่ายเลย น้องโล่งใจแทน</p>
-              <p className="text-sm text-muted-foreground mt-1">กด + ให้น้องช่วยติดตามค่าใช้จ่าย</p>
-            </div>
-          </motion.div>
-        ) : view === 'calendar' ? (
-          <CalendarView subscriptions={subscriptions} />
-        ) : (
           <>
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-[15px] font-black tracking-[-0.02em] text-foreground">รายการทั้งหมด</h2>
+            {[0, 1, 2].map((i) => (
+              <SubSkeleton key={i} />
+            ))}
+          </>
+        ) : subscriptions.length === 0 ? (
+          <div className="flex min-h-full items-center justify-center pb-20">
+            <EmptyState />
+          </div>
+        ) : view === 'calendar' ? (
+          <div className="pb-3">
+            <CalendarView subscriptions={subscriptions} />
+          </div>
+        ) : (
+          <div className="space-y-5 pb-3">
+            <div className="flex items-center justify-between">
+              <h2 className="text-[14px] font-black tracking-[-0.02em] text-foreground">รายการทั้งหมด</h2>
               <span className="text-[12px] font-bold text-primary">จัดการ</span>
             </div>
-            <AnimatePresence>
-              {subscriptions.map((sub, i) => (
-                <SubCard key={sub.id} sub={sub} onTap={handleTap} index={i} />
-              ))}
-            </AnimatePresence>
-          </>
+
+            <div className="space-y-4">
+              <AnimatePresence>
+                {subscriptions.map((sub, i) => (
+                  <SubCard key={sub.id} sub={sub} onTap={handleTap} index={i} />
+                ))}
+              </AnimatePresence>
+            </div>
+          </div>
         )}
       </div>
 
@@ -396,7 +422,10 @@ export function Subscriptions() {
 
       <SubForm
         open={formOpen}
-        onClose={() => { setFormOpen(false); setEditSub(null) }}
+        onClose={() => {
+          setFormOpen(false)
+          setEditSub(null)
+        }}
         sub={editSub}
       />
     </div>

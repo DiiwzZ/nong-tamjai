@@ -53,7 +53,7 @@ export function TaskCard({ task, onTap, categories, onComplete }) {
   if (task.status === 'archived') return null
 
   return (
-    <div className="relative overflow-hidden rounded-[22px] mb-4">
+    <div className="relative overflow-hidden rounded-[24px] mb-5">
       <motion.div
         style={{ opacity: deleteOpacity }}
         className="absolute inset-y-0 right-0 w-20 flex items-center justify-center bg-destructive rounded-2xl"
@@ -71,12 +71,12 @@ export function TaskCard({ task, onTap, categories, onComplete }) {
         onClick={() => !dragging && onTap?.(task)}
         whileTap={{ scale: 0.985 }}
         className={cn(
-          'relative rounded-[22px] px-4 py-4 cursor-pointer select-none min-h-[104px]',
-          'bg-card border border-border/80 shadow-[0_10px_24px_-18px_rgba(0,0,0,0.9)]',
+          'relative rounded-[24px] p-[18px] cursor-pointer select-none min-h-[112px]',
+          'bg-card/92 border border-white/6 shadow-[0_18px_38px_-26px_rgba(0,0,0,0.95)]',
           isDone && 'opacity-70'
         )}
       >
-        <div className="flex items-start gap-3.5">
+        <div className="flex items-start gap-4">
           <button
             onClick={handleComplete}
             className={cn(
@@ -92,7 +92,7 @@ export function TaskCard({ task, onTap, categories, onComplete }) {
           <div className="flex-1 min-w-0">
             {task.priority && !isDone && (
               <span className={cn(
-                'inline-flex items-center gap-1 text-[10px] font-bold px-2 py-[3px] rounded-full mb-1.5 shadow-sm',
+                'inline-flex items-center gap-1 text-[10px] font-bold px-2 py-[3px] rounded-full mb-2 shadow-sm',
                 pill.bg, pill.text
               )}>
                 {task.priority === 'high' && <span className="text-[9px]">•</span>}
@@ -101,19 +101,19 @@ export function TaskCard({ task, onTap, categories, onComplete }) {
             )}
 
             <p className={cn(
-              'text-[15px] font-semibold leading-snug text-foreground tracking-[-0.015em]',
+              'text-[15px] font-semibold leading-[1.28] text-foreground tracking-[-0.015em]',
               isDone && 'line-through text-muted-foreground'
             )}>
               {task.title}
             </p>
 
             {task.note && (
-              <p className="text-[12px] text-muted-foreground/90 mt-0.5 line-clamp-1">
+              <p className="text-[12px] text-muted-foreground/90 mt-1 line-clamp-1">
                 {task.note}
               </p>
             )}
 
-            <div className="flex items-center justify-between mt-2.5">
+            <div className="flex items-center justify-between mt-3">
               <div className="flex items-center gap-2">
                 {task.dueDate && (
                   <span className={cn(

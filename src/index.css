@@ -57,6 +57,9 @@
 
 body {
   background-color: var(--color-background);
+  background-image:
+    radial-gradient(circle at top, rgba(59, 130, 246, 0.18), transparent 28%),
+    linear-gradient(180deg, hsl(240 16% 10%), hsl(240 14% 7%));
   color: var(--color-foreground);
   font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
   -webkit-tap-highlight-color: transparent;
@@ -69,13 +72,13 @@ body {
 
 #root {
   min-height: 100svh;
-  max-width: 430px;
+  max-width: 442px;
   margin: 0 auto;
   position: relative;
-  padding-top: 1.1rem;
-  padding-bottom: 1.1rem;
-  padding-left: calc(env(safe-area-inset-left, 0px) + 1.1rem);
-  padding-right: calc(env(safe-area-inset-right, 0px) + 1.1rem);
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+  padding-left: calc(env(safe-area-inset-left, 0px) + 1rem);
+  padding-right: calc(env(safe-area-inset-right, 0px) + 1rem);
 }
 
 /* Safe-area utilities */
@@ -83,13 +86,13 @@ body {
 
 /* Sticky page headers: safe area + 1rem for standalone iPhone web apps */
 .header-safe-top {
-  padding-top: calc(env(safe-area-inset-top, 0px) + 1rem);
+  padding-top: calc(env(safe-area-inset-top, 0px) + 0.85rem);
 }
 
 /* Scrollable content areas: clear the floating nav + home indicator
    nav card สูงประมาณ 64px + safe-area-inset-bottom (34px) + เผื่อ 8px */
 .safe-bottom {
-  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 5rem);
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 5.3rem);
 }
 
 /* Bottom nav: แนบขอบล่างพอดี ให้ nav card นั่งเหนือ home indicator */
@@ -98,8 +101,8 @@ body {
 }
 
 /* FAB positioning: ลอยเหนือ nav card + home indicator */
-.fab-bottom      { bottom: calc(env(safe-area-inset-bottom, 0px) + 4.75rem); }
-.fab-menu-bottom { bottom: calc(env(safe-area-inset-bottom, 0px) + 9.5rem); }
+.fab-bottom      { bottom: calc(env(safe-area-inset-bottom, 0px) + 4.95rem); }
+.fab-menu-bottom { bottom: calc(env(safe-area-inset-bottom, 0px) + 9.8rem); }
 
 html { scroll-behavior: smooth; }
 

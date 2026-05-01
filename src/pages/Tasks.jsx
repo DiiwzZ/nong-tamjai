@@ -20,12 +20,12 @@ function EmptyState() {
       animate={{ opacity: 1, y: 0 }}
       className="flex flex-col items-center justify-center gap-4 py-20 text-center"
     >
-      <div className="w-20 h-20 rounded-2xl bg-primary/10 flex items-center justify-center">
+      <div className="flex h-20 w-20 items-center justify-center rounded-[1.7rem] bg-primary/10">
         <ClipboardList size={36} className="text-primary" />
       </div>
-      <div>
-        <p className="font-semibold text-foreground">ยังไม่มีงานเลย น้องว่างงานแระ</p>
-        <p className="text-sm text-muted-foreground mt-1">กด + ให้น้องจดงานแรก</p>
+      <div className="space-y-1.5">
+        <p className="font-semibold text-foreground">ยังไม่มีงานเลย น้องว่างอยู่ตอนนี้</p>
+        <p className="text-sm text-muted-foreground">กด + เพื่อเพิ่มงานแรกได้เลย</p>
       </div>
     </motion.div>
   )
@@ -42,7 +42,11 @@ export function Tasks() {
   const [showArchivePage, setShowArchivePage] = useState(false)
   const [confetti, setConfetti] = useState(null)
   const [loading, setLoading] = useState(true)
-  useEffect(() => { const t = setTimeout(() => setLoading(false), 400); return () => clearTimeout(t) }, [])
+
+  useEffect(() => {
+    const t = setTimeout(() => setLoading(false), 400)
+    return () => clearTimeout(t)
+  }, [])
 
   const triggerConfetti = (e) => {
     const rect = e.currentTarget?.getBoundingClientRect?.()
@@ -62,17 +66,22 @@ export function Tasks() {
   }, [tasks, filter, search])
 
   const completed = useMemo(() => tasks.filter((t) => t.status === 'completed'), [tasks])
+
   const highlightedCompleted = useMemo(
-    () => tasks
-      .filter((t) => t.status === 'completed')
-      .sort((a, b) => new Date(b.completedAt || 0) - new Date(a.completedAt || 0))
-      .slice(0, 1),
+    () =>
+      tasks
+        .filter((t) => t.status === 'completed')
+        .sort((a, b) => new Date(b.completedAt || 0) - new Date(a.completedAt || 0))
+        .slice(0, 1),
     [tasks]
   )
+
   const remainingCompleted = useMemo(
     () => completed.filter((t) => t.id !== highlightedCompleted[0]?.id),
     [completed, highlightedCompleted]
   )
+
+  const visibleTasks = useMemo(() => [...highlightedCompleted, ...active], [highlightedCompleted, active])
 
   const handleTap = (task) => {
     setEditTask(task)
@@ -84,158 +93,174 @@ export function Tasks() {
     setFormOpen(true)
   }
 
-  const visibleTasks = useMemo(() => [...highlightedCompleted, ...active], [highlightedCompleted, active])
-
   if (showArchivePage) return <Archive onBack={() => setShowArchivePage(false)} />
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex h-full flex-col">
       {confetti && <Confetti trigger={true} x={confetti.x} y={confetti.y} />}
 
-      {/* Header */}
-      <div className="px-6 pb-6 bg-background sticky top-0 z-20 header-safe-top">
-        <div className="flex items-start justify-between mb-4">
-          <p className="text-xs font-medium text-muted-foreground pt-1.5">
-            {new Date().toLocaleDateString('th-TH', { weekday: 'long', day: 'numeric', month: 'long' })}
-          </p>
-          <div className="flex items-center gap-2">
-            <motion.button
-              whileTap={{ scale: 0.85 }}
-              onClick={() => setShowArchivePage(true)}
-              className="w-10 h-10 rounded-[18px] flex items-center justify-center bg-muted text-muted-foreground"
-            >
-              <ArchiveIcon size={17} />
-            </motion.button>
-            <motion.button
-              whileTap={{ scale: 0.85 }}
-              onClick={() => setSearchOpen((v) => !v)}
-              className={cn(
-                'w-10 h-10 rounded-[18px] flex items-center justify-center transition-colors',
-                searchOpen ? 'bg-primary text-white' : 'bg-muted text-muted-foreground'
-              )}
-            >
-              <Search size={17} />
-            </motion.button>
-            <motion.button
-              whileTap={{ scale: 0.85 }}
-              onClick={() => update({ darkMode: !darkMode })}
-              className="w-10 h-10 rounded-[18px] flex items-center justify-center bg-muted text-amber-300"
-            >
-              <motion.div key={darkMode ? 'moon' : 'sun'} initial={{ rotate: -30, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} transition={{ duration: 0.2 }}>
-                {darkMode ? <Sun size={17} /> : <Moon size={17} />}
-              </motion.div>
-            </motion.button>
-          </div>
-        </div>
+      <div className="sticky top-0 z-20 bg-background/84 px-6 pb-4 backdrop-blur-xl header-safe-top">
+        <div className="rounded-[1.9rem] border border-white/6 bg-card/74 px-5 py-5 shadow-[0_22px_50px_-34px_rgba(0,0,0,0.96)] backdrop-blur-xl">
+          <div className="mb-5 flex items-start justify-between gap-3">
+            <p className="pt-1.5 text-xs font-medium text-muted-foreground">
+              {new Date().toLocaleDateString('th-TH', { weekday: 'long', day: 'numeric', month: 'long' })}
+            </p>
 
-        <div className="mb-6 max-w-[14rem]">
-          <h1 className="text-[2.1rem] font-black text-foreground leading-[1.02] tracking-[-0.04em] text-balance">
-            {active.length > 0
-              ? <>มี <span className="text-primary">{active.length} งาน</span><br />รอน้องจัดการ</>
-              : <>น้องว่าง<br />ไม่มีงานเลย</>
-            }
-          </h1>
-        </div>
-
-        {/* search bar */}
-        <AnimatePresence>
-          {searchOpen && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              className="overflow-hidden mb-6"
-            >
-              <div className="relative">
-                <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                <input
-                  autoFocus
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  placeholder="ค้นหางาน..."
-                  className="w-full h-11 pl-10 pr-9 rounded-2xl border border-border bg-card text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
-                />
-                {search && (
-                  <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2">
-                    <X size={14} className="text-muted-foreground" />
-                  </button>
-                )}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Priority filter pills */}
-        <div className="flex gap-2 overflow-x-auto no-scrollbar">
-          {FILTERS.map((f) => {
-            const isActive = filter === f
-            const colors = {
-              'ทั้งหมด': 'bg-primary shadow-primary/30',
-              'สูง':     'bg-red-500 shadow-red-500/30',
-              'กลาง':    'bg-amber-500 shadow-amber-500/30',
-              'ต่ำ':     'bg-emerald-500 shadow-emerald-500/30',
-            }
-            return (
+            <div className="flex items-center gap-2">
               <motion.button
-                key={f}
-                onClick={() => setFilter(f)}
-                whileTap={{ scale: 0.93 }}
+                whileTap={{ scale: 0.85 }}
+                onClick={() => setShowArchivePage(true)}
+                className="flex h-10 w-10 items-center justify-center rounded-[1rem] bg-muted/88 text-muted-foreground"
+              >
+                <ArchiveIcon size={17} />
+              </motion.button>
+
+              <motion.button
+                whileTap={{ scale: 0.85 }}
+                onClick={() => setSearchOpen((v) => !v)}
                 className={cn(
-                  'flex-shrink-0 min-w-[62px] px-4 py-1.5 rounded-full text-[13px] font-bold transition-all duration-200',
-                  isActive
-                    ? `${colors[f]} text-white shadow-lg`
-                    : 'bg-muted text-muted-foreground border border-border/60 shadow-[inset_0_1px_0_rgba(255,255,255,0.02)]'
+                  'flex h-10 w-10 items-center justify-center rounded-[1rem] transition-colors',
+                  searchOpen ? 'bg-primary text-white' : 'bg-muted/88 text-muted-foreground'
                 )}
               >
-                {f}
+                <Search size={17} />
               </motion.button>
-            )
-          })}
+
+              <motion.button
+                whileTap={{ scale: 0.85 }}
+                onClick={() => update({ darkMode: !darkMode })}
+                className="flex h-10 w-10 items-center justify-center rounded-[1rem] bg-muted/88 text-amber-300"
+              >
+                <motion.div
+                  key={darkMode ? 'moon' : 'sun'}
+                  initial={{ rotate: -30, opacity: 0 }}
+                  animate={{ rotate: 0, opacity: 1 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  {darkMode ? <Sun size={17} /> : <Moon size={17} />}
+                </motion.div>
+              </motion.button>
+            </div>
+          </div>
+
+          <div className="space-y-5">
+            <div className="max-w-[15rem]">
+              <h1 className="text-balance text-[2.18rem] font-black leading-[0.98] tracking-[-0.045em] text-foreground">
+                {active.length > 0 ? (
+                  <>
+                    มี <span className="text-primary">{active.length} งาน</span>
+                    <br />
+                    รอน้องจัดการ
+                  </>
+                ) : (
+                  <>
+                    น้องว่าง
+                    <br />
+                    ไม่มีงานเลย
+                  </>
+                )}
+              </h1>
+            </div>
+
+            <AnimatePresence>
+              {searchOpen && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  className="overflow-hidden"
+                >
+                  <div className="relative">
+                    <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                    <input
+                      autoFocus
+                      value={search}
+                      onChange={(e) => setSearch(e.target.value)}
+                      placeholder="ค้นหางาน..."
+                      className="h-11 w-full rounded-2xl border border-white/6 bg-background/86 pl-10 pr-9 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
+                    />
+                    {search && (
+                      <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2">
+                        <X size={14} className="text-muted-foreground" />
+                      </button>
+                    )}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <div className="flex gap-2 overflow-x-auto no-scrollbar">
+              {FILTERS.map((f) => {
+                const isActive = filter === f
+                const colors = {
+                  ทั้งหมด: 'bg-primary shadow-primary/30',
+                  สูง: 'bg-red-500 shadow-red-500/30',
+                  กลาง: 'bg-amber-500 shadow-amber-500/30',
+                  ต่ำ: 'bg-emerald-500 shadow-emerald-500/30',
+                }
+
+                return (
+                  <motion.button
+                    key={f}
+                    onClick={() => setFilter(f)}
+                    whileTap={{ scale: 0.93 }}
+                    className={cn(
+                      'min-w-[64px] flex-shrink-0 rounded-full px-4 py-2 text-[13px] font-bold transition-all duration-200',
+                      isActive ? `${colors[f]} text-white shadow-lg` : 'border border-white/6 bg-muted/82 text-muted-foreground'
+                    )}
+                  >
+                    {f}
+                  </motion.button>
+                )
+              })}
+            </div>
+          </div>
         </div>
       </div>
 
       {!loading && visibleTasks.length === 0 && remainingCompleted.length === 0 && (
-        <div className="flex-1 flex items-center justify-center px-5 pb-20">
+        <div className="flex flex-1 items-center justify-center px-6 pb-20">
           <EmptyState />
         </div>
       )}
 
       {(loading || visibleTasks.length > 0 || remainingCompleted.length > 0) && (
-        <div className="flex-1 overflow-y-auto no-scrollbar px-6 pt-4 safe-bottom">
+        <div className="flex-1 overflow-y-auto px-6 pt-3 no-scrollbar safe-bottom">
           {loading ? (
-            <>{[0, 1, 2].map((i) => <TaskSkeleton key={i} />)}</>
-          ) : (
             <>
-              <div className="flex items-center justify-between mb-4 pt-1.5">
-                <h2 className="text-[14px] font-black tracking-[-0.02em] text-foreground">งานที่ต้องทำ</h2>
-                <span className="text-[12px] font-bold text-primary">ดูทั้งหมด</span>
-              </div>
+              {[0, 1, 2].map((i) => (
+                <TaskSkeleton key={i} />
+              ))}
+            </>
+          ) : (
+            <div className="space-y-8 pb-3">
+              <section className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-[14px] font-black tracking-[-0.02em] text-foreground">งานที่ต้องทำ</h2>
+                  <span className="text-[12px] font-bold text-primary">ดูทั้งหมด</span>
+                </div>
 
-              <AnimatePresence>
-                {visibleTasks.map((task, i) => (
-                  <motion.div
-                    key={task.id}
-                    layout
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, height: 0 }}
-                    transition={{ delay: i * 0.04, duration: 0.25 }}
-                  >
-                    <TaskCard task={task} onTap={handleTap} categories={categories} onComplete={triggerConfetti} />
-                  </motion.div>
-                ))}
-              </AnimatePresence>
+                <AnimatePresence>
+                  {visibleTasks.map((task, i) => (
+                    <motion.div
+                      key={task.id}
+                      layout
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ delay: i * 0.04, duration: 0.25 }}
+                    >
+                      <TaskCard task={task} onTap={handleTap} categories={categories} onComplete={triggerConfetti} />
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+              </section>
 
               {remainingCompleted.length > 0 && (
-                <div className="mt-6 mb-6">
-                  <button
-                    onClick={() => setShowCompleted((v) => !v)}
-                    className="flex items-center gap-2.5 mb-4 w-full text-muted-foreground"
-                  >
+                <section className="space-y-4">
+                  <button onClick={() => setShowCompleted((v) => !v)} className="flex w-full items-center gap-2.5 text-muted-foreground">
                     <CheckCircle2 size={14} />
-                    <span className="text-xs font-semibold uppercase tracking-wider">
-                      เสร็จแล้ว ({remainingCompleted.length})
-                    </span>
+                    <span className="text-xs font-semibold uppercase tracking-wider">เสร็จแล้ว ({remainingCompleted.length})</span>
                     <motion.span
                       animate={{ rotate: showCompleted ? 180 : 0 }}
                       transition={{ duration: 0.2 }}
@@ -244,22 +269,24 @@ export function Tasks() {
                       <ChevronDown size={13} />
                     </motion.span>
                   </button>
+
                   <AnimatePresence>
-                    {showCompleted && remainingCompleted.map((task) => (
-                      <motion.div
-                        key={task.id}
-                        layout
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: 'auto' }}
-                        exit={{ opacity: 0, height: 0 }}
-                      >
-                        <TaskCard task={task} onTap={handleTap} categories={categories} />
-                      </motion.div>
-                    ))}
+                    {showCompleted &&
+                      remainingCompleted.map((task) => (
+                        <motion.div
+                          key={task.id}
+                          layout
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: 'auto' }}
+                          exit={{ opacity: 0, height: 0 }}
+                        >
+                          <TaskCard task={task} onTap={handleTap} categories={categories} />
+                        </motion.div>
+                      ))}
                   </AnimatePresence>
-                </div>
+                </section>
               )}
-            </>
+            </div>
           )}
         </div>
       )}
@@ -268,7 +295,10 @@ export function Tasks() {
 
       <TaskForm
         open={formOpen}
-        onClose={() => { setFormOpen(false); setEditTask(null) }}
+        onClose={() => {
+          setFormOpen(false)
+          setEditTask(null)
+        }}
         task={editTask}
       />
     </div>

@@ -10,10 +10,10 @@ const tabs = [
 
 export function BottomNav({ active, onChange }) {
   return (
-    <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-[calc(100%-2.2rem)] max-w-[395px] z-30 nav-safe">
+    <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-[402px] z-30 nav-safe">
       {/* nav card — แนบกับ home indicator พอดี ไม่มี mb */}
-      <div className="mx-3 bg-card/95 backdrop-blur-2xl border border-border/80 rounded-2xl shadow-2xl shadow-black/20 dark:shadow-black/60">
-        <div className="flex items-center justify-around px-2 py-1">
+      <div className="mx-3 bg-card/88 backdrop-blur-2xl border border-white/6 rounded-[1.7rem] shadow-2xl shadow-black/20 dark:shadow-black/60">
+        <div className="flex items-center justify-around px-2.5 py-1.5">
           {tabs.map(({ id, label, icon: Icon }) => {
             const isActive = active === id
             return (
@@ -21,14 +21,14 @@ export function BottomNav({ active, onChange }) {
                 key={id}
                 onClick={() => onChange(id)}
                 className={cn(
-                  'relative flex flex-col items-center gap-1 px-5 py-3 rounded-xl transition-all duration-200 select-none flex-1',
+                  'relative flex flex-col items-center gap-1.5 px-5 py-3 rounded-[1.1rem] transition-all duration-200 select-none flex-1',
                   isActive ? 'text-primary' : 'text-muted-foreground'
                 )}
               >
                 {isActive && (
                   <motion.div
                     layoutId="nav-pill"
-                    className="absolute inset-0 bg-primary/10 rounded-xl"
+                    className="absolute inset-0 bg-primary/12 rounded-[1.1rem]"
                     transition={{ type: 'spring', stiffness: 380, damping: 30 }}
                   />
                 )}
