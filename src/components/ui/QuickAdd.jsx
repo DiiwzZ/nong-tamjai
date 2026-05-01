@@ -54,10 +54,11 @@ export function QuickAddFAB({ onSelect }) {
               {ACTIONS.map(({ id, label, icon: Icon, color }, i) => (
                 <motion.button
                   key={id}
-                  initial={{ opacity: 0, x: 20, scale: 0.8 }}
-                  animate={{ opacity: 1, x: 0, scale: 1 }}
-                  exit={{ opacity: 0, x: 20, scale: 0.8 }}
-                  transition={{ delay: i * 0.05 }}
+                  /* ui-animation: spring stagger — items rise from below with bouncy spring */
+                  initial={{ opacity: 0, y: 10, scale: 0.88 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 10, scale: 0.88, transition: { duration: 0.15 } }}
+                  transition={{ type: 'spring', stiffness: 420, damping: 28, delay: i * 0.07 }}
                   onClick={() => select(id)}
                   className="flex items-center gap-3 pr-4 pl-3 h-12 rounded-2xl bg-card border border-border shadow-xl"
                 >
@@ -78,7 +79,8 @@ export function QuickAddFAB({ onSelect }) {
         onPointerLeave={() => clearTimeout(pressTimer.current)}
         whileTap={{ scale: 0.88 }}
         animate={{ rotate: open ? 45 : 0 }}
-        transition={{ duration: 0.2 }}
+        /* ui-animation: spring rotation — snappy feel for FAB open/close */
+        transition={{ type: 'spring', stiffness: 420, damping: 28 }}
         className="fixed fab-bottom right-5 w-14 h-14 rounded-2xl bg-primary text-white shadow-lg shadow-primary/30 flex items-center justify-center z-30"
       >
         <Plus size={26} strokeWidth={2.5} />

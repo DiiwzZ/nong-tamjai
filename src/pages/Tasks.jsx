@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
-import { Search, CheckCircle2, Archive as ArchiveIcon, X, ClipboardList, Moon, Sun } from 'lucide-react'
+import { Search, CheckCircle2, Archive as ArchiveIcon, X, ClipboardList, Moon, Sun, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { TaskCard } from '@/components/tasks/TaskCard'
 import { TaskForm } from '@/components/tasks/TaskForm'
@@ -116,7 +116,7 @@ export function Tasks() {
             <h1 className="text-2xl font-bold text-foreground leading-tight">
               {active.length > 0
                 ? <>มี <span className="text-primary">{active.length} งาน</span><br />รอน้องจัดการ</>
-                : <>น้องว่าง<br />ไม่มีงานเลย 🎉</>
+                : <>น้องว่าง<br /><span className="inline-flex items-center gap-1.5">ไม่มีงานเลย <Sparkles size={18} className="text-primary" /></span></>
               }
             </h1>
           </div>
@@ -179,14 +179,15 @@ export function Tasks() {
         </AnimatePresence>
 
         {/* Priority filter pills */}
+        {/* ui-animation: layoutId shared element — pill background slides between filters */}
         <div className="flex gap-2 mt-3 overflow-x-auto no-scrollbar">
           {FILTERS.map((f) => {
             const isActive = filter === f
-            const colors = {
-              'ทั้งหมด': 'bg-primary shadow-primary/30',
-              'สูง':     'bg-red-500 shadow-red-500/30',
-              'กลาง':    'bg-amber-500 shadow-amber-500/30',
-              'ต่ำ':     'bg-emerald-500 shadow-emerald-500/30',
+            const PILL_BG = {
+              'ทั้งหมด': 'bg-primary shadow-lg shadow-primary/30',
+              'สูง':     'bg-red-500 shadow-lg shadow-red-500/30',
+              'กลาง':    'bg-amber-500 shadow-lg shadow-amber-500/30',
+              'ต่ำ':     'bg-emerald-500 shadow-lg shadow-emerald-500/30',
             }
             return (
               <motion.button
@@ -194,13 +195,19 @@ export function Tasks() {
                 onClick={() => setFilter(f)}
                 whileTap={{ scale: 0.93 }}
                 className={cn(
-                  'flex-shrink-0 px-4 py-1.5 rounded-full text-[13px] font-bold transition-all duration-200',
-                  isActive
-                    ? `${colors[f]} text-white shadow-lg`
-                    : 'bg-muted text-muted-foreground border border-border/60'
+                  'relative flex-shrink-0 px-4 py-1.5 rounded-full text-[13px] font-bold transition-colors duration-150',
+                  isActive ? 'text-white' : 'bg-muted text-muted-foreground border border-border/60'
                 )}
               >
-                {f}
+                {/* taste-skill: sliding pill — layoutId keeps one background shared across all buttons */}
+                {isActive && (
+                  <motion.span
+                    layoutId="active-filter-bg"
+                    className={cn('absolute inset-0 rounded-full', PILL_BG[f])}
+                    transition={{ type: 'spring', stiffness: 420, damping: 34 }}
+                  />
+                )}
+                <span className="relative z-10">{f}</span>
               </motion.button>
             )
           })}

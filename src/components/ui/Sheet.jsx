@@ -33,8 +33,9 @@ export function Sheet({ open, onClose, children, title }) {
             )}
             initial={{ y: '100%' }}
             animate={{ y: 0 }}
-            exit={{ y: '100%' }}
-            transition={{ type: 'spring', damping: 32, stiffness: 340, mass: 0.9 }}
+            /* ui-animation: asymmetric timing — enter feels weighty/physical, exit snaps away fast */
+            exit={{ y: '100%', transition: { duration: 0.25, ease: [0.32, 0.72, 0, 1] } }}
+            transition={{ type: 'spring', duration: 0.45, bounce: 0.15 }}
             drag="y"
             dragConstraints={{ top: 0 }}
             dragElastic={{ top: 0, bottom: 0.3 }}
