@@ -58,8 +58,9 @@
 body {
   background-color: var(--color-background);
   background-image:
-    radial-gradient(circle at top, rgba(59, 130, 246, 0.18), transparent 28%),
-    linear-gradient(180deg, hsl(240 16% 10%), hsl(240 14% 7%));
+    radial-gradient(circle at top, rgba(59, 130, 246, 0.22), transparent 26%),
+    radial-gradient(circle at 20% 80%, rgba(255, 255, 255, 0.05), transparent 22%),
+    linear-gradient(180deg, hsl(230 20% 10%), hsl(240 14% 7%));
   color: var(--color-foreground);
   font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
   -webkit-tap-highlight-color: transparent;
@@ -68,6 +69,19 @@ body {
   -moz-osx-font-smoothing: grayscale;
   letter-spacing: -0.01em;
   min-height: 100svh;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.018) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.018) 1px, transparent 1px);
+  background-size: 26px 26px;
+  mask-image: radial-gradient(circle at center, black, transparent 88%);
+  opacity: 0.35;
 }
 
 #root {
@@ -107,6 +121,7 @@ body {
 html { scroll-behavior: smooth; }
 
 .numeric-tabular { font-variant-numeric: tabular-nums; }
+.text-pretty { text-wrap: pretty; }
 
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }

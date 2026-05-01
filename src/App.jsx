@@ -20,11 +20,12 @@ function AppInner() {
   const Page = PAGES[tab]
 
   return (
-    <div className="relative min-h-[calc(100svh-2.2rem)] overflow-hidden rounded-[2.35rem] border border-white/6 bg-background shadow-[0_32px_90px_-44px_rgba(0,0,0,0.98)]">
+    <div className="relative min-h-[calc(100svh-2.2rem)] overflow-hidden rounded-[2.45rem] border border-white/8 bg-background shadow-[0_36px_100px_-46px_rgba(0,0,0,1)]">
       <div className="pointer-events-none absolute inset-0">
-        <div className="absolute inset-x-0 top-0 h-56 bg-[radial-gradient(circle_at_top,rgba(59,130,246,0.18),transparent_72%)]" />
-        <div className="absolute -right-16 top-28 h-44 w-44 rounded-full bg-primary/10 blur-3xl" />
+        <div className="absolute inset-x-0 top-0 h-60 bg-[radial-gradient(circle_at_top,rgba(59,130,246,0.2),transparent_74%)]" />
+        <div className="absolute -right-16 top-28 h-44 w-44 rounded-full bg-primary/12 blur-3xl" />
         <div className="absolute -left-10 bottom-24 h-36 w-36 rounded-full bg-white/[0.04] blur-3xl" />
+        <div className="absolute inset-[1px] rounded-[2.35rem] border border-white/[0.04]" />
       </div>
 
       <AnimatePresence>

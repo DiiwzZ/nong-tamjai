@@ -1,20 +1,19 @@
-import { useState, useEffect } from 'react'
-import { motion, AnimatePresence } from 'motion/react'
-import { Plus, CreditCard, List, CalendarDays } from 'lucide-react'
-import { Sheet } from '@/components/ui/Sheet'
-import { Input } from '@/components/ui/Input'
+import { useEffect, useMemo, useState } from 'react'
+import { AnimatePresence, motion } from 'motion/react'
+import { CalendarDays, CreditCard, List, Plus, Sparkles } from 'lucide-react'
 import { CalendarView } from '@/components/subscriptions/CalendarView'
-import { QuickAddFAB } from '@/components/ui/QuickAdd'
 import { Button } from '@/components/ui/Button'
-import { cn, formatCurrency, daysUntil } from '@/lib/utils'
-import { useStore } from '@/store/useStore'
+import { Input } from '@/components/ui/Input'
+import { Sheet } from '@/components/ui/Sheet'
 import { SubSkeleton } from '@/components/ui/Skeleton'
+import { cn, daysUntil, formatCurrency } from '@/lib/utils'
+import { useStore } from '@/store/useStore'
 
 const STATUS_LABELS = {
-  active: { label: 'Active', color: 'text-emerald-400 bg-emerald-400/15' },
-  paused: { label: 'Paused', color: 'text-amber-400 bg-amber-400/15' },
-  trial: { label: 'Trial', color: 'text-primary bg-primary/15' },
-  cancelled: { label: 'ยกเลิก', color: 'text-muted-foreground bg-muted' },
+  active: { label: 'Active', color: 'text-emerald-300 bg-emerald-400/12 border-emerald-400/16' },
+  paused: { label: 'Paused', color: 'text-amber-300 bg-amber-400/12 border-amber-400/16' },
+  trial: { label: 'Trial', color: 'text-primary bg-primary/12 border-primary/16' },
+  cancelled: { label: 'ยกเลิก', color: 'text-muted-foreground bg-white/[0.04] border-white/8' },
 }
 
 const BILLING_CYCLES = [
@@ -29,10 +28,47 @@ const POPULAR_SUBS = [
   { name: 'Netflix', color: '#E50914' },
   { name: 'Spotify', color: '#1DB954' },
   { name: 'YouTube Premium', color: '#FF0000' },
-  { name: 'iCloud', color: '#3b82f6' },
-  { name: 'ChatGPT', color: '#10a37f' },
+  { name: 'iCloud', color: '#3B82F6' },
+  { name: 'ChatGPT', color: '#10A37F' },
   { name: 'Adobe', color: '#FF0000' },
 ]
+
+function SummaryPanel({ label, value, note, tone = 'default' }) {
+  const toneClass = {
+    default: 'border-white/8 bg-white/[0.04]',
+    primary: 'border-primary/18 bg-primary/10',
+  }
+
+  return (
+    <div className={cn('rounded-[1.35rem] border p-4 shadow-[0_22px_40px_-28px_rgba(0,0,0,1)]', toneClass[tone])}>
+      <p className="text-[11px] font-medium tracking-[0.12em] text-muted-foreground uppercase">{label}</p>
+      <p className={cn('mt-2 numeric-tabular text-[1.45rem] font-black leading-none tracking-[-0.045em]', tone === 'primary' ? 'text-primary' : 'text-foreground')}>
+        {value}
+      </p>
+      {note && <p className="mt-2 text-xs text-muted-foreground">{note}</p>}
+    </div>
+  )
+}
+
+function EmptyState() {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="flex flex-col items-center justify-center gap-4 py-20 text-center"
+    >
+      <div className="flex h-20 w-20 items-center justify-center rounded-[1.8rem] border border-white/8 bg-white/[0.04] shadow-[0_22px_40px_-28px_rgba(0,0,0,1)]">
+        <CreditCard size={34} className="text-primary" />
+      </div>
+      <div className="space-y-2">
+        <p className="text-lg font-semibold tracking-[-0.03em] text-foreground">ยังไม่มีรายจ่ายประจำ</p>
+        <p className="max-w-[18rem] text-sm leading-6 text-muted-foreground">
+          เพิ่มรายการแรกไว้ก่อน เดี๋ยวน้องจะช่วยเตือนให้ตามรอบที่ตั้งไว้
+        </p>
+      </div>
+    </motion.div>
+  )
+}
 
 function SubCard({ sub, onTap, index = 0 }) {
   const days = daysUntil(sub.nextBillingDate)
@@ -40,57 +76,74 @@ function SubCard({ sub, onTap, index = 0 }) {
   const isUrgent = days !== null && days <= 3 && sub.status === 'active'
   const monthlyAmount = sub.billingCycle === 'yearly' ? sub.amount / 12 : sub.amount
 
+  const dueLabel = (() => {
+    if (days === null) return 'ยังไม่มีรอบถัดไป'
+    if (days === 0) return 'จ่ายวันนี้'
+    if (days === 1) return 'จ่ายพรุ่งนี้'
+    return `อีก ${days} วัน`
+  })()
+
   return (
-    <motion.div
+    <motion.button
       layout
-      initial={{ opacity: 0, y: 10 }}
+      initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, height: 0 }}
       transition={{ delay: index * 0.04, duration: 0.25 }}
       whileTap={{ scale: 0.985 }}
       onClick={() => onTap(sub)}
       className={cn(
-        'cursor-pointer select-none rounded-[1.65rem] border p-[18px] shadow-[0_18px_38px_-26px_rgba(0,0,0,0.95)] transition-colors duration-150',
-        isUrgent ? 'border-red-900/60 bg-red-950/20' : 'border-white/6 bg-card/92'
+        'w-full rounded-[1.7rem] border p-[18px] text-left shadow-[0_22px_42px_-28px_rgba(0,0,0,1)] transition-all',
+        isUrgent
+          ? 'border-red-900/55 bg-[linear-gradient(180deg,rgba(64,22,30,0.86),rgba(34,18,22,0.92))]'
+          : 'border-white/8 bg-[linear-gradient(180deg,rgba(32,35,52,0.92),rgba(21,24,36,0.96))]'
       )}
     >
-      <div className="flex items-center gap-3.5">
+      <div className="flex items-start gap-4">
         <div
-          className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-[1rem] text-base font-bold text-white"
-          style={{ backgroundColor: sub.color || '#6b7280' }}
+          className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-[1rem] text-base font-bold text-white shadow-[0_12px_24px_-16px_rgba(0,0,0,1)]"
+          style={{ backgroundColor: sub.color || '#6B7280' }}
         >
           {sub.name?.[0]?.toUpperCase()}
         </div>
 
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            <p className="truncate text-sm font-semibold text-foreground">{sub.name}</p>
-            <span className={cn('flex-shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold', status.color)}>
-              {status.label}
-            </span>
+          <div className="flex items-start justify-between gap-4">
+            <div className="min-w-0">
+              <div className="flex items-center gap-2">
+                <p className="truncate text-[15px] font-semibold tracking-[-0.02em] text-foreground">{sub.name}</p>
+                <span className={cn('rounded-full border px-2 py-0.5 text-[10px] font-semibold', status.color)}>
+                  {status.label}
+                </span>
+              </div>
+
+              <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
+                {sub.paymentMethod && <span>{sub.paymentMethod}</span>}
+                <span className="h-1 w-1 rounded-full bg-white/18" />
+                <span className={cn('font-medium', isUrgent ? 'text-red-300' : 'text-muted-foreground')}>
+                  {dueLabel}
+                </span>
+              </div>
+            </div>
+
+            <div className="text-right">
+              <p className="numeric-tabular text-[1rem] font-black tracking-[-0.04em] text-foreground">
+                {formatCurrency(sub.amount)}
+              </p>
+              <p className="mt-1 text-[10px] text-muted-foreground">
+                {BILLING_CYCLES.find((cycle) => cycle.id === sub.billingCycle)?.label}
+              </p>
+            </div>
           </div>
 
-          <div className="mt-1 flex items-center gap-2">
-            {sub.paymentMethod && <span className="text-xs text-muted-foreground">{sub.paymentMethod}</span>}
-            {sub.nextBillingDate && days !== null && (
-              <span className={cn('text-xs font-medium', isUrgent ? 'text-red-400' : 'text-muted-foreground')}>
-                {days === 0 ? 'จ่ายวันนี้' : days === 1 ? 'จ่ายพรุ่งนี้' : `อีก ${days} วัน`}
-              </span>
-            )}
-          </div>
-        </div>
-
-        <div className="flex-shrink-0 text-right">
-          <p className="text-[15px] font-black tracking-[-0.02em] text-foreground">{formatCurrency(sub.amount)}</p>
           {sub.billingCycle === 'yearly' && (
-            <p className="text-[10px] text-muted-foreground">{formatCurrency(monthlyAmount)}/เดือน</p>
+            <div className="mt-3 inline-flex rounded-full border border-white/8 bg-white/[0.04] px-2.5 py-1 text-[11px] font-medium text-muted-foreground">
+              เฉลี่ย {formatCurrency(monthlyAmount)}/เดือน
+            </div>
           )}
-          <p className="text-[10px] text-muted-foreground">
-            {BILLING_CYCLES.find((b) => b.id === sub.billingCycle)?.label}
-          </p>
         </div>
       </div>
-    </motion.div>
+    </motion.button>
   )
 }
 
@@ -106,43 +159,40 @@ function SubForm({ open, onClose, sub }) {
     paymentMethod: currentSub?.paymentMethod || 'เดบิต',
     status: currentSub?.status || 'active',
     alertDays: currentSub?.alertDays || 3,
-    color: currentSub?.color || '#6b7280',
+    color: currentSub?.color || '#6B7280',
     note: currentSub?.note || '',
   })
 
   const [form, setForm] = useState(createInitialForm(sub))
 
   useEffect(() => {
-    if (open) setForm(createInitialForm(sub))
+    if (open) {
+      setForm(createInitialForm(sub))
+    }
   }, [open, sub])
 
-  const set = (key, val) => setForm((f) => ({ ...f, [key]: val }))
+  const setField = (key, value) => setForm((current) => ({ ...current, [key]: value }))
 
   const handleSubmit = () => {
     if (!form.name.trim() || !form.amount) return
 
-    const data = {
+    const payload = {
       ...form,
       amount: parseFloat(form.amount),
       nextBillingDate: form.nextBillingDate ? new Date(form.nextBillingDate).toISOString() : null,
     }
 
     if (isEdit) {
-      updateSubscription(sub.id, data)
+      updateSubscription(sub.id, payload)
     } else {
-      addSubscription(data)
+      addSubscription(payload)
     }
 
     onClose()
   }
 
-  const selectPopular = (item) => {
-    set('name', item.name)
-    set('color', item.color)
-  }
-
   return (
-    <Sheet open={open} onClose={onClose} title={isEdit ? 'แก้ไข Subscription' : 'Subscription ใหม่'}>
+    <Sheet open={open} onClose={onClose} title={isEdit ? 'แก้ไข subscription' : 'เพิ่ม subscription'}>
       <div className="flex flex-col gap-4 px-5 py-4 pb-8">
         {!isEdit && (
           <div className="flex flex-col gap-2">
@@ -151,7 +201,10 @@ function SubForm({ open, onClose, sub }) {
               {POPULAR_SUBS.map((item) => (
                 <button
                   key={item.name}
-                  onClick={() => selectPopular(item)}
+                  onClick={() => {
+                    setField('name', item.name)
+                    setField('color', item.color)
+                  }}
                   className={cn(
                     'rounded-xl px-3 py-1.5 text-xs font-medium text-white transition-all',
                     form.name === item.name ? 'scale-105 ring-2 ring-white/50' : 'opacity-80'
@@ -165,30 +218,37 @@ function SubForm({ open, onClose, sub }) {
           </div>
         )}
 
-        <Input label="ชื่อ" placeholder="ชื่อ subscription..." value={form.name} onChange={(e) => set('name', e.target.value)} />
+        <Input
+          label="ชื่อ"
+          placeholder="เช่น Netflix หรือ Adobe"
+          value={form.name}
+          onChange={(event) => setField('name', event.target.value)}
+        />
 
         <Input
           label="ราคา (บาท)"
           type="number"
           placeholder="0"
           value={form.amount}
-          onChange={(e) => set('amount', e.target.value)}
+          onChange={(event) => setField('amount', event.target.value)}
           inputMode="decimal"
         />
 
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-col gap-2">
           <label className="text-sm font-medium text-foreground">รอบจ่าย</label>
-          <div className="flex gap-2">
-            {BILLING_CYCLES.map((b) => (
+          <div className="grid grid-cols-3 gap-2">
+            {BILLING_CYCLES.map((cycle) => (
               <button
-                key={b.id}
-                onClick={() => set('billingCycle', b.id)}
+                key={cycle.id}
+                onClick={() => setField('billingCycle', cycle.id)}
                 className={cn(
-                  'flex-1 rounded-xl border py-2 text-xs font-medium transition-all',
-                  form.billingCycle === b.id ? 'border-primary bg-primary text-white' : 'border-transparent bg-muted text-muted-foreground'
+                  'rounded-xl border py-2 text-xs font-medium transition-all',
+                  form.billingCycle === cycle.id
+                    ? 'border-primary bg-primary text-white'
+                    : 'border-transparent bg-muted text-muted-foreground'
                 )}
               >
-                {b.label}
+                {cycle.label}
               </button>
             ))}
           </div>
@@ -198,80 +258,66 @@ function SubForm({ open, onClose, sub }) {
           label="วันจ่ายครั้งถัดไป"
           type="date"
           value={form.nextBillingDate}
-          onChange={(e) => set('nextBillingDate', e.target.value)}
+          onChange={(event) => setField('nextBillingDate', event.target.value)}
         />
 
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-col gap-2">
           <label className="text-sm font-medium text-foreground">ช่องทางชำระเงิน</label>
           <div className="flex flex-wrap gap-2">
-            {PAYMENT_METHODS.map((m) => (
+            {PAYMENT_METHODS.map((method) => (
               <button
-                key={m}
-                onClick={() => set('paymentMethod', m)}
+                key={method}
+                onClick={() => setField('paymentMethod', method)}
                 className={cn(
                   'rounded-xl border px-3 py-1.5 text-xs font-medium transition-all',
-                  form.paymentMethod === m ? 'border-primary bg-primary text-white' : 'border-transparent bg-muted text-muted-foreground'
+                  form.paymentMethod === method
+                    ? 'border-primary bg-primary text-white'
+                    : 'border-transparent bg-muted text-muted-foreground'
                 )}
               >
-                {m}
+                {method}
               </button>
             ))}
           </div>
         </div>
 
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-col gap-2">
           <label className="text-sm font-medium text-foreground">สถานะ</label>
           <div className="flex flex-wrap gap-2">
-            {Object.entries(STATUS_LABELS).map(([key, val]) => (
+            {Object.entries(STATUS_LABELS).map(([key, value]) => (
               <button
                 key={key}
-                onClick={() => set('status', key)}
+                onClick={() => setField('status', key)}
                 className={cn(
                   'rounded-xl border px-3 py-1.5 text-xs font-medium transition-all',
-                  form.status === key ? 'border-primary bg-primary text-white' : 'border-transparent bg-muted text-muted-foreground'
+                  form.status === key
+                    ? 'border-primary bg-primary text-white'
+                    : 'border-transparent bg-muted text-muted-foreground'
                 )}
               >
-                {val.label}
+                {value.label}
               </button>
             ))}
           </div>
         </div>
 
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-col gap-2">
           <label className="text-sm font-medium text-foreground">แจ้งเตือนล่วงหน้า: {form.alertDays} วัน</label>
           <input
             type="range"
             min="1"
             max="14"
             value={form.alertDays}
-            onChange={(e) => set('alertDays', parseInt(e.target.value))}
+            onChange={(event) => setField('alertDays', parseInt(event.target.value, 10))}
             className="accent-primary"
           />
         </div>
 
         <Button onClick={handleSubmit} className="mt-2 w-full">
-          {isEdit ? 'บันทึก' : 'เพิ่ม Subscription'}
+          {isEdit ? 'บันทึกการแก้ไข' : 'เพิ่ม subscription'}
         </Button>
       </div>
     </Sheet>
-  )
-}
-
-function EmptyState() {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="flex flex-col items-center justify-center gap-4 py-20 text-center"
-    >
-      <div className="flex h-20 w-20 items-center justify-center rounded-[1.7rem] bg-primary/10">
-        <CreditCard size={36} className="text-primary" />
-      </div>
-      <div className="space-y-1.5">
-        <p className="font-semibold text-foreground">ยังไม่มีรายจ่ายประจำตอนนี้</p>
-        <p className="text-sm text-muted-foreground">กด + เพื่อให้น้องช่วยเตือนรายการแรก</p>
-      </div>
-    </motion.div>
   )
 }
 
@@ -283,45 +329,65 @@ export function Subscriptions() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const t = setTimeout(() => setLoading(false), 400)
-    return () => clearTimeout(t)
+    const timer = setTimeout(() => setLoading(false), 400)
+    return () => clearTimeout(timer)
   }, [])
 
-  const active = subscriptions.filter((s) => s.status !== 'cancelled')
-  const monthly = active.reduce((sum, s) => {
-    if (s.billingCycle === 'yearly') return sum + s.amount / 12
-    if (s.billingCycle === 'monthly') return sum + s.amount
-    return sum
-  }, 0)
+  const active = useMemo(
+    () => subscriptions.filter((subscription) => subscription.status !== 'cancelled'),
+    [subscriptions]
+  )
 
-  const handleTap = (sub) => {
-    setEditSub(sub)
-    setFormOpen(true)
-  }
+  const monthlyTotal = useMemo(
+    () =>
+      active.reduce((sum, subscription) => {
+        if (subscription.billingCycle === 'yearly') return sum + subscription.amount / 12
+        if (subscription.billingCycle === 'monthly') return sum + subscription.amount
+        return sum
+      }, 0),
+    [active]
+  )
 
-  const openNew = () => {
-    setEditSub(null)
-    setFormOpen(true)
-  }
+  const closestDue = useMemo(() => {
+    return active
+      .filter((subscription) => subscription.nextBillingDate)
+      .map((subscription) => ({ ...subscription, days: daysUntil(subscription.nextBillingDate) }))
+      .filter((subscription) => subscription.days !== null)
+      .sort((a, b) => a.days - b.days)[0]
+  }, [active])
+
+  const dateLabel = useMemo(
+    () =>
+      new Date().toLocaleDateString('th-TH', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+      }),
+    []
+  )
 
   return (
     <div className="flex h-full flex-col">
-      <div className="sticky top-0 z-20 bg-background/92 px-6 pb-5 backdrop-blur-xl header-safe-top">
+      <div className="sticky top-0 z-20 bg-background/92 px-6 pb-6 backdrop-blur-xl header-safe-top">
         <div className="space-y-6">
-          <div className="flex items-center justify-between gap-3">
-            <p className="text-xs font-medium text-muted-foreground">
-              {new Date().toLocaleDateString('th-TH', { weekday: 'long', day: 'numeric', month: 'long' })}
-            </p>
+          <div className="flex items-start justify-between gap-4">
+            <div className="space-y-2">
+              <p className="text-[11px] font-medium tracking-[0.08em] text-muted-foreground">{dateLabel}</p>
+              <div className="inline-flex items-center gap-2 rounded-full border border-primary/14 bg-primary/8 px-3 py-1 text-[11px] font-semibold tracking-[0.14em] text-primary uppercase">
+                <Sparkles size={12} />
+                Recurring spend
+              </div>
+            </div>
 
             <div className="flex items-center gap-2">
               {subscriptions.length > 0 && (
-                <div className="flex items-center gap-1 rounded-[1rem] border border-white/6 bg-muted/52 p-1">
+                <div className="flex items-center gap-1 rounded-[1.15rem] border border-white/8 bg-white/[0.04] p-1.5 shadow-[0_18px_34px_-26px_rgba(0,0,0,1)]">
                   <button
                     onClick={() => setView('list')}
                     aria-label="มุมมองรายการ"
                     className={cn(
-                      'rounded-[0.9rem] p-1.5 transition-colors',
-                      view === 'list' ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground'
+                      'rounded-[0.95rem] p-2 transition-all',
+                      view === 'list' ? 'bg-primary text-white shadow-[0_16px_28px_-16px_rgba(59,130,246,0.9)]' : 'text-muted-foreground'
                     )}
                   >
                     <List size={16} />
@@ -330,8 +396,8 @@ export function Subscriptions() {
                     onClick={() => setView('calendar')}
                     aria-label="มุมมองปฏิทิน"
                     className={cn(
-                      'rounded-[0.9rem] p-1.5 transition-colors',
-                      view === 'calendar' ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground'
+                      'rounded-[0.95rem] p-2 transition-all',
+                      view === 'calendar' ? 'bg-primary text-white shadow-[0_16px_28px_-16px_rgba(59,130,246,0.9)]' : 'text-muted-foreground'
                     )}
                   >
                     <CalendarDays size={16} />
@@ -340,55 +406,68 @@ export function Subscriptions() {
               )}
 
               <motion.button
-                whileTap={{ scale: 0.85 }}
+                whileTap={{ scale: 0.9 }}
                 onClick={() => {
                   setEditSub(null)
                   setFormOpen(true)
                 }}
                 aria-label="เพิ่ม subscription"
-                className="flex h-10 w-10 items-center justify-center rounded-[1rem] border border-primary bg-primary text-white"
+                className="flex h-11 w-11 items-center justify-center rounded-[1.05rem] border border-primary/28 bg-primary text-white shadow-[0_18px_34px_-20px_rgba(59,130,246,0.9)]"
               >
                 <Plus size={18} />
               </motion.button>
             </div>
           </div>
 
-          <div className="space-y-3">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-primary/78">
-              recurring spend
-            </p>
-            <h1 className="max-w-[16rem] text-balance text-[2.45rem] font-black leading-[0.9] tracking-[-0.055em] text-foreground">
-              {active.length > 0 ? (
-                <>
-                  จ่าย <span className="text-primary">{formatCurrency(monthly)}</span>
-                  <br />
-                  ต่อเดือน
-                </>
-              ) : (
-                <>
-                  น้องเตือน
-                  <br />
-                  ยังไม่มีรายจ่าย
-                </>
-              )}
-            </h1>
-            <div className="flex flex-wrap gap-3 text-sm text-muted-foreground">
-              <span className="numeric-tabular rounded-full border border-white/6 bg-muted/52 px-3 py-1.5 font-medium">
-                รายปี {formatCurrency(monthly * 12)}
-              </span>
-              <span className="numeric-tabular rounded-full border border-white/6 bg-muted/52 px-3 py-1.5 font-medium">
-                {active.length} รายการ
-              </span>
+          <div className="space-y-4">
+            <div className="space-y-3">
+              <h1 className="max-w-[16rem] text-pretty text-[2.8rem] font-black leading-[0.88] tracking-[-0.065em] text-foreground">
+                {active.length > 0 ? (
+                  <>
+                    จ่าย <span className="text-primary">{formatCurrency(monthlyTotal)}</span>
+                    <br />
+                    ต่อเดือน
+                  </>
+                ) : (
+                  <>
+                    น้องเตือน
+                    <br />
+                    ยังไม่มีรายจ่าย
+                  </>
+                )}
+              </h1>
+              <p className="max-w-[19rem] text-sm leading-6 text-muted-foreground">
+                {active.length > 0
+                  ? 'รวมรอบจ่ายหลักให้แล้ว จะได้เห็นว่าแต่ละเดือนเงินไหลออกเท่าไรแบบไม่ต้องไล่จำเอง'
+                  : 'เริ่มจากเพิ่มบริการที่จ่ายประจำไว้ก่อน แล้วเดี๋ยวน้องจะตามให้เองเป็นรอบ ๆ'}
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <SummaryPanel
+                label="ประมาณต่อปี"
+                value={formatCurrency(monthlyTotal * 12)}
+                tone="primary"
+              />
+              <SummaryPanel
+                label="จำนวนรายการ"
+                value={`${active.length} รายการ`}
+                note={
+                  closestDue
+                    ? `${closestDue.name} ${closestDue.days === 0 ? 'จ่ายวันนี้' : closestDue.days === 1 ? 'จ่ายพรุ่งนี้' : `อีก ${closestDue.days} วัน`}`
+                    : 'ยังไม่มีรายการที่ใกล้ครบกำหนด'
+                }
+              />
             </div>
           </div>
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-6 pt-3 no-scrollbar safe-bottom">
+      <div className="flex-1 overflow-y-auto px-6 pt-2 no-scrollbar safe-bottom">
         {loading ? (
           <>
-            {[0, 1, 2].map((i) => (
-              <SubSkeleton key={i} />
+            {[0, 1, 2].map((item) => (
+              <SubSkeleton key={item} />
             ))}
           </>
         ) : subscriptions.length === 0 ? (
@@ -396,28 +475,45 @@ export function Subscriptions() {
             <EmptyState />
           </div>
         ) : view === 'calendar' ? (
-          <div className="pb-3">
+          <div className="rounded-[1.7rem] border border-white/8 bg-white/[0.04] p-4 shadow-[0_22px_42px_-30px_rgba(0,0,0,1)]">
             <CalendarView subscriptions={subscriptions} />
           </div>
         ) : (
-          <div className="space-y-5 pb-3">
-            <div className="flex items-center justify-between">
-              <h2 className="text-[14px] font-black tracking-[-0.02em] text-foreground">รายการทั้งหมด</h2>
-              <span className="text-[12px] font-bold text-primary">จัดการ</span>
-            </div>
+          <div className="space-y-8 pb-4">
+            <section className="space-y-4">
+              <div className="flex items-end justify-between gap-3">
+                <div>
+                  <p className="text-[11px] font-medium tracking-[0.16em] text-muted-foreground uppercase">
+                    Active list
+                  </p>
+                  <h2 className="mt-1 text-[1.05rem] font-semibold tracking-[-0.03em] text-foreground">
+                    รายการทั้งหมด
+                  </h2>
+                </div>
+                <span className="text-[12px] font-semibold text-primary numeric-tabular">
+                  {subscriptions.length} รายการ
+                </span>
+              </div>
 
-            <div className="space-y-4">
-              <AnimatePresence>
-                {subscriptions.map((sub, i) => (
-                  <SubCard key={sub.id} sub={sub} onTap={handleTap} index={i} />
-                ))}
-              </AnimatePresence>
-            </div>
+              <div className="space-y-4">
+                <AnimatePresence>
+                  {subscriptions.map((sub, index) => (
+                    <SubCard
+                      key={sub.id}
+                      sub={sub}
+                      onTap={(current) => {
+                        setEditSub(current)
+                        setFormOpen(true)
+                      }}
+                      index={index}
+                    />
+                  ))}
+                </AnimatePresence>
+              </div>
+            </section>
           </div>
         )}
       </div>
-
-      <QuickAddFAB onSelect={openNew} />
 
       <SubForm
         open={formOpen}

@@ -1,24 +1,77 @@
 import { useMemo } from 'react'
 import { motion } from 'motion/react'
-import { CheckCircle2, AlertCircle, CreditCard, TrendingUp, ChartNoAxesColumn } from 'lucide-react'
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
-import { cn, formatCurrency, daysUntil } from '@/lib/utils'
+import {
+  AlertCircle,
+  ChartNoAxesColumn,
+  CheckCircle2,
+  CreditCard,
+  Sparkles,
+  TrendingUp,
+} from 'lucide-react'
+import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
+import { cn, daysUntil, formatCurrency } from '@/lib/utils'
 import { useStore } from '@/store/useStore'
 
-function StatCard({ icon: Icon, label, value, sub, color, index = 0 }) {
+function MetricTile({ icon: Icon, label, value, note, tone = 'default', index = 0 }) {
+  const toneClass = {
+    default: 'border-white/8 bg-[linear-gradient(180deg,rgba(31,34,48,0.9),rgba(21,24,35,0.96))]',
+    primary: 'border-primary/20 bg-[linear-gradient(180deg,rgba(34,60,117,0.54),rgba(21,30,49,0.94))]',
+    alert: 'border-red-900/55 bg-[linear-gradient(180deg,rgba(66,26,34,0.82),rgba(34,18,22,0.92))]',
+  }
+
+  const iconTone = {
+    default: 'bg-white/[0.05] text-muted-foreground',
+    primary: 'bg-primary/15 text-primary',
+    alert: 'bg-red-500/15 text-red-300',
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.06, type: 'spring', stiffness: 300, damping: 28 }}
-      className="rounded-[1.55rem] border border-white/6 bg-card/92 p-[18px] shadow-[0_18px_38px_-26px_rgba(0,0,0,0.95)]"
+      className={cn('rounded-[1.6rem] border p-[18px] shadow-[0_22px_42px_-28px_rgba(0,0,0,1)]', toneClass[tone])}
     >
-      <div className={cn('mb-4 flex h-10 w-10 items-center justify-center rounded-[0.95rem]', color)}>
+      <div className={cn('mb-4 flex h-10 w-10 items-center justify-center rounded-[1rem]', iconTone[tone])}>
         <Icon size={18} />
       </div>
-      <p className="numeric-tabular text-[1.95rem] font-black leading-none tracking-[-0.045em] text-foreground">{value}</p>
-      <p className="mt-1.5 text-[11px] font-semibold text-muted-foreground">{label}</p>
-      {sub && <p className="mt-0.5 text-[11px] text-muted-foreground">{sub}</p>}
+      <p className="numeric-tabular text-[1.95rem] font-black leading-none tracking-[-0.05em] text-foreground">{value}</p>
+      <p className="mt-2 text-[11px] font-medium tracking-[0.12em] text-muted-foreground uppercase">{label}</p>
+      {note && <p className="mt-2 text-xs leading-5 text-muted-foreground">{note}</p>}
+    </motion.div>
+  )
+}
+
+function DueRow({ sub, index }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: -10 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ delay: index * 0.04, duration: 0.25 }}
+      className={cn(
+        'flex items-center gap-3.5 rounded-[1.45rem] border p-4 shadow-[0_20px_40px_-28px_rgba(0,0,0,1)]',
+        sub.days <= 3
+          ? 'border-red-900/55 bg-[linear-gradient(180deg,rgba(64,22,30,0.86),rgba(34,18,22,0.92))]'
+          : 'border-white/8 bg-[linear-gradient(180deg,rgba(32,35,52,0.92),rgba(21,24,36,0.96))]'
+      )}
+    >
+      <div
+        className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-[0.95rem] text-xs font-bold text-white"
+        style={{ backgroundColor: sub.color || '#6B7280' }}
+      >
+        {sub.name?.[0]?.toUpperCase()}
+      </div>
+
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-sm font-semibold tracking-[-0.02em] text-foreground">{sub.name}</p>
+        <p className={cn('mt-1 text-xs', sub.days <= 3 ? 'text-red-300' : 'text-muted-foreground')}>
+          {sub.days === 0 ? 'จ่ายวันนี้' : sub.days === 1 ? 'จ่ายพรุ่งนี้' : `อีก ${sub.days} วัน`}
+        </p>
+      </div>
+
+      <p className="numeric-tabular text-[15px] font-black tracking-[-0.03em] text-foreground">
+        {formatCurrency(sub.amount)}
+      </p>
     </motion.div>
   )
 }
@@ -26,151 +79,171 @@ function StatCard({ icon: Icon, label, value, sub, color, index = 0 }) {
 export function Dashboard() {
   const { tasks, subscriptions } = useStore()
 
-  const activeTasks = tasks.filter((t) => t.status === 'active')
-  const completedToday = tasks.filter((t) => {
-    if (t.status !== 'completed') return false
-    const completed = new Date(t.completedAt)
+  const activeTasks = tasks.filter((task) => task.status === 'active')
+  const completedToday = tasks.filter((task) => {
+    if (task.status !== 'completed') return false
+    const completedAt = new Date(task.completedAt)
     const today = new Date()
-    return completed.toDateString() === today.toDateString()
+    return completedAt.toDateString() === today.toDateString()
   })
-  const overdue = activeTasks.filter((t) => t.dueDate && new Date(t.dueDate) < new Date())
 
-  const activeSubs = subscriptions.filter((s) => s.status === 'active')
-  const monthlyTotal = activeSubs.reduce((sum, s) => {
-    if (s.billingCycle === 'yearly') return sum + s.amount / 12
-    if (s.billingCycle === 'monthly') return sum + s.amount
+  const totalToday = activeTasks.length + completedToday.length
+  const completionRate = totalToday > 0 ? Math.round((completedToday.length / totalToday) * 100) : 0
+  const overdue = activeTasks.filter((task) => task.dueDate && new Date(task.dueDate) < new Date())
+
+  const activeSubs = subscriptions.filter((subscription) => subscription.status === 'active')
+  const monthlyTotal = activeSubs.reduce((sum, subscription) => {
+    if (subscription.billingCycle === 'yearly') return sum + subscription.amount / 12
+    if (subscription.billingCycle === 'monthly') return sum + subscription.amount
     return sum
   }, 0)
 
   const upcomingSubs = subscriptions
-    .filter((s) => s.status === 'active' && s.nextBillingDate)
-    .map((s) => ({ ...s, days: daysUntil(s.nextBillingDate) }))
-    .filter((s) => s.days !== null && s.days >= 0 && s.days <= 14)
+    .filter((subscription) => subscription.status === 'active' && subscription.nextBillingDate)
+    .map((subscription) => ({ ...subscription, days: daysUntil(subscription.nextBillingDate) }))
+    .filter((subscription) => subscription.days !== null && subscription.days >= 0 && subscription.days <= 14)
     .sort((a, b) => a.days - b.days)
 
   const chartData = useMemo(() => {
-    const months = []
-    for (let i = 5; i >= 0; i--) {
-      const d = new Date()
-      d.setMonth(d.getMonth() - i)
-      months.push({
-        name: d.toLocaleDateString('th-TH', { month: 'short' }),
+    return Array.from({ length: 6 }, (_, index) => {
+      const date = new Date()
+      date.setMonth(date.getMonth() - (5 - index))
+
+      return {
+        name: date.toLocaleDateString('th-TH', { month: 'short' }),
         amount: monthlyTotal,
-      })
-    }
-    return months
+      }
+    })
   }, [monthlyTotal])
+
+  const dateLabel = useMemo(
+    () =>
+      new Date().toLocaleDateString('th-TH', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+      }),
+    []
+  )
 
   return (
     <div className="flex h-full flex-col">
-      <div className="sticky top-0 z-20 bg-background/92 px-6 pb-5 backdrop-blur-xl header-safe-top">
+      <div className="sticky top-0 z-20 bg-background/92 px-6 pb-6 backdrop-blur-xl header-safe-top">
         <div className="space-y-6">
-          <div className="flex items-center justify-between gap-3">
-            <p className="text-xs font-medium text-muted-foreground">
-              {new Date().toLocaleDateString('th-TH', { weekday: 'long', day: 'numeric', month: 'long' })}
-            </p>
+          <div className="flex items-start justify-between gap-4">
+            <div className="space-y-2">
+              <p className="text-[11px] font-medium tracking-[0.08em] text-muted-foreground">{dateLabel}</p>
+              <div className="inline-flex items-center gap-2 rounded-full border border-primary/14 bg-primary/8 px-3 py-1 text-[11px] font-semibold tracking-[0.14em] text-primary uppercase">
+                <Sparkles size={12} />
+                Daily snapshot
+              </div>
+            </div>
 
             <motion.button
-              whileTap={{ scale: 0.85 }}
+              whileTap={{ scale: 0.9 }}
               aria-label="ดูสรุปภาพรวม"
-              className="flex h-10 w-10 items-center justify-center rounded-[1rem] border border-white/6 bg-muted/68 text-primary"
+              className="flex h-11 w-11 items-center justify-center rounded-[1.05rem] border border-white/7 bg-white/[0.04] text-primary shadow-[0_18px_34px_-26px_rgba(0,0,0,1)]"
             >
               <ChartNoAxesColumn size={17} />
             </motion.button>
           </div>
 
-          <div className="space-y-3">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-primary/78">
-              daily snapshot
-            </p>
-            <h1 className="max-w-[16rem] text-balance text-[2.45rem] font-black leading-[0.9] tracking-[-0.055em] text-foreground">
-              ภาพรวม
-              <br />
-              <span className="text-primary">
-                {completedToday.length}/{activeTasks.length + completedToday.length} งาน
-              </span>
-            </h1>
-            <div className="flex flex-wrap gap-3 text-sm text-muted-foreground">
-              <span className="numeric-tabular rounded-full border border-white/6 bg-muted/52 px-3 py-1.5 font-medium">
-                วันนี้เสร็จ {completedToday.length} งาน
-              </span>
-              <span className="numeric-tabular rounded-full border border-white/6 bg-muted/52 px-3 py-1.5 font-medium">
-                เกินกำหนด {overdue.length} งาน
-              </span>
+          <div className="space-y-4">
+            <div className="space-y-3">
+              <h1 className="max-w-[16rem] text-pretty text-[2.8rem] font-black leading-[0.88] tracking-[-0.065em] text-foreground">
+                ภาพรวม
+                <br />
+                <span className="text-primary">
+                  {completedToday.length}/{totalToday || 0} งาน
+                </span>
+              </h1>
+              <p className="max-w-[19rem] text-sm leading-6 text-muted-foreground">
+                ดูภาพรวมงานวันนี้กับค่าใช้จ่ายที่กำลังจะตัด จะได้รู้ว่าต้องโฟกัสตรงไหนก่อน
+              </p>
+            </div>
+
+            <div className="rounded-[1.6rem] border border-primary/18 bg-[linear-gradient(180deg,rgba(34,60,117,0.48),rgba(21,30,49,0.94))] p-5 shadow-[0_24px_44px_-28px_rgba(0,0,0,1)]">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-[11px] font-medium tracking-[0.14em] text-primary/80 uppercase">
+                    Completion rate
+                  </p>
+                  <p className="mt-2 numeric-tabular text-[2.3rem] font-black leading-none tracking-[-0.055em] text-foreground">
+                    {completionRate}%
+                  </p>
+                </div>
+                <div className="rounded-full border border-white/10 bg-white/[0.05] px-3 py-1.5 text-[11px] font-semibold text-primary">
+                  วันนี้เสร็จ {completedToday.length} งาน
+                </div>
+              </div>
+
+              <div className="mt-5 h-2 overflow-hidden rounded-full bg-white/[0.06]">
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${completionRate}%` }}
+                  transition={{ type: 'spring', stiffness: 180, damping: 24 }}
+                  className="h-full rounded-full bg-primary"
+                />
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-6 pt-3 pb-4 no-scrollbar safe-bottom">
+      <div className="flex-1 overflow-y-auto px-6 pt-2 pb-4 no-scrollbar safe-bottom">
         <div className="space-y-8">
           <section className="grid grid-cols-2 gap-3.5">
-            <StatCard
+            <MetricTile
               icon={CheckCircle2}
               label="งานวันนี้"
-              value={`${completedToday.length}/${activeTasks.length + completedToday.length}`}
-              color="bg-emerald-500/16 text-emerald-400"
+              value={`${completedToday.length}/${totalToday || 0}`}
+              note="งานที่ปิดได้แล้ววันนี้"
+              tone="primary"
               index={0}
             />
-            <StatCard
+            <MetricTile
               icon={AlertCircle}
               label="เกินกำหนด"
               value={overdue.length}
-              sub={overdue.length > 0 ? 'ต้องรีบจัดการ' : 'ดีมาก'}
-              color={overdue.length > 0 ? 'bg-destructive/16 text-destructive' : 'bg-primary/16 text-primary'}
+              note={overdue.length > 0 ? 'มีงานที่ควรเคลียร์ก่อน' : 'ไม่มีงานค้างเกินเวลา'}
+              tone={overdue.length > 0 ? 'alert' : 'default'}
               index={1}
             />
-            <StatCard
+            <MetricTile
               icon={CreditCard}
               label="ค่า Sub/เดือน"
               value={formatCurrency(monthlyTotal)}
-              sub={`${activeSubs.length} รายการ`}
-              color="bg-primary/16 text-primary"
+              note={`${activeSubs.length} รายการที่ยัง active`}
               index={2}
             />
-            <StatCard
+            <MetricTile
               icon={TrendingUp}
               label="ค่า Sub/ปี"
               value={formatCurrency(monthlyTotal * 12)}
-              color="bg-amber-500/16 text-amber-400"
+              note="ประเมินจากรายการที่ใช้อยู่ตอนนี้"
               index={3}
             />
           </section>
 
           {upcomingSubs.length > 0 && (
             <section className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h2 className="text-[14px] font-black tracking-[-0.02em] text-foreground">จ่ายเร็วๆ นี้</h2>
-                <span className="text-[12px] font-bold text-primary">ดูทั้งหมด</span>
+              <div className="flex items-end justify-between gap-3">
+                <div>
+                  <p className="text-[11px] font-medium tracking-[0.16em] text-muted-foreground uppercase">
+                    Upcoming billing
+                  </p>
+                  <h2 className="mt-1 text-[1.05rem] font-semibold tracking-[-0.03em] text-foreground">
+                    จ่ายเร็ว ๆ นี้
+                  </h2>
+                </div>
+                <span className="text-[12px] font-semibold text-primary numeric-tabular">
+                  {upcomingSubs.length} รายการ
+                </span>
               </div>
 
               <div className="space-y-4">
-                {upcomingSubs.map((sub) => (
-                  <motion.div
-                    key={sub.id}
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    className={cn(
-                      'flex items-center gap-3.5 rounded-[1.55rem] border p-[18px] shadow-[0_18px_38px_-26px_rgba(0,0,0,0.95)]',
-                      sub.days <= 3 ? 'border-red-900/60 bg-red-950/20' : 'border-white/6 bg-card/92'
-                    )}
-                  >
-                    <div
-                      className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-[0.9rem] text-xs font-bold text-white"
-                      style={{ backgroundColor: sub.color || '#6b7280' }}
-                    >
-                      {sub.name?.[0]?.toUpperCase()}
-                    </div>
-
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-semibold text-foreground">{sub.name}</p>
-                      <p className={cn('text-xs', sub.days <= 3 ? 'text-destructive' : 'text-muted-foreground')}>
-                        {sub.days === 0 ? 'วันนี้' : sub.days === 1 ? 'พรุ่งนี้' : `อีก ${sub.days} วัน`}
-                      </p>
-                    </div>
-
-                    <p className="text-[15px] font-black tracking-[-0.02em] text-foreground">{formatCurrency(sub.amount)}</p>
-                  </motion.div>
+                {upcomingSubs.map((sub, index) => (
+                  <DueRow key={sub.id} sub={sub} index={index} />
                 ))}
               </div>
             </section>
@@ -178,9 +251,17 @@ export function Dashboard() {
 
           {monthlyTotal > 0 && (
             <section className="space-y-4">
-              <h2 className="text-[14px] font-black tracking-[-0.02em] text-foreground">ค่าใช้จ่าย 6 เดือน</h2>
-              <div className="rounded-[1.6rem] border border-white/6 bg-card/92 p-4 shadow-[0_18px_38px_-26px_rgba(0,0,0,0.95)]">
-                <ResponsiveContainer width="100%" height={168}>
+              <div>
+                <p className="text-[11px] font-medium tracking-[0.16em] text-muted-foreground uppercase">
+                  Spend rhythm
+                </p>
+                <h2 className="mt-1 text-[1.05rem] font-semibold tracking-[-0.03em] text-foreground">
+                  ค่าใช้จ่าย 6 เดือน
+                </h2>
+              </div>
+
+              <div className="rounded-[1.7rem] border border-white/8 bg-[linear-gradient(180deg,rgba(31,34,48,0.9),rgba(21,24,35,0.96))] p-4 shadow-[0_22px_42px_-28px_rgba(0,0,0,1)]">
+                <ResponsiveContainer width="100%" height={176}>
                   <BarChart data={chartData} barSize={20}>
                     <XAxis
                       dataKey="name"
@@ -194,11 +275,11 @@ export function Dashboard() {
                       contentStyle={{
                         backgroundColor: 'var(--color-card)',
                         border: '1px solid var(--color-border)',
-                        borderRadius: '12px',
+                        borderRadius: '14px',
                         fontSize: '12px',
                       }}
                     />
-                    <Bar dataKey="amount" radius={[6, 6, 0, 0]} fill="var(--color-primary)" />
+                    <Bar dataKey="amount" radius={[7, 7, 0, 0]} fill="var(--color-primary)" />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -207,16 +288,28 @@ export function Dashboard() {
 
           {overdue.length > 0 && (
             <section className="space-y-4">
-              <h2 className="text-[14px] font-black tracking-[-0.02em] text-destructive">งานเกินกำหนด</h2>
+              <div>
+                <p className="text-[11px] font-medium tracking-[0.16em] text-red-300/80 uppercase">
+                  Needs attention
+                </p>
+                <h2 className="mt-1 text-[1.05rem] font-semibold tracking-[-0.03em] text-red-300">
+                  งานเกินกำหนด
+                </h2>
+              </div>
+
               <div className="space-y-3">
                 {overdue.map((task) => (
                   <div
                     key={task.id}
-                    className="rounded-[1.45rem] border border-red-900/60 bg-red-950/20 p-4 shadow-[0_18px_38px_-26px_rgba(0,0,0,0.95)]"
+                    className="rounded-[1.45rem] border border-red-900/55 bg-[linear-gradient(180deg,rgba(64,22,30,0.86),rgba(34,18,22,0.92))] p-4 shadow-[0_20px_40px_-28px_rgba(0,0,0,1)]"
                   >
-                    <p className="text-sm font-semibold text-foreground">{task.title}</p>
-                    <p className="mt-1 text-xs text-destructive">
-                      {new Date(task.dueDate).toLocaleDateString('th-TH', { day: 'numeric', month: 'short' })}
+                    <p className="text-sm font-semibold tracking-[-0.02em] text-foreground">{task.title}</p>
+                    <p className="mt-2 text-xs text-red-300">
+                      ครบกำหนด{' '}
+                      {new Date(task.dueDate).toLocaleDateString('th-TH', {
+                        day: 'numeric',
+                        month: 'short',
+                      })}
                     </p>
                   </div>
                 ))}
