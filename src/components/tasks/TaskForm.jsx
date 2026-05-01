@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Sheet } from '@/components/ui/Sheet'
 import { Input, Textarea } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
@@ -7,17 +7,25 @@ import { useStore } from '@/store/useStore'
 
 const priorities = ['high', 'medium', 'low']
 
-export function TaskForm({ open, onClose, task }) {
-  const { addTask, updateTask, categories } = useStore()
-  const isEdit = !!task
-
-  const [form, setForm] = useState({
+function createInitialForm(task) {
+  return {
     title: task?.title || '',
     priority: task?.priority || 'medium',
     categoryId: task?.categoryId || '',
     dueDate: task?.dueDate ? task.dueDate.slice(0, 16) : '',
     note: task?.note || '',
-  })
+  }
+}
+
+export function TaskForm({ open, onClose, task }) {
+  const { addTask, updateTask, categories } = useStore()
+  const isEdit = !!task
+
+  const [form, setForm] = useState(() => createInitialForm(task))
+
+  useEffect(() => {
+    if (open) setForm(createInitialForm(task))
+  }, [open, task])
 
   const set = (key, val) => setForm((f) => ({ ...f, [key]: val }))
 

@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import { CreditCard, List, CalendarDays } from 'lucide-react'
 import { Sheet } from '@/components/ui/Sheet'
@@ -34,6 +34,20 @@ const POPULAR_SUBS = [
   { name: 'ChatGPT',          color: '#10a37f' },
   { name: 'Adobe',            color: '#FF0000' },
 ]
+
+function createInitialSubForm(sub) {
+  return {
+    name: sub?.name || '',
+    amount: sub?.amount || '',
+    billingCycle: sub?.billingCycle || 'monthly',
+    nextBillingDate: sub?.nextBillingDate?.slice(0, 10) || '',
+    paymentMethod: sub?.paymentMethod || 'เดบิต',
+    status: sub?.status || 'active',
+    alertDays: sub?.alertDays || 3,
+    color: sub?.color || '#6b7280',
+    note: sub?.note || '',
+  }
+}
 
 /* ── Sub card ── */
 function SubCard({ sub, onTap, index = 0 }) {
@@ -110,17 +124,11 @@ function SubForm({ open, onClose, sub }) {
   const { addSubscription, updateSubscription } = useStore()
   const isEdit = !!sub
 
-  const [form, setForm] = useState({
-    name:            sub?.name            || '',
-    amount:          sub?.amount          || '',
-    billingCycle:    sub?.billingCycle    || 'monthly',
-    nextBillingDate: sub?.nextBillingDate?.slice(0, 10) || '',
-    paymentMethod:   sub?.paymentMethod   || 'เดบิต',
-    status:          sub?.status          || 'active',
-    alertDays:       sub?.alertDays       || 3,
-    color:           sub?.color           || '#6b7280',
-    note:            sub?.note            || '',
-  })
+  const [form, setForm] = useState(() => createInitialSubForm(sub))
+
+  useEffect(() => {
+    if (open) setForm(createInitialSubForm(sub))
+  }, [open, sub])
 
   const set = (key, val) => setForm((f) => ({ ...f, [key]: val }))
 

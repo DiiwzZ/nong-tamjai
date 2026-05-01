@@ -15,7 +15,9 @@ function loadFromStorage() {
 }
 
 function saveToStorage(data) {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)) } catch {}
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)) } catch {
+    // Ignore storage write failures, e.g. private mode or quota limits.
+  }
 }
 
 const initialState = {
@@ -94,6 +96,19 @@ export function StoreProvider({ children }) {
   const completeTask = (id) =>
     updateTask(id, { status: 'completed', completedAt: new Date().toISOString() })
 
+  const uncompleteTask = (id) =>
+    updateTask(id, { status: 'active', completedAt: null })
+
+  const toggleTaskComplete = (id) => {
+    const task = state.tasks.find((t) => t.id === id)
+    if (!task) return
+    if (task.status === 'completed') {
+      uncompleteTask(id)
+      return
+    }
+    completeTask(id)
+  }
+
   const archiveTask = (id) => updateTask(id, { status: 'archived' })
 
   // --- Subscriptions ---
@@ -136,7 +151,7 @@ export function StoreProvider({ children }) {
     ...state,
     uid,
     update,
-    addTask, updateTask, deleteTask, completeTask, archiveTask,
+    addTask, updateTask, deleteTask, completeTask, uncompleteTask, toggleTaskComplete, archiveTask,
     addSubscription, updateSubscription, deleteSubscription,
     addCategory,
   }

@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import { ArrowLeft, Search, X, ArchiveX, Check } from 'lucide-react'
 import { useStore } from '@/store/useStore'
-import { cn, formatDate } from '@/lib/utils'
+import { formatDate } from '@/lib/utils'
 
 const PRIORITY_ACCENT = {
   high:   { color: '#ef4444' },

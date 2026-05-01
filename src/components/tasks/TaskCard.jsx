@@ -15,7 +15,7 @@ const SPRING_SNAPPY = { type: 'spring', stiffness: 500, damping: 40 }
 const SPRING_BOUNCY = { type: 'spring', stiffness: 400, damping: 22 }
 
 export function TaskCard({ task, onTap, categories, onComplete }) {
-  const { completeTask, deleteTask } = useStore()
+  const { toggleTaskComplete, deleteTask } = useStore()
   const [dragging, setDragging] = useState(false)
   const x = useMotionValue(0)
 
@@ -50,7 +50,7 @@ export function TaskCard({ task, onTap, categories, onComplete }) {
   const handleComplete = (e) => {
     e.stopPropagation()
     if (task.status === 'active') onComplete?.(e)
-    completeTask(task.id)
+    toggleTaskComplete(task.id)
   }
 
   if (task.status === 'archived') return null
