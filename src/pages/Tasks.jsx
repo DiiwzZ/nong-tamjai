@@ -106,38 +106,51 @@ export function Tasks() {
       {confetti && <Confetti trigger={true} x={confetti.x} y={confetti.y} />}
 
       {/* Header */}
-      <div className="px-5 pb-4 bg-background sticky top-0 z-20 header-safe-top">
-        <div className="flex items-center justify-between mb-4">
-          <h1 className="text-xl font-bold text-foreground">น้องจด</h1>
-          <div className="flex gap-2">
-            <Button
-              variant="ghost"
-              size="icon"
+      <div className="px-5 pb-3 bg-background sticky top-0 z-20 header-safe-top">
+        {/* top row: greeting + actions */}
+        <div className="flex items-start justify-between mb-2">
+          <div>
+            <p className="text-xs font-medium text-muted-foreground mb-0.5">
+              {new Date().toLocaleDateString('th-TH', { weekday: 'long', day: 'numeric', month: 'long' })}
+            </p>
+            <h1 className="text-2xl font-bold text-foreground leading-tight">
+              {active.length > 0
+                ? <>มี <span className="text-primary">{active.length} งาน</span><br />รอน้องจัดการ</>
+                : <>น้องว่าง<br />ไม่มีงานเลย 🎉</>
+              }
+            </h1>
+          </div>
+          <div className="flex items-center gap-1.5 mt-1">
+            <motion.button
+              whileTap={{ scale: 0.85 }}
               onClick={() => setShowArchivePage(true)}
-              className="text-muted-foreground"
+              className="w-9 h-9 rounded-xl flex items-center justify-center bg-muted text-muted-foreground"
             >
-              <ArchiveIcon size={20} />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
+              <ArchiveIcon size={17} />
+            </motion.button>
+            <motion.button
+              whileTap={{ scale: 0.85 }}
               onClick={() => setSearchOpen((v) => !v)}
-              className={cn(searchOpen && 'bg-primary/10 text-primary')}
+              className={cn(
+                'w-9 h-9 rounded-xl flex items-center justify-center transition-colors',
+                searchOpen ? 'bg-primary text-white' : 'bg-muted text-muted-foreground'
+              )}
             >
-              <Search size={20} />
-            </Button>
+              <Search size={17} />
+            </motion.button>
             <motion.button
               whileTap={{ scale: 0.85 }}
               onClick={() => update({ darkMode: !darkMode })}
               className="w-9 h-9 rounded-xl flex items-center justify-center bg-muted text-muted-foreground"
             >
               <motion.div key={darkMode ? 'moon' : 'sun'} initial={{ rotate: -30, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} transition={{ duration: 0.2 }}>
-                {darkMode ? <Sun size={18} /> : <Moon size={18} />}
+                {darkMode ? <Sun size={17} /> : <Moon size={17} />}
               </motion.div>
             </motion.button>
           </div>
         </div>
 
+        {/* search bar */}
         <AnimatePresence>
           {searchOpen && (
             <motion.div
@@ -146,14 +159,14 @@ export function Tasks() {
               exit={{ height: 0, opacity: 0 }}
               className="overflow-hidden mb-3"
             >
-              <div className="relative">
-                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+              <div className="relative mt-2">
+                <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
                 <input
                   autoFocus
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  placeholder="ค้นหา task..."
-                  className="w-full h-10 pl-9 pr-9 rounded-xl border border-border bg-card text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
+                  placeholder="ค้นหางาน..."
+                  className="w-full h-11 pl-10 pr-9 rounded-2xl border border-border bg-card text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
                 />
                 {search && (
                   <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2">
@@ -165,22 +178,32 @@ export function Tasks() {
           )}
         </AnimatePresence>
 
-        {/* Priority filter */}
-        <div className="flex gap-2 overflow-x-auto no-scrollbar">
-          {FILTERS.map((f) => (
-            <button
-              key={f}
-              onClick={() => setFilter(f)}
-              className={cn(
-                'flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all',
-                filter === f
-                  ? 'bg-primary text-white'
-                  : 'bg-muted text-muted-foreground'
-              )}
-            >
-              {f}
-            </button>
-          ))}
+        {/* Priority filter pills */}
+        <div className="flex gap-2 mt-3 overflow-x-auto no-scrollbar">
+          {FILTERS.map((f) => {
+            const isActive = filter === f
+            const colors = {
+              'ทั้งหมด': 'bg-primary shadow-primary/30',
+              'สูง':     'bg-red-500 shadow-red-500/30',
+              'กลาง':    'bg-amber-500 shadow-amber-500/30',
+              'ต่ำ':     'bg-emerald-500 shadow-emerald-500/30',
+            }
+            return (
+              <motion.button
+                key={f}
+                onClick={() => setFilter(f)}
+                whileTap={{ scale: 0.93 }}
+                className={cn(
+                  'flex-shrink-0 px-4 py-1.5 rounded-full text-[13px] font-bold transition-all duration-200',
+                  isActive
+                    ? `${colors[f]} text-white shadow-lg`
+                    : 'bg-muted text-muted-foreground border border-border/60'
+                )}
+              >
+                {f}
+              </motion.button>
+            )
+          })}
         </div>
       </div>
 
@@ -193,15 +216,19 @@ export function Tasks() {
         ) : (
           <>
             {groups.map((group) => (
-              <div key={group.label} className="mb-5">
+              <div key={group.label} className="mb-6">
                 <div className={cn(
-                  'flex items-center gap-2 mb-3',
-                  group.overdue && 'text-destructive'
+                  'flex items-center justify-between mb-3',
                 )}>
-                  <span className="text-xs font-semibold uppercase tracking-wider">
+                  <span className={cn(
+                    'text-[13px] font-bold tracking-wide',
+                    group.overdue ? 'text-destructive' : 'text-foreground'
+                  )}>
                     {group.label}
                   </span>
-                  <span className="text-xs text-muted-foreground">{group.tasks.length}</span>
+                  <span className="text-xs text-muted-foreground font-medium">
+                    ดูทั้งหมด
+                  </span>
                 </div>
                 <AnimatePresence>
                   {group.tasks.map((task, i) => (

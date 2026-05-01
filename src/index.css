@@ -1,50 +1,52 @@
 @import "tailwindcss";
 
 @theme {
-  --color-background: hsl(0 0% 100%);
-  --color-foreground: hsl(222 47% 11%);
+  /* Light mode — clean off-white */
+  --color-background: hsl(240 20% 97%);
+  --color-foreground: hsl(240 15% 10%);
   --color-card: hsl(0 0% 100%);
-  --color-card-foreground: hsl(222 47% 11%);
-  --color-border: hsl(214 32% 91%);
-  --color-input: hsl(214 32% 91%);
-  --color-primary: hsl(221 83% 53%);
+  --color-card-foreground: hsl(240 15% 10%);
+  --color-border: hsl(240 10% 90%);
+  --color-input: hsl(240 10% 92%);
+  --color-primary: hsl(217 91% 60%);
   --color-primary-foreground: hsl(0 0% 100%);
-  --color-muted: hsl(210 40% 96%);
-  --color-muted-foreground: hsl(215 16% 47%);
-  --color-accent: hsl(210 40% 96%);
-  --color-accent-foreground: hsl(222 47% 11%);
+  --color-muted: hsl(240 12% 93%);
+  --color-muted-foreground: hsl(240 8% 52%);
+  --color-accent: hsl(217 91% 60%);
+  --color-accent-foreground: hsl(0 0% 100%);
   --color-destructive: hsl(0 84% 60%);
   --radius: 0.75rem;
 
-  --color-priority-high-bg: hsl(0 93% 94%);
-  --color-priority-high-text: hsl(0 72% 51%);
-  --color-priority-medium-bg: hsl(48 96% 89%);
-  --color-priority-medium-text: hsl(32 95% 44%);
-  --color-priority-low-bg: hsl(138 76% 90%);
-  --color-priority-low-text: hsl(142 71% 45%);
+  --color-priority-high-bg: hsl(0 63% 18%);
+  --color-priority-high-text: hsl(0 84% 70%);
+  --color-priority-medium-bg: hsl(32 81% 18%);
+  --color-priority-medium-text: hsl(38 96% 65%);
+  --color-priority-low-bg: hsl(142 50% 16%);
+  --color-priority-low-text: hsl(142 76% 55%);
 }
 
 .dark {
-  --color-background: hsl(222 47% 7%);
-  --color-foreground: hsl(210 40% 98%);
-  --color-card: hsl(222 47% 11%);
-  --color-card-foreground: hsl(210 40% 98%);
-  --color-border: hsl(217 33% 17%);
-  --color-input: hsl(217 33% 17%);
+  /* Dark mode — warm near-black */
+  --color-background: hsl(240 12% 8%);
+  --color-foreground: hsl(240 15% 95%);
+  --color-card: hsl(240 10% 13%);
+  --color-card-foreground: hsl(240 15% 95%);
+  --color-border: hsl(240 8% 20%);
+  --color-input: hsl(240 8% 18%);
   --color-primary: hsl(217 91% 60%);
-  --color-primary-foreground: hsl(222 47% 11%);
-  --color-muted: hsl(217 33% 17%);
-  --color-muted-foreground: hsl(215 20% 65%);
-  --color-accent: hsl(217 33% 17%);
-  --color-accent-foreground: hsl(210 40% 98%);
-  --color-destructive: hsl(0 63% 50%);
+  --color-primary-foreground: hsl(0 0% 100%);
+  --color-muted: hsl(240 8% 18%);
+  --color-muted-foreground: hsl(240 8% 52%);
+  --color-accent: hsl(217 91% 60%);
+  --color-accent-foreground: hsl(0 0% 100%);
+  --color-destructive: hsl(0 72% 56%);
 
-  --color-priority-high-bg: hsl(0 63% 15%);
+  --color-priority-high-bg: hsl(0 63% 18%);
   --color-priority-high-text: hsl(0 84% 70%);
-  --color-priority-medium-bg: hsl(32 81% 15%);
-  --color-priority-medium-text: hsl(48 96% 65%);
-  --color-priority-low-bg: hsl(142 50% 13%);
-  --color-priority-low-text: hsl(138 76% 60%);
+  --color-priority-medium-bg: hsl(32 81% 18%);
+  --color-priority-medium-text: hsl(38 96% 65%);
+  --color-priority-low-bg: hsl(142 50% 16%);
+  --color-priority-low-text: hsl(142 76% 55%);
 }
 
 * {
@@ -69,29 +71,35 @@ body {
   max-width: 430px;
   margin: 0 auto;
   position: relative;
+  /* horizontal safe-area: กันเนื้อหาติดขอบโค้งของ iPhone */
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
 }
 
 /* Safe-area utilities */
 .safe-top   { padding-top: env(safe-area-inset-top, 0px); }
 
-/* Sticky page headers: design padding + safe area, whichever is larger */
+/* Sticky page headers: design padding + safe area, whichever is larger
+   standalone mode: safe-area-inset-top ≈ 47–59px (notch/Dynamic Island)
+   ดังนั้น max() เลือกค่าที่มากกว่าเสมอ */
 .header-safe-top {
-  padding-top: max(3.5rem, calc(env(safe-area-inset-top, 0px) + 0.75rem));
+  padding-top: max(3.5rem, calc(env(safe-area-inset-top, 0px) + 1rem));
 }
 
-/* Scrollable content areas: clear the floating nav + home indicator */
+/* Scrollable content areas: clear the floating nav + home indicator
+   nav card สูงประมาณ 64px + safe-area-inset-bottom (34px) + เผื่อ 8px */
 .safe-bottom {
-  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 5.5rem);
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 5rem);
 }
 
-/* Bottom nav element: just push above the home indicator */
+/* Bottom nav: แนบขอบล่างพอดี ให้ nav card นั่งเหนือ home indicator */
 .nav-safe {
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
-/* FAB positioning: above the nav card + home indicator */
-.fab-bottom      { bottom: calc(env(safe-area-inset-bottom, 0px) + 5rem); }
-.fab-menu-bottom { bottom: calc(env(safe-area-inset-bottom, 0px) + 9rem); }
+/* FAB positioning: ลอยเหนือ nav card + home indicator */
+.fab-bottom      { bottom: calc(env(safe-area-inset-bottom, 0px) + 5.5rem); }
+.fab-menu-bottom { bottom: calc(env(safe-area-inset-bottom, 0px) + 9.5rem); }
 
 html { scroll-behavior: smooth; }
 

@@ -11,8 +11,9 @@ const tabs = [
 export function BottomNav({ active, onChange }) {
   return (
     <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] z-30 nav-safe">
-      <div className="mx-3 mb-2 bg-card/90 backdrop-blur-2xl border border-border/60 rounded-2xl shadow-xl shadow-black/10 dark:shadow-black/40">
-        <div className="flex items-center justify-around px-2 py-2">
+      {/* nav card — แนบกับ home indicator พอดี ไม่มี mb */}
+      <div className="mx-3 bg-card/95 backdrop-blur-2xl border border-border/80 rounded-2xl shadow-2xl shadow-black/20 dark:shadow-black/60">
+        <div className="flex items-center justify-around px-2 py-1">
           {tabs.map(({ id, label, icon: Icon }) => {
             const isActive = active === id
             return (
@@ -20,7 +21,7 @@ export function BottomNav({ active, onChange }) {
                 key={id}
                 onClick={() => onChange(id)}
                 className={cn(
-                  'relative flex flex-col items-center gap-1 px-5 py-1.5 rounded-xl transition-colors duration-200 select-none flex-1',
+                  'relative flex flex-col items-center gap-1 px-5 py-3 rounded-xl transition-all duration-200 select-none flex-1',
                   isActive ? 'text-primary' : 'text-muted-foreground'
                 )}
               >
@@ -32,13 +33,13 @@ export function BottomNav({ active, onChange }) {
                   />
                 )}
                 <Icon
-                  size={20}
+                  size={22}
                   strokeWidth={isActive ? 2.5 : 1.8}
-                  className="relative z-10 transition-transform duration-200"
+                  className="relative z-10 transition-all duration-200"
                 />
                 <span className={cn(
-                  'relative z-10 text-[10px] font-semibold tracking-wide transition-all duration-200',
-                  isActive ? 'opacity-100' : 'opacity-50'
+                  'relative z-10 text-[11px] font-bold tracking-wide transition-all duration-200',
+                  isActive ? 'opacity-100' : 'opacity-40'
                 )}>
                   {label}
                 </span>
