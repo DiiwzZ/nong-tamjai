@@ -2,44 +2,48 @@ import { motion } from 'motion/react'
 import { CheckSquare, CreditCard, LayoutDashboard } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-const tabs = [
-  { id: 'tasks', label: 'งาน', icon: CheckSquare },
-  { id: 'subscriptions', label: 'น้องเตือน', icon: CreditCard },
-  { id: 'dashboard', label: 'ภาพรวม', icon: LayoutDashboard },
+const TABS = [
+  { id: 'tasks',         icon: CheckSquare,     label: 'งาน'  },
+  { id: 'subscriptions', icon: CreditCard,      label: 'จ่าย' },
+  { id: 'dashboard',     icon: LayoutDashboard, label: 'สรุป' },
 ]
 
 export function BottomNav({ active, onChange }) {
   return (
     <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] z-30 nav-safe">
-      {/* nav card — แนบกับ home indicator พอดี ไม่มี mb */}
-      <div className="mx-3 bg-card/95 backdrop-blur-2xl border border-border/80 rounded-2xl shadow-2xl shadow-black/20 dark:shadow-black/60">
-        <div className="flex items-center justify-around px-2 py-1">
-          {tabs.map(({ id, label, icon: Icon }) => {
+      <div className="mx-3 mb-2 bg-card/92 backdrop-blur-2xl border border-border rounded-2xl shadow-[0_-1px_0_rgba(255,255,255,0.04),0_12px_40px_-8px_rgba(0,0,0,0.5)]">
+        <div className="flex items-center">
+          {TABS.map(({ id, label, icon: Icon }) => {
             const isActive = active === id
             return (
               <button
                 key={id}
                 onClick={() => onChange(id)}
-                className={cn(
-                  'relative flex flex-col items-center gap-1 px-5 py-3 rounded-xl transition-all duration-200 select-none flex-1',
-                  isActive ? 'text-primary' : 'text-muted-foreground'
-                )}
+                className="relative flex-1 flex flex-col items-center justify-center py-3 gap-1 select-none"
               >
+                {/* Sliding pill */}
                 {isActive && (
-                  <motion.div
+                  <motion.span
                     layoutId="nav-pill"
-                    className="absolute inset-0 bg-primary/10 rounded-xl"
-                    transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                    className="absolute inset-x-4 inset-y-1.5 rounded-xl bg-primary/12"
+                    transition={{ type: 'spring', stiffness: 400, damping: 34 }}
                   />
                 )}
-                <Icon
-                  size={22}
-                  strokeWidth={isActive ? 2.5 : 1.8}
-                  className="relative z-10 transition-all duration-200"
-                />
+
+                <motion.span
+                  animate={{ scale: isActive ? 1.1 : 1 }}
+                  transition={{ type: 'spring', stiffness: 400, damping: 28 }}
+                  className={cn(
+                    'relative z-10 transition-colors duration-150',
+                    isActive ? 'text-primary' : 'text-muted-foreground'
+                  )}
+                >
+                  <Icon size={22} strokeWidth={isActive ? 2.2 : 1.8} />
+                </motion.span>
+
                 <span className={cn(
-                  'relative z-10 text-[11px] font-bold tracking-wide transition-all duration-200',
-                  isActive ? 'opacity-100' : 'opacity-40'
+                  'relative z-10 text-[11px] font-bold transition-colors duration-150',
+                  isActive ? 'text-primary' : 'text-muted-foreground opacity-50'
                 )}>
                   {label}
                 </span>

@@ -1,7 +1,6 @@
 import { useState, useMemo, useEffect } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
-import { Search, CheckCircle2, Archive as ArchiveIcon, X, ClipboardList, Moon, Sun, Sparkles } from 'lucide-react'
-import { Button } from '@/components/ui/Button'
+import { Search, Archive as ArchiveIcon, X, Moon, Sun, Sparkles, ChevronDown } from 'lucide-react'
 import { TaskCard } from '@/components/tasks/TaskCard'
 import { TaskForm } from '@/components/tasks/TaskForm'
 import { Confetti } from '@/components/ui/Confetti'
@@ -13,37 +12,87 @@ import { useStore } from '@/store/useStore'
 
 const FILTERS = ['ทั้งหมด', 'สูง', 'กลาง', 'ต่ำ']
 const PRIORITY_MAP = { สูง: 'high', กลาง: 'medium', ต่ำ: 'low' }
+const PILL_BG = {
+  'ทั้งหมด': 'bg-primary',
+  'สูง':     'bg-red-500',
+  'กลาง':    'bg-amber-500',
+  'ต่ำ':     'bg-emerald-500',
+}
 
+/* ── Progress ring ── SVG donut showing done/total ratio */
+function ProgressRing({ done, total }) {
+  const size = 56, stroke = 4.5
+  const r    = (size - stroke) / 2
+  const circ = 2 * Math.PI * r
+  const pct  = total === 0 ? 0 : done / total
+
+  return (
+    <div className="relative flex-shrink-0">
+      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="-rotate-90">
+        <circle
+          cx={size / 2} cy={size / 2} r={r}
+          fill="none" strokeWidth={stroke}
+          stroke="var(--color-muted)"
+        />
+        <motion.circle
+          cx={size / 2} cy={size / 2} r={r}
+          fill="none" strokeWidth={stroke}
+          strokeLinecap="round"
+          strokeDasharray={circ}
+          initial={{ strokeDashoffset: circ }}
+          animate={{ strokeDashoffset: circ * (1 - pct) }}
+          transition={{ duration: 1.2, ease: 'easeOut', delay: 0.3 }}
+          stroke="var(--color-primary)"
+        />
+      </svg>
+      <div className="absolute inset-0 flex flex-col items-center justify-center gap-px">
+        <span className="text-[11px] font-black text-foreground leading-none">{done}</span>
+        <span className="text-[9px] font-medium text-muted-foreground leading-none">/{total}</span>
+      </div>
+    </div>
+  )
+}
+
+/* ── Empty state — floating icon ── */
 function EmptyState() {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 24 }}
       animate={{ opacity: 1, y: 0 }}
-      className="flex flex-col items-center justify-center gap-4 py-20 text-center"
+      transition={{ type: 'spring', stiffness: 280, damping: 26 }}
+      className="flex flex-col items-center justify-center gap-5 py-24 text-center"
     >
-      <div className="w-20 h-20 rounded-2xl bg-primary/10 flex items-center justify-center">
-        <ClipboardList size={36} className="text-primary" />
-      </div>
+      <motion.div
+        animate={{ y: [0, -10, 0] }}
+        transition={{ duration: 3.5, repeat: Infinity, ease: 'easeInOut' }}
+        className="w-24 h-24 rounded-3xl bg-primary/10 border border-primary/20 flex items-center justify-center"
+      >
+        <Sparkles size={38} className="text-primary" />
+      </motion.div>
       <div>
-        <p className="font-semibold text-foreground">ยังไม่มีงานเลย น้องว่างงานแระ</p>
-        <p className="text-sm text-muted-foreground mt-1">กด + ให้น้องจดงานแรก</p>
+        <p className="text-xl font-black text-foreground tracking-tight">ว่างงานแล้ว</p>
+        <p className="text-sm text-muted-foreground mt-1.5 font-medium">กด + เพื่อเพิ่มงานแรก</p>
       </div>
     </motion.div>
   )
 }
 
 export function Tasks() {
-  const { tasks, categories, archiveTask, darkMode, update } = useStore()
-  const [formOpen, setFormOpen] = useState(false)
-  const [editTask, setEditTask] = useState(null)
-  const [search, setSearch] = useState('')
-  const [searchOpen, setSearchOpen] = useState(false)
-  const [filter, setFilter] = useState('ทั้งหมด')
+  const { tasks, categories, darkMode, update } = useStore()
+  const [formOpen, setFormOpen]         = useState(false)
+  const [editTask, setEditTask]         = useState(null)
+  const [search, setSearch]             = useState('')
+  const [searchOpen, setSearchOpen]     = useState(false)
+  const [filter, setFilter]             = useState('ทั้งหมด')
   const [showCompleted, setShowCompleted] = useState(false)
   const [showArchivePage, setShowArchivePage] = useState(false)
-  const [confetti, setConfetti] = useState(null)
-  const [loading, setLoading] = useState(true)
-  useEffect(() => { const t = setTimeout(() => setLoading(false), 400); return () => clearTimeout(t) }, [])
+  const [confetti, setConfetti]         = useState(null)
+  const [loading, setLoading]           = useState(true)
+
+  useEffect(() => {
+    const t = setTimeout(() => setLoading(false), 400)
+    return () => clearTimeout(t)
+  }, [])
 
   const triggerConfetti = (e) => {
     const rect = e.currentTarget?.getBoundingClientRect?.()
@@ -63,27 +112,17 @@ export function Tasks() {
   }, [tasks, filter, search])
 
   const completed = useMemo(() => tasks.filter((t) => t.status === 'completed'), [tasks])
-  const archived = useMemo(() => tasks.filter((t) => t.status === 'archived'), [tasks])
+  const nonArchived = useMemo(() => tasks.filter((t) => t.status !== 'archived'), [tasks])
 
-  const handleTap = (task) => {
-    setEditTask(task)
-    setFormOpen(true)
-  }
-
-  const openNew = () => {
-    setEditTask(null)
-    setFormOpen(true)
-  }
-
-  // Group active tasks by date
+  /* Group active tasks by time bucket */
   const groups = useMemo(() => {
-    const today = new Date().toDateString()
+    const today    = new Date().toDateString()
     const tomorrow = new Date(Date.now() + 86400000).toDateString()
 
-    const overdue = active.filter((t) => t.dueDate && new Date(t.dueDate) < new Date())
-    const todayTasks = active.filter((t) => t.dueDate && new Date(t.dueDate).toDateString() === today && !overdue.includes(t))
-    const tomorrowTasks = active.filter((t) => t.dueDate && new Date(t.dueDate).toDateString() === tomorrow)
-    const upcoming = active.filter((t) => {
+    const overdue    = active.filter((t) => t.dueDate && new Date(t.dueDate) < new Date())
+    const todayList  = active.filter((t) => t.dueDate && new Date(t.dueDate).toDateString() === today && !overdue.includes(t))
+    const tmrwList   = active.filter((t) => t.dueDate && new Date(t.dueDate).toDateString() === tomorrow)
+    const upcoming   = active.filter((t) => {
       if (!t.dueDate) return false
       const d = new Date(t.dueDate)
       return d.toDateString() !== today && d.toDateString() !== tomorrow && d > new Date()
@@ -91,13 +130,16 @@ export function Tasks() {
     const noDue = active.filter((t) => !t.dueDate)
 
     return [
-      overdue.length && { label: 'เกินกำหนด', tasks: overdue, overdue: true },
-      todayTasks.length && { label: 'วันนี้', tasks: todayTasks },
-      tomorrowTasks.length && { label: 'พรุ่งนี้', tasks: tomorrowTasks },
-      upcoming.length && { label: 'กำลังจะมาถึง', tasks: upcoming },
-      noDue.length && { label: 'ไม่มีกำหนด', tasks: noDue },
+      overdue.length   && { label: 'เกินกำหนด',       tasks: overdue,   overdue: true },
+      todayList.length && { label: 'วันนี้',           tasks: todayList },
+      tmrwList.length  && { label: 'พรุ่งนี้',         tasks: tmrwList },
+      upcoming.length  && { label: 'กำลังจะมาถึง',    tasks: upcoming },
+      noDue.length     && { label: 'ยังไม่ระบุเวลา',  tasks: noDue },
     ].filter(Boolean)
   }, [active])
+
+  const handleTap = (task) => { setEditTask(task); setFormOpen(true) }
+  const openNew   = () => { setEditTask(null); setFormOpen(true) }
 
   if (showArchivePage) return <Archive onBack={() => setShowArchivePage(false)} />
 
@@ -105,52 +147,66 @@ export function Tasks() {
     <div className="flex flex-col h-full">
       {confetti && <Confetti trigger={true} x={confetti.x} y={confetti.y} />}
 
-      {/* Header */}
-      <div className="px-5 pb-3 bg-background sticky top-0 z-20 header-safe-top">
-        {/* top row: greeting + actions */}
-        <div className="flex items-start justify-between mb-2">
-          <div>
-            <p className="text-xs font-medium text-muted-foreground mb-0.5">
-              {new Date().toLocaleDateString('th-TH', { weekday: 'long', day: 'numeric', month: 'long' })}
-            </p>
-            <h1 className="text-2xl font-bold text-foreground leading-tight">
-              {active.length > 0
-                ? <>มี <span className="text-primary">{active.length} งาน</span><br />รอน้องจัดการ</>
-                : <>น้องว่าง<br /><span className="inline-flex items-center gap-1.5">ไม่มีงานเลย <Sparkles size={18} className="text-primary" /></span></>
-              }
-            </h1>
-          </div>
-          <div className="flex items-center gap-1.5 mt-1">
+      {/* ══ Sticky Header ══ */}
+      <div className="px-5 bg-background sticky top-0 z-20 header-safe-top pb-0">
+
+        {/* Date row + action buttons */}
+        <div className="flex items-center justify-between mb-4">
+          <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-[0.1em]">
+            {new Date().toLocaleDateString('th-TH', { weekday: 'long', day: 'numeric', month: 'long' })}
+          </p>
+          <div className="flex items-center gap-1.5">
             <motion.button
               whileTap={{ scale: 0.85 }}
               onClick={() => setShowArchivePage(true)}
-              className="w-9 h-9 rounded-xl flex items-center justify-center bg-muted text-muted-foreground"
+              className="w-8 h-8 rounded-xl flex items-center justify-center bg-muted text-muted-foreground"
             >
-              <ArchiveIcon size={17} />
+              <ArchiveIcon size={15} />
             </motion.button>
             <motion.button
               whileTap={{ scale: 0.85 }}
               onClick={() => setSearchOpen((v) => !v)}
               className={cn(
-                'w-9 h-9 rounded-xl flex items-center justify-center transition-colors',
+                'w-8 h-8 rounded-xl flex items-center justify-center transition-colors',
                 searchOpen ? 'bg-primary text-white' : 'bg-muted text-muted-foreground'
               )}
             >
-              <Search size={17} />
+              <Search size={15} />
             </motion.button>
             <motion.button
               whileTap={{ scale: 0.85 }}
               onClick={() => update({ darkMode: !darkMode })}
-              className="w-9 h-9 rounded-xl flex items-center justify-center bg-muted text-muted-foreground"
+              className="w-8 h-8 rounded-xl flex items-center justify-center bg-muted text-muted-foreground"
             >
-              <motion.div key={darkMode ? 'moon' : 'sun'} initial={{ rotate: -30, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} transition={{ duration: 0.2 }}>
-                {darkMode ? <Sun size={17} /> : <Moon size={17} />}
+              <motion.div
+                key={darkMode ? 'moon' : 'sun'}
+                initial={{ rotate: -30, opacity: 0 }}
+                animate={{ rotate: 0, opacity: 1 }}
+                transition={{ duration: 0.2 }}
+              >
+                {darkMode ? <Sun size={15} /> : <Moon size={15} />}
               </motion.div>
             </motion.button>
           </div>
         </div>
 
-        {/* search bar */}
+        {/* Hero: big count + progress ring */}
+        <div className="flex items-end justify-between mb-4">
+          <div>
+            <h1 className="text-5xl font-black tracking-tighter leading-none text-foreground">
+              {active.length > 0
+                ? <>{active.length}<span className="text-primary"> งาน</span></>
+                : <span className="text-3xl">ว่างแล้ว</span>
+              }
+            </h1>
+            <p className="text-[13px] text-muted-foreground mt-2 font-medium">
+              {active.length > 0 ? 'รอน้องจัดการ' : 'ไม่มีงานเลยวันนี้'}
+            </p>
+          </div>
+          <ProgressRing done={completed.length} total={nonArchived.length} />
+        </div>
+
+        {/* Search bar (collapse) */}
         <AnimatePresence>
           {searchOpen && (
             <motion.div
@@ -159,18 +215,18 @@ export function Tasks() {
               exit={{ height: 0, opacity: 0 }}
               className="overflow-hidden mb-3"
             >
-              <div className="relative mt-2">
-                <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+              <div className="relative">
+                <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
                 <input
                   autoFocus
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder="ค้นหางาน..."
-                  className="w-full h-11 pl-10 pr-9 rounded-2xl border border-border bg-card text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
+                  className="w-full h-10 pl-10 pr-8 rounded-2xl border border-border bg-card text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
                 />
                 {search && (
                   <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2">
-                    <X size={14} className="text-muted-foreground" />
+                    <X size={13} className="text-muted-foreground" />
                   </button>
                 )}
               </div>
@@ -178,28 +234,20 @@ export function Tasks() {
           )}
         </AnimatePresence>
 
-        {/* Priority filter pills */}
-        {/* ui-animation: layoutId shared element — pill background slides between filters */}
-        <div className="flex gap-2 mt-3 overflow-x-auto no-scrollbar">
+        {/* Filter pills — layoutId sliding background */}
+        <div className="flex gap-1.5 pb-3 overflow-x-auto no-scrollbar">
           {FILTERS.map((f) => {
             const isActive = filter === f
-            const PILL_BG = {
-              'ทั้งหมด': 'bg-primary shadow-lg shadow-primary/30',
-              'สูง':     'bg-red-500 shadow-lg shadow-red-500/30',
-              'กลาง':    'bg-amber-500 shadow-lg shadow-amber-500/30',
-              'ต่ำ':     'bg-emerald-500 shadow-lg shadow-emerald-500/30',
-            }
             return (
               <motion.button
                 key={f}
                 onClick={() => setFilter(f)}
                 whileTap={{ scale: 0.93 }}
                 className={cn(
-                  'relative flex-shrink-0 px-4 py-1.5 rounded-full text-[13px] font-bold transition-colors duration-150',
-                  isActive ? 'text-white' : 'bg-muted text-muted-foreground border border-border/60'
+                  'relative flex-shrink-0 px-3.5 py-1.5 rounded-full text-[12px] font-bold transition-colors duration-150',
+                  isActive ? 'text-white' : 'bg-muted text-muted-foreground'
                 )}
               >
-                {/* taste-skill: sliding pill — layoutId keeps one background shared across all buttons */}
                 {isActive && (
                   <motion.span
                     layoutId="active-filter-bg"
@@ -214,25 +262,30 @@ export function Tasks() {
         </div>
       </div>
 
-      {/* Task list */}
-      <div className="flex-1 overflow-y-auto no-scrollbar px-5 safe-bottom">
+      {/* ══ Task list ══ */}
+      <div className="flex-1 overflow-y-auto no-scrollbar px-5 pt-1 safe-bottom">
         {loading ? (
-          <>{[0,1,2].map((i) => <TaskSkeleton key={i} />)}</>
+          <>{[0, 1, 2].map((i) => <TaskSkeleton key={i} />)}</>
         ) : groups.length === 0 && completed.length === 0 ? (
           <EmptyState />
         ) : (
           <>
             {groups.map((group) => (
-              <div key={group.label} className="mb-6">
-                <div className="flex items-center gap-2 mb-3">
+              <div key={group.label} className="mb-5">
+                {/* Section header: label — divider — count */}
+                <div className="flex items-center gap-2.5 mb-2.5">
                   <span className={cn(
-                    'text-[13px] font-bold tracking-wide',
-                    group.overdue ? 'text-destructive' : 'text-foreground'
+                    'text-[10px] font-black uppercase tracking-[0.1em] flex-shrink-0',
+                    group.overdue ? 'text-destructive' : 'text-muted-foreground'
                   )}>
                     {group.label}
                   </span>
+                  <div className={cn(
+                    'h-px flex-1',
+                    group.overdue ? 'bg-destructive/25' : 'bg-border'
+                  )} />
                   <span className={cn(
-                    'text-[10px] font-bold px-1.5 py-0.5 rounded-full',
+                    'text-[10px] font-bold px-1.5 py-0.5 rounded-full flex-shrink-0',
                     group.overdue
                       ? 'bg-destructive/15 text-destructive'
                       : 'bg-muted text-muted-foreground'
@@ -240,6 +293,7 @@ export function Tasks() {
                     {group.tasks.length}
                   </span>
                 </div>
+
                 <AnimatePresence>
                   {group.tasks.map((task, i) => (
                     <motion.div
@@ -248,28 +302,43 @@ export function Tasks() {
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, height: 0 }}
-                      transition={{ delay: i * 0.04, duration: 0.25 }}
+                      transition={{ delay: i * 0.04, duration: 0.22 }}
                     >
-                      <TaskCard task={task} onTap={handleTap} categories={categories} onComplete={triggerConfetti} />
+                      <TaskCard
+                        task={task}
+                        onTap={handleTap}
+                        categories={categories}
+                        onComplete={triggerConfetti}
+                      />
                     </motion.div>
                   ))}
                 </AnimatePresence>
               </div>
             ))}
 
-            {/* Completed section */}
+            {/* Completed section (collapsible) */}
             {completed.length > 0 && (
-              <div className="mb-5">
+              <div className="mb-6">
                 <button
                   onClick={() => setShowCompleted((v) => !v)}
-                  className="flex items-center gap-2 mb-3 text-muted-foreground"
+                  className="flex items-center gap-2.5 mb-2.5 w-full"
                 >
-                  <CheckCircle2 size={14} />
-                  <span className="text-xs font-semibold uppercase tracking-wider">
-                    เสร็จแล้ว ({completed.length})
+                  <span className="text-[10px] font-black uppercase tracking-[0.1em] text-muted-foreground flex-shrink-0">
+                    เสร็จแล้ว
                   </span>
-                  <span className="text-[10px] ml-auto">{showCompleted ? '▲' : '▼'}</span>
+                  <div className="h-px flex-1 bg-border" />
+                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground flex-shrink-0">
+                    {completed.length}
+                  </span>
+                  <motion.span
+                    animate={{ rotate: showCompleted ? 180 : 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="flex-shrink-0"
+                  >
+                    <ChevronDown size={13} className="text-muted-foreground" />
+                  </motion.span>
                 </button>
+
                 <AnimatePresence>
                   {showCompleted && completed.map((task) => (
                     <motion.div
