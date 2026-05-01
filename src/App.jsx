@@ -20,7 +20,7 @@ function AppInner() {
   const Page = PAGES[tab]
 
   return (
-    <div className="relative h-svh overflow-hidden bg-background">
+    <div className="relative min-h-[calc(100svh-1.8rem)] overflow-hidden rounded-[2rem] border border-white/6 bg-background shadow-[0_30px_80px_-40px_rgba(0,0,0,0.95)]">
       <AnimatePresence>
         {!onboardingDone && <Onboarding />}
       </AnimatePresence>

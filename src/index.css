@@ -64,6 +64,7 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   letter-spacing: -0.01em;
+  min-height: 100svh;
 }
 
 #root {
@@ -71,9 +72,11 @@ body {
   max-width: 430px;
   margin: 0 auto;
   position: relative;
-  /* horizontal safe-area: กันเนื้อหาติดขอบโค้งของ iPhone */
-  padding-left: env(safe-area-inset-left, 0px);
-  padding-right: env(safe-area-inset-right, 0px);
+  /* add an outer app frame gap so screens don't touch the viewport edges */
+  padding-top: 0.9rem;
+  padding-bottom: 0.9rem;
+  padding-left: calc(env(safe-area-inset-left, 0px) + 0.9rem);
+  padding-right: calc(env(safe-area-inset-right, 0px) + 0.9rem);
 }
 
 /* Safe-area utilities */
