@@ -25,8 +25,8 @@ function EmptyState() {
         <ClipboardList size={36} className="text-primary" />
       </div>
       <div>
-        <p className="font-semibold text-foreground">ยังไม่มี Task</p>
-        <p className="text-sm text-muted-foreground mt-1">กดปุ่ม + เพื่อเพิ่ม task แรก</p>
+        <p className="font-semibold text-foreground">ยังไม่มีงานเลย น้องว่างงานแระ 🐣</p>
+        <p className="text-sm text-muted-foreground mt-1">กด + ให้น้องจดงานแรก</p>
       </div>
     </motion.div>
   )
@@ -108,7 +108,7 @@ export function Tasks() {
       {/* Header */}
       <div className="px-5 pt-14 pb-4 bg-background sticky top-0 z-20">
         <div className="flex items-center justify-between mb-4">
-          <h1 className="text-xl font-bold text-foreground">Tasks</h1>
+          <h1 className="text-xl font-bold text-foreground">น้องจด 📋</h1>
           <div className="flex gap-2">
             <Button
               variant="ghost"

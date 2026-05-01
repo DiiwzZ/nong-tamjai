@@ -1,7 +1,7 @@
 {
-  "name": "MyFlow",
-  "short_name": "MyFlow",
-  "description": "Personal Task & Subscription Manager",
+  "name": "น้องตามใจ",
+  "short_name": "น้องตามใจ",
+  "description": "น้องจัดให้ ไม่ต้องจำเอง",
   "start_url": "/",
   "display": "standalone",
   "orientation": "portrait",

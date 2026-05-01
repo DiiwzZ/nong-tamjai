@@ -59,7 +59,7 @@ export function Dashboard() {
 
   return (
     <div className="flex flex-col h-full overflow-y-auto no-scrollbar">
-      <Header title="ภาพรวม" />
+      <Header title="น้องสรุปให้ 📊" />
       <div className="px-5 pb-2">
         <p className="text-sm text-muted-foreground -mt-2 mb-2">
           {new Date().toLocaleDateString('th-TH', { weekday: 'long', day: 'numeric', month: 'long' })}

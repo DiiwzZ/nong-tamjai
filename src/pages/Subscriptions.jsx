@@ -286,7 +286,7 @@ export function Subscriptions() {
   return (
     <div className="flex flex-col h-full">
       <Header
-        title="Subscriptions"
+        title="น้องเตือน 💳"
         rightAction={
           subscriptions.length > 0 && (
             <div className="flex gap-1 bg-muted rounded-xl p-1">
@@ -332,8 +332,8 @@ export function Subscriptions() {
               <CreditCard size={36} className="text-primary" />
             </div>
             <div>
-              <p className="font-semibold text-foreground">ยังไม่มี Subscription</p>
-              <p className="text-sm text-muted-foreground mt-1">กดปุ่ม + เพื่อเพิ่มรายการแรก</p>
+              <p className="font-semibold text-foreground">ยังไม่มีรายจ่ายเลย น้องโล่งใจแทน 🐣</p>
+              <p className="text-sm text-muted-foreground mt-1">กด + ให้น้องช่วยติดตามค่าใช้จ่าย</p>
             </div>
           </motion.div>
         ) : view === 'calendar' ? (

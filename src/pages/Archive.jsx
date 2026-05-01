@@ -91,8 +91,8 @@ export function Archive({ onBack }) {
               <ArchiveX size={36} className="text-muted-foreground" />
             </div>
             <div>
-              <p className="font-semibold text-foreground">Archive ว่างเปล่า</p>
-              <p className="text-sm text-muted-foreground mt-1">Task ที่เสร็จแล้วจะมาอยู่ที่นี่</p>
+              <p className="font-semibold text-foreground">น้องหาไม่เจออ่ะ 🥺</p>
+              <p className="text-sm text-muted-foreground mt-1">งานที่เสร็จแล้วจะมาอยู่ที่นี่</p>
             </div>
           </motion.div>
         ) : (
