@@ -20,6 +20,7 @@ export function BottomNav({ active, onChange }) {
               <button
                 key={id}
                 onClick={() => onChange(id)}
+                aria-label={label}
                 className={cn(
                   'relative flex flex-col items-center gap-1.5 px-5 py-3 rounded-[1.1rem] transition-all duration-200 select-none flex-1',
                   isActive ? 'text-primary' : 'text-muted-foreground'

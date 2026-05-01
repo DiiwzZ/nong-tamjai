@@ -110,6 +110,7 @@ export function Tasks() {
               <motion.button
                 whileTap={{ scale: 0.85 }}
                 onClick={() => setShowArchivePage(true)}
+                aria-label="เปิดคลังงาน"
                 className="flex h-10 w-10 items-center justify-center rounded-[1rem] border border-white/6 bg-muted/68 text-muted-foreground"
               >
                 <ArchiveIcon size={17} />
@@ -118,6 +119,7 @@ export function Tasks() {
               <motion.button
                 whileTap={{ scale: 0.85 }}
                 onClick={() => setSearchOpen((v) => !v)}
+                aria-label={searchOpen ? 'ปิดการค้นหา' : 'เปิดการค้นหา'}
                 className={cn(
                   'flex h-10 w-10 items-center justify-center rounded-[1rem] border border-white/6 transition-colors',
                   searchOpen ? 'bg-primary text-white border-primary' : 'bg-muted/68 text-muted-foreground'
@@ -129,6 +131,7 @@ export function Tasks() {
               <motion.button
                 whileTap={{ scale: 0.85 }}
                 onClick={() => update({ darkMode: !darkMode })}
+                aria-label={darkMode ? 'สลับเป็นโหมดสว่าง' : 'สลับเป็นโหมดมืด'}
                 className="flex h-10 w-10 items-center justify-center rounded-[1rem] border border-white/6 bg-muted/68 text-amber-300"
               >
                 <motion.div
@@ -163,10 +166,10 @@ export function Tasks() {
               )}
             </h1>
             <div className="flex items-center gap-3 text-sm text-muted-foreground">
-              <span className="rounded-full border border-white/6 bg-muted/52 px-3 py-1.5 font-medium">
+              <span className="numeric-tabular rounded-full border border-white/6 bg-muted/52 px-3 py-1.5 font-medium">
                 ค้างอยู่ {active.length} งาน
               </span>
-              <span>{completed.length} งานเสร็จแล้ว</span>
+              <span className="numeric-tabular">{completed.length} งานเสร็จแล้ว</span>
             </div>
           </div>
 

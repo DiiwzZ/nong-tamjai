@@ -318,6 +318,7 @@ export function Subscriptions() {
                 <div className="flex items-center gap-1 rounded-[1rem] border border-white/6 bg-muted/52 p-1">
                   <button
                     onClick={() => setView('list')}
+                    aria-label="มุมมองรายการ"
                     className={cn(
                       'rounded-[0.9rem] p-1.5 transition-colors',
                       view === 'list' ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground'
@@ -327,6 +328,7 @@ export function Subscriptions() {
                   </button>
                   <button
                     onClick={() => setView('calendar')}
+                    aria-label="มุมมองปฏิทิน"
                     className={cn(
                       'rounded-[0.9rem] p-1.5 transition-colors',
                       view === 'calendar' ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground'
@@ -343,6 +345,7 @@ export function Subscriptions() {
                   setEditSub(null)
                   setFormOpen(true)
                 }}
+                aria-label="เพิ่ม subscription"
                 className="flex h-10 w-10 items-center justify-center rounded-[1rem] border border-primary bg-primary text-white"
               >
                 <Plus size={18} />
@@ -370,10 +373,10 @@ export function Subscriptions() {
               )}
             </h1>
             <div className="flex flex-wrap gap-3 text-sm text-muted-foreground">
-              <span className="rounded-full border border-white/6 bg-muted/52 px-3 py-1.5 font-medium">
+              <span className="numeric-tabular rounded-full border border-white/6 bg-muted/52 px-3 py-1.5 font-medium">
                 รายปี {formatCurrency(monthly * 12)}
               </span>
-              <span className="rounded-full border border-white/6 bg-muted/52 px-3 py-1.5 font-medium">
+              <span className="numeric-tabular rounded-full border border-white/6 bg-muted/52 px-3 py-1.5 font-medium">
                 {active.length} รายการ
               </span>
             </div>

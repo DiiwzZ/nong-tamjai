@@ -16,7 +16,7 @@ function StatCard({ icon: Icon, label, value, sub, color, index = 0 }) {
       <div className={cn('mb-4 flex h-10 w-10 items-center justify-center rounded-[0.95rem]', color)}>
         <Icon size={18} />
       </div>
-      <p className="text-[1.95rem] font-black leading-none tracking-[-0.045em] text-foreground">{value}</p>
+      <p className="numeric-tabular text-[1.95rem] font-black leading-none tracking-[-0.045em] text-foreground">{value}</p>
       <p className="mt-1.5 text-[11px] font-semibold text-muted-foreground">{label}</p>
       {sub && <p className="mt-0.5 text-[11px] text-muted-foreground">{sub}</p>}
     </motion.div>
@@ -72,6 +72,7 @@ export function Dashboard() {
 
             <motion.button
               whileTap={{ scale: 0.85 }}
+              aria-label="ดูสรุปภาพรวม"
               className="flex h-10 w-10 items-center justify-center rounded-[1rem] border border-white/6 bg-muted/68 text-primary"
             >
               <ChartNoAxesColumn size={17} />
@@ -90,10 +91,10 @@ export function Dashboard() {
               </span>
             </h1>
             <div className="flex flex-wrap gap-3 text-sm text-muted-foreground">
-              <span className="rounded-full border border-white/6 bg-muted/52 px-3 py-1.5 font-medium">
+              <span className="numeric-tabular rounded-full border border-white/6 bg-muted/52 px-3 py-1.5 font-medium">
                 วันนี้เสร็จ {completedToday.length} งาน
               </span>
-              <span className="rounded-full border border-white/6 bg-muted/52 px-3 py-1.5 font-medium">
+              <span className="numeric-tabular rounded-full border border-white/6 bg-muted/52 px-3 py-1.5 font-medium">
                 เกินกำหนด {overdue.length} งาน
               </span>
             </div>
