@@ -94,23 +94,23 @@ export function Tasks() {
 
       {/* Header */}
       <div className="px-5 pb-3 bg-background sticky top-0 z-20 header-safe-top">
-        <div className="flex items-start justify-between mb-3">
+        <div className="flex items-start justify-between mb-3.5">
           <div>
             <p className="text-xs font-medium text-muted-foreground mb-0.5">
               {new Date().toLocaleDateString('th-TH', { weekday: 'long', day: 'numeric', month: 'long' })}
             </p>
-            <h1 className="text-[2.35rem] font-black text-foreground leading-[0.96] tracking-[-0.04em]">
+            <h1 className="text-[2.25rem] font-black text-foreground leading-[0.96] tracking-[-0.04em]">
               {active.length > 0
                 ? <>มี <span className="text-primary">{active.length} งาน</span><br />รอน้องจัดการ</>
                 : <>น้องว่าง<br />ไม่มีงานเลย</>
               }
             </h1>
           </div>
-          <div className="flex items-center gap-2 mt-1.5">
+          <div className="flex items-center gap-2 mt-1">
             <motion.button
               whileTap={{ scale: 0.85 }}
               onClick={() => setShowArchivePage(true)}
-              className="w-9 h-9 rounded-2xl flex items-center justify-center bg-muted text-muted-foreground"
+              className="w-10 h-10 rounded-[18px] flex items-center justify-center bg-muted text-muted-foreground"
             >
               <ArchiveIcon size={17} />
             </motion.button>
@@ -118,7 +118,7 @@ export function Tasks() {
               whileTap={{ scale: 0.85 }}
               onClick={() => setSearchOpen((v) => !v)}
               className={cn(
-                'w-9 h-9 rounded-2xl flex items-center justify-center transition-colors',
+                'w-10 h-10 rounded-[18px] flex items-center justify-center transition-colors',
                 searchOpen ? 'bg-primary text-white' : 'bg-muted text-muted-foreground'
               )}
             >
@@ -127,7 +127,7 @@ export function Tasks() {
             <motion.button
               whileTap={{ scale: 0.85 }}
               onClick={() => update({ darkMode: !darkMode })}
-              className="w-9 h-9 rounded-2xl flex items-center justify-center bg-muted text-amber-300"
+              className="w-10 h-10 rounded-[18px] flex items-center justify-center bg-muted text-amber-300"
             >
               <motion.div key={darkMode ? 'moon' : 'sun'} initial={{ rotate: -30, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} transition={{ duration: 0.2 }}>
                 {darkMode ? <Sun size={17} /> : <Moon size={17} />}
@@ -145,7 +145,7 @@ export function Tasks() {
               exit={{ height: 0, opacity: 0 }}
               className="overflow-hidden mb-3"
             >
-              <div className="relative mt-2">
+              <div className="relative mt-1">
                 <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
                 <input
                   autoFocus
@@ -165,7 +165,7 @@ export function Tasks() {
         </AnimatePresence>
 
         {/* Priority filter pills */}
-        <div className="flex gap-2 mt-3 overflow-x-auto no-scrollbar">
+        <div className="flex gap-2 mt-2 overflow-x-auto no-scrollbar">
           {FILTERS.map((f) => {
             const isActive = filter === f
             const colors = {
@@ -180,10 +180,10 @@ export function Tasks() {
                 onClick={() => setFilter(f)}
                 whileTap={{ scale: 0.93 }}
                 className={cn(
-                  'flex-shrink-0 px-4 py-1.5 rounded-full text-[13px] font-bold transition-all duration-200',
+                  'flex-shrink-0 min-w-[62px] px-4 py-1.5 rounded-full text-[13px] font-bold transition-all duration-200',
                   isActive
                     ? `${colors[f]} text-white shadow-lg`
-                    : 'bg-muted text-muted-foreground border border-border/60'
+                    : 'bg-muted text-muted-foreground border border-border/60 shadow-[inset_0_1px_0_rgba(255,255,255,0.02)]'
                 )}
               >
                 {f}
@@ -205,8 +205,8 @@ export function Tasks() {
             <>{[0, 1, 2].map((i) => <TaskSkeleton key={i} />)}</>
           ) : (
             <>
-              <div className="flex items-center justify-between mb-3 pt-1">
-                <h2 className="text-[15px] font-black tracking-[-0.02em] text-foreground">งานที่ต้องทำ</h2>
+              <div className="flex items-center justify-between mb-3 pt-1.5">
+                <h2 className="text-[14px] font-black tracking-[-0.02em] text-foreground">งานที่ต้องทำ</h2>
                 <span className="text-[12px] font-bold text-primary">ดูทั้งหมด</span>
               </div>
 

@@ -5,9 +5,9 @@ import { cn, formatDate, isOverdue, daysUntil } from '@/lib/utils'
 import { useStore } from '@/store/useStore'
 
 const PRIORITY_PILL = {
-  high:   { label: 'สูง',   bg: 'bg-red-500',     text: 'text-white' },
-  medium: { label: 'กลาง',  bg: 'bg-amber-500',   text: 'text-white' },
-  low:    { label: 'ต่ำ',   bg: 'bg-emerald-500', text: 'text-white' },
+  high:   { label: 'สูง',   bg: 'bg-red-500',       text: 'text-white' },
+  medium: { label: 'กลาง',  bg: 'bg-amber-500',     text: 'text-white' },
+  low:    { label: 'ต่ำ',   bg: 'bg-emerald-500',   text: 'text-white' },
 }
 
 export function TaskCard({ task, onTap, categories, onComplete }) {
@@ -53,7 +53,7 @@ export function TaskCard({ task, onTap, categories, onComplete }) {
   if (task.status === 'archived') return null
 
   return (
-    <div className="relative overflow-hidden rounded-2xl mb-3">
+    <div className="relative overflow-hidden rounded-[22px] mb-3.5">
       <motion.div
         style={{ opacity: deleteOpacity }}
         className="absolute inset-y-0 right-0 w-20 flex items-center justify-center bg-destructive rounded-2xl"
@@ -71,19 +71,19 @@ export function TaskCard({ task, onTap, categories, onComplete }) {
         onClick={() => !dragging && onTap?.(task)}
         whileTap={{ scale: 0.985 }}
         className={cn(
-          'relative rounded-[22px] px-4 py-4 cursor-pointer select-none',
-          'bg-card border border-border/85 shadow-[0_10px_24px_-16px_rgba(0,0,0,0.85)]',
+          'relative rounded-[22px] px-4 py-4 cursor-pointer select-none min-h-[104px]',
+          'bg-card border border-border/80 shadow-[0_10px_24px_-18px_rgba(0,0,0,0.9)]',
           isDone && 'opacity-70'
         )}
       >
-        <div className="flex items-start gap-3">
+        <div className="flex items-start gap-3.5">
           <button
             onClick={handleComplete}
             className={cn(
               'mt-0.5 w-6 h-6 rounded-full border flex-shrink-0 flex items-center justify-center transition-all duration-200',
               isDone
                 ? 'bg-primary border-primary shadow-[0_0_0_4px_rgba(59,130,246,0.12)]'
-                : 'border-border/90 hover:border-primary/60 bg-background/20'
+                : 'border-border/80 hover:border-primary/60 bg-background/25'
             )}
           >
             {isDone && <Check size={12} strokeWidth={3} className="text-white" />}
@@ -92,16 +92,16 @@ export function TaskCard({ task, onTap, categories, onComplete }) {
           <div className="flex-1 min-w-0">
             {task.priority && !isDone && (
               <span className={cn(
-                'inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full mb-1.5 shadow-sm',
+                'inline-flex items-center gap-1 text-[10px] font-bold px-2 py-[3px] rounded-full mb-1.5 shadow-sm',
                 pill.bg, pill.text
               )}>
-                {task.priority === 'high' && <span className="text-[9px]">!</span>}
+                {task.priority === 'high' && <span className="text-[9px]">•</span>}
                 {pill.label}
               </span>
             )}
 
             <p className={cn(
-              'text-[15px] font-semibold leading-snug text-foreground tracking-[-0.01em]',
+              'text-[15px] font-semibold leading-snug text-foreground tracking-[-0.015em]',
               isDone && 'line-through text-muted-foreground'
             )}>
               {task.title}
@@ -113,11 +113,11 @@ export function TaskCard({ task, onTap, categories, onComplete }) {
               </p>
             )}
 
-            <div className="flex items-center justify-between mt-2">
+            <div className="flex items-center justify-between mt-2.5">
               <div className="flex items-center gap-2">
                 {task.dueDate && (
                   <span className={cn(
-                    'text-[11px] font-medium',
+                    'text-[11px] font-medium tabular-nums',
                     overdue ? 'text-destructive' : 'text-muted-foreground'
                   )}>
                     {dueLabelShort()}
@@ -127,9 +127,9 @@ export function TaskCard({ task, onTap, categories, onComplete }) {
 
               {category && (
                 <span
-                  className="text-[10px] font-semibold px-2 py-0.5 rounded-full"
+                  className="text-[10px] font-semibold px-2.5 py-[3px] rounded-full"
                   style={{
-                    backgroundColor: category.color + '1f',
+                    backgroundColor: category.color + '20',
                     color: category.color,
                   }}
                 >
