@@ -217,17 +217,20 @@ export function Tasks() {
           <>
             {groups.map((group) => (
               <div key={group.label} className="mb-6">
-                <div className={cn(
-                  'flex items-center justify-between mb-3',
-                )}>
+                <div className="flex items-center gap-2 mb-3">
                   <span className={cn(
                     'text-[13px] font-bold tracking-wide',
                     group.overdue ? 'text-destructive' : 'text-foreground'
                   )}>
                     {group.label}
                   </span>
-                  <span className="text-xs text-muted-foreground font-medium">
-                    ดูทั้งหมด
+                  <span className={cn(
+                    'text-[10px] font-bold px-1.5 py-0.5 rounded-full',
+                    group.overdue
+                      ? 'bg-destructive/15 text-destructive'
+                      : 'bg-muted text-muted-foreground'
+                  )}>
+                    {group.tasks.length}
                   </span>
                 </div>
                 <AnimatePresence>
