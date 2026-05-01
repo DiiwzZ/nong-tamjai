@@ -7,7 +7,7 @@ export function Header({ title, rightAction }) {
   const { darkMode, update } = useStore()
 
   return (
-    <div className="flex items-center justify-between px-5 pt-14 pb-4 bg-background sticky top-0 z-20">
+    <div className="flex items-center justify-between px-5 pb-4 bg-background sticky top-0 z-20 header-safe-top">
       <h1 className="text-xl font-bold text-foreground">{title}</h1>
       <div className="flex items-center gap-1">
         {rightAction}

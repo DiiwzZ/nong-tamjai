@@ -343,7 +343,7 @@ export function Subscriptions() {
         )}
       </div>
 
-      <div className="flex-1 overflow-y-auto no-scrollbar px-5 pb-4">
+      <div className="flex-1 overflow-y-auto no-scrollbar px-5 safe-bottom">
         {loading ? (
           <>{[0,1,2].map((i) => <SubSkeleton key={i} />)}</>
         ) : subscriptions.length === 0 ? (

@@ -106,7 +106,7 @@ export function Tasks() {
       {confetti && <Confetti trigger={true} x={confetti.x} y={confetti.y} />}
 
       {/* Header */}
-      <div className="px-5 pt-14 pb-4 bg-background sticky top-0 z-20">
+      <div className="px-5 pb-4 bg-background sticky top-0 z-20 header-safe-top">
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-xl font-bold text-foreground">น้องจด</h1>
           <div className="flex gap-2">
@@ -185,7 +185,7 @@ export function Tasks() {
       </div>
 
       {/* Task list */}
-      <div className="flex-1 overflow-y-auto no-scrollbar px-5 pb-4">
+      <div className="flex-1 overflow-y-auto no-scrollbar px-5 safe-bottom">
         {loading ? (
           <>{[0,1,2].map((i) => <TaskSkeleton key={i} />)}</>
         ) : groups.length === 0 && completed.length === 0 ? (

@@ -71,8 +71,27 @@ body {
   position: relative;
 }
 
-.safe-top { padding-top: env(safe-area-inset-top); }
-.safe-bottom { padding-bottom: calc(env(safe-area-inset-bottom) + 4rem); }
+/* Safe-area utilities */
+.safe-top   { padding-top: env(safe-area-inset-top, 0px); }
+
+/* Sticky page headers: design padding + safe area, whichever is larger */
+.header-safe-top {
+  padding-top: max(3.5rem, calc(env(safe-area-inset-top, 0px) + 0.75rem));
+}
+
+/* Scrollable content areas: clear the floating nav + home indicator */
+.safe-bottom {
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 5.5rem);
+}
+
+/* Bottom nav element: just push above the home indicator */
+.nav-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* FAB positioning: above the nav card + home indicator */
+.fab-bottom      { bottom: calc(env(safe-area-inset-bottom, 0px) + 5rem); }
+.fab-menu-bottom { bottom: calc(env(safe-area-inset-bottom, 0px) + 9rem); }
 
 html { scroll-behavior: smooth; }
 

@@ -46,7 +46,7 @@ export function QuickAddFAB({ onSelect }) {
               onClick={() => setOpen(false)}
             />
             <motion.div
-              className="fixed bottom-28 right-5 z-30 flex flex-col-reverse gap-3"
+              className="fixed fab-menu-bottom right-5 z-30 flex flex-col-reverse gap-3"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -79,7 +79,7 @@ export function QuickAddFAB({ onSelect }) {
         whileTap={{ scale: 0.88 }}
         animate={{ rotate: open ? 45 : 0 }}
         transition={{ duration: 0.2 }}
-        className="fixed bottom-24 right-5 w-14 h-14 rounded-2xl bg-primary text-white shadow-lg shadow-primary/30 flex items-center justify-center z-30"
+        className="fixed fab-bottom right-5 w-14 h-14 rounded-2xl bg-primary text-white shadow-lg shadow-primary/30 flex items-center justify-center z-30"
       >
         <Plus size={26} strokeWidth={2.5} />
       </motion.button>

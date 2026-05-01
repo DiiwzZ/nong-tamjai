@@ -56,7 +56,7 @@ export function Archive({ onBack }) {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="px-5 pt-14 pb-4 bg-background sticky top-0 z-20">
+      <div className="px-5 pb-4 bg-background sticky top-0 z-20 header-safe-top">
         <div className="flex items-center gap-3 mb-4">
           <button onClick={onBack} className="p-2 -ml-2 rounded-xl hover:bg-muted transition-colors">
             <ArrowLeft size={20} className="text-foreground" />
@@ -80,7 +80,7 @@ export function Archive({ onBack }) {
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto no-scrollbar px-5 pb-4">
+      <div className="flex-1 overflow-y-auto no-scrollbar px-5 safe-bottom">
         {archived.length === 0 ? (
           <motion.div
             initial={{ opacity: 0, y: 20 }}

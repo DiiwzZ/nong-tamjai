@@ -66,7 +66,7 @@ export function Dashboard() {
   }, [monthlyTotal])
 
   return (
-    <div className="flex flex-col h-full overflow-y-auto no-scrollbar">
+    <div className="flex flex-col h-full overflow-y-auto no-scrollbar safe-bottom">
       <Header title="น้องสรุปให้" />
       <div className="px-5 pb-2">
         <p className="text-sm text-muted-foreground -mt-2 mb-2">
