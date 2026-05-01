@@ -1,45 +1,59 @@
 @import "tailwindcss";
 
 @theme {
-  /* ── Light ── clean white with cool blue tint */
-  --color-background:        hsl(222 28% 95%);
-  --color-foreground:        hsl(228 32% 8%);
-  --color-card:              hsl(0 0% 100%);
-  --color-card-foreground:   hsl(228 32% 8%);
-  --color-border:            hsl(220 18% 88%);
-  --color-input:             hsl(220 20% 92%);
-  --color-primary:           hsl(217 91% 58%);
+  /* Light mode — clean off-white */
+  --color-background: hsl(240 20% 97%);
+  --color-foreground: hsl(240 15% 10%);
+  --color-card: hsl(0 0% 100%);
+  --color-card-foreground: hsl(240 15% 10%);
+  --color-border: hsl(240 10% 90%);
+  --color-input: hsl(240 10% 92%);
+  --color-primary: hsl(217 91% 60%);
   --color-primary-foreground: hsl(0 0% 100%);
-  --color-muted:             hsl(220 22% 93%);
-  --color-muted-foreground:  hsl(222 14% 50%);
-  --color-accent:            hsl(217 91% 58%);
+  --color-muted: hsl(240 12% 93%);
+  --color-muted-foreground: hsl(240 8% 52%);
+  --color-accent: hsl(217 91% 60%);
   --color-accent-foreground: hsl(0 0% 100%);
-  --color-destructive:       hsl(0 84% 60%);
-  --color-success:           hsl(142 76% 46%);
-  --color-warning:           hsl(38 96% 56%);
+  --color-destructive: hsl(0 84% 60%);
   --radius: 0.75rem;
+
+  --color-priority-high-bg: hsl(0 63% 18%);
+  --color-priority-high-text: hsl(0 84% 70%);
+  --color-priority-medium-bg: hsl(32 81% 18%);
+  --color-priority-medium-text: hsl(38 96% 65%);
+  --color-priority-low-bg: hsl(142 50% 16%);
+  --color-priority-low-text: hsl(142 76% 55%);
 }
 
 .dark {
-  /* ── Dark ── deep blue-black */
-  --color-background:        hsl(228 24% 6%);
-  --color-foreground:        hsl(222 22% 96%);
-  --color-card:              hsl(228 20% 10%);
-  --color-card-foreground:   hsl(222 22% 96%);
-  --color-border:            hsl(228 16% 18%);
-  --color-input:             hsl(228 18% 14%);
-  --color-primary:           hsl(217 91% 60%);
+  /* Dark mode — warm near-black */
+  --color-background: hsl(240 12% 8%);
+  --color-foreground: hsl(240 15% 95%);
+  --color-card: hsl(240 10% 13%);
+  --color-card-foreground: hsl(240 15% 95%);
+  --color-border: hsl(240 8% 20%);
+  --color-input: hsl(240 8% 18%);
+  --color-primary: hsl(217 91% 60%);
   --color-primary-foreground: hsl(0 0% 100%);
-  --color-muted:             hsl(228 18% 14%);
-  --color-muted-foreground:  hsl(222 12% 50%);
-  --color-accent:            hsl(217 91% 60%);
+  --color-muted: hsl(240 8% 18%);
+  --color-muted-foreground: hsl(240 8% 52%);
+  --color-accent: hsl(217 91% 60%);
   --color-accent-foreground: hsl(0 0% 100%);
-  --color-destructive:       hsl(0 80% 58%);
-  --color-success:           hsl(142 76% 46%);
-  --color-warning:           hsl(38 96% 56%);
+  --color-destructive: hsl(0 72% 56%);
+
+  --color-priority-high-bg: hsl(0 63% 18%);
+  --color-priority-high-text: hsl(0 84% 70%);
+  --color-priority-medium-bg: hsl(32 81% 18%);
+  --color-priority-medium-text: hsl(38 96% 65%);
+  --color-priority-low-bg: hsl(142 50% 16%);
+  --color-priority-low-text: hsl(142 76% 55%);
 }
 
-* { box-sizing: border-box; margin: 0; padding: 0; }
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
 
 body {
   background-color: var(--color-background);
@@ -49,7 +63,7 @@ body {
   overscroll-behavior: none;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  letter-spacing: -0.018em;
+  letter-spacing: -0.01em;
 }
 
 #root {
@@ -57,29 +71,33 @@ body {
   max-width: 430px;
   margin: 0 auto;
   position: relative;
+  /* horizontal safe-area: กันเนื้อหาติดขอบโค้งของ iPhone */
   padding-left: env(safe-area-inset-left, 0px);
   padding-right: env(safe-area-inset-right, 0px);
 }
 
-/* ── Safe-area utilities ── */
+/* Safe-area utilities */
 .safe-top   { padding-top: env(safe-area-inset-top, 0px); }
 
-/* Sticky headers: design padding OR safe-area + 1rem, whichever is larger */
+/* Sticky page headers: design padding + safe area, whichever is larger
+   standalone mode: safe-area-inset-top ≈ 47–59px (notch/Dynamic Island)
+   ดังนั้น max() เลือกค่าที่มากกว่าเสมอ */
 .header-safe-top {
   padding-top: max(3.5rem, calc(env(safe-area-inset-top, 0px) + 1rem));
 }
 
-/* Scrollable areas: clear floating nav + home indicator */
+/* Scrollable content areas: clear the floating nav + home indicator
+   nav card สูงประมาณ 64px + safe-area-inset-bottom (34px) + เผื่อ 8px */
 .safe-bottom {
   padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 5rem);
 }
 
-/* Bottom nav card itself: just home indicator clearance */
+/* Bottom nav: แนบขอบล่างพอดี ให้ nav card นั่งเหนือ home indicator */
 .nav-safe {
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
-/* FAB positioning */
+/* FAB positioning: ลอยเหนือ nav card + home indicator */
 .fab-bottom      { bottom: calc(env(safe-area-inset-bottom, 0px) + 5.5rem); }
 .fab-menu-bottom { bottom: calc(env(safe-area-inset-bottom, 0px) + 9.5rem); }
 
@@ -87,30 +105,3 @@ html { scroll-behavior: smooth; }
 
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-
-/* ── Skeleton shimmer ── */
-@keyframes shimmer {
-  0%   { background-position: -200% 0; }
-  100% { background-position:  200% 0; }
-}
-.shimmer {
-  background: linear-gradient(
-    90deg,
-    var(--color-muted) 25%,
-    color-mix(in srgb, var(--color-muted) 55%, var(--color-card)) 50%,
-    var(--color-muted) 75%
-  );
-  background-size: 200% 100%;
-  animation: shimmer 1.6s infinite linear;
-}
-
-/* ── Glow utilities ── */
-.glow-blue {
-  box-shadow: 0 4px 24px -6px hsl(217 91% 60% / 0.45);
-}
-.glow-red {
-  box-shadow: 0 4px 20px -6px hsl(0 84% 60% / 0.40);
-}
-
-/* ── accent range input ── */
-input[type="range"] { accent-color: var(--color-primary); }
