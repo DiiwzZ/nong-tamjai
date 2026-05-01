@@ -14,7 +14,7 @@ function StatCard({ icon: Icon, label, value, sub, color, index = 0 }) {
       className="bg-card border border-border rounded-2xl p-4 shadow-[0_10px_24px_-16px_rgba(0,0,0,0.85)]"
     >
       <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center mb-4', color)}>
-        <Icon size={18} className="text-white" />
+        <Icon size={18} />
       </div>
       <p className="text-[2rem] font-black text-foreground tracking-[-0.04em] leading-none">{value}</p>
       <p className="text-[11px] font-semibold text-muted-foreground mt-1.5">{label}</p>
@@ -91,7 +91,7 @@ export function Dashboard() {
             icon={CheckCircle2}
             label="งานวันนี้"
             value={`${completedToday.length}/${activeTasks.length + completedToday.length}`}
-            color="bg-emerald-500"
+            color="bg-emerald-500/16 text-emerald-400"
             index={0}
           />
           <StatCard
@@ -99,7 +99,7 @@ export function Dashboard() {
             label="เกินกำหนด"
             value={overdue.length}
             sub={overdue.length > 0 ? 'ต้องรีบจัดการ' : 'ดีมาก!'}
-            color={overdue.length > 0 ? 'bg-destructive' : 'bg-primary'}
+            color={overdue.length > 0 ? 'bg-destructive/16 text-destructive' : 'bg-primary/16 text-primary'}
             index={1}
           />
           <StatCard
@@ -107,14 +107,14 @@ export function Dashboard() {
             label="ค่า Sub/เดือน"
             value={formatCurrency(monthlyTotal)}
             sub={`${activeSubs.length} รายการ`}
-            color="bg-primary"
+            color="bg-primary/16 text-primary"
             index={2}
           />
           <StatCard
             icon={TrendingUp}
             label="ค่า Sub/ปี"
             value={formatCurrency(monthlyTotal * 12)}
-            color="bg-amber-500"
+            color="bg-amber-500/16 text-amber-400"
             index={3}
           />
         </div>

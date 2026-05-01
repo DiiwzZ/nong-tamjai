@@ -51,7 +51,7 @@ function SubCard({ sub, onTap, index = 0 }) {
       whileTap={{ scale: 0.985 }}
       onClick={() => onTap(sub)}
       className={cn(
-        'rounded-2xl p-4 mb-3 cursor-pointer select-none',
+        'rounded-2xl p-4 mb-3 cursor-pointer select-none shadow-[0_10px_24px_-16px_rgba(0,0,0,0.85)]',
         'border transition-colors duration-150',
         isUrgent
           ? 'bg-red-950/20 border-red-900/60'
@@ -87,7 +87,7 @@ function SubCard({ sub, onTap, index = 0 }) {
         </div>
 
         <div className="text-right flex-shrink-0">
-          <p className="text-sm font-bold text-foreground">{formatCurrency(sub.amount)}</p>
+          <p className="text-[15px] font-black tracking-[-0.02em] text-foreground">{formatCurrency(sub.amount)}</p>
           {sub.billingCycle === 'yearly' && (
             <p className="text-[10px] text-muted-foreground">{formatCurrency(monthlyAmount)}/เดือน</p>
           )}
