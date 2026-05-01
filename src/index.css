@@ -79,11 +79,9 @@ body {
 /* Safe-area utilities */
 .safe-top   { padding-top: env(safe-area-inset-top, 0px); }
 
-/* Sticky page headers: design padding + safe area, whichever is larger
-   standalone mode: safe-area-inset-top ≈ 47–59px (notch/Dynamic Island)
-   ดังนั้น max() เลือกค่าที่มากกว่าเสมอ */
+/* Sticky page headers: safe area + 1rem for standalone iPhone web apps */
 .header-safe-top {
-  padding-top: max(3.5rem, calc(env(safe-area-inset-top, 0px) + 1rem));
+  padding-top: calc(env(safe-area-inset-top, 0px) + 1rem);
 }
 
 /* Scrollable content areas: clear the floating nav + home indicator
@@ -98,7 +96,7 @@ body {
 }
 
 /* FAB positioning: ลอยเหนือ nav card + home indicator */
-.fab-bottom      { bottom: calc(env(safe-area-inset-bottom, 0px) + 5.5rem); }
+.fab-bottom      { bottom: calc(env(safe-area-inset-bottom, 0px) + 4.75rem); }
 .fab-menu-bottom { bottom: calc(env(safe-area-inset-bottom, 0px) + 9.5rem); }
 
 html { scroll-behavior: smooth; }
