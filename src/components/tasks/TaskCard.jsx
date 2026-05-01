@@ -53,7 +53,7 @@ export function TaskCard({ task, onTap, categories, onComplete }) {
   if (task.status === 'archived') return null
 
   return (
-    <div className="relative overflow-hidden rounded-[22px] mb-3.5">
+    <div className="relative overflow-hidden rounded-[22px] mb-4">
       <motion.div
         style={{ opacity: deleteOpacity }}
         className="absolute inset-y-0 right-0 w-20 flex items-center justify-center bg-destructive rounded-2xl"

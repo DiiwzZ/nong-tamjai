@@ -51,7 +51,7 @@ function SubCard({ sub, onTap, index = 0 }) {
       whileTap={{ scale: 0.985 }}
       onClick={() => onTap(sub)}
       className={cn(
-        'rounded-2xl p-4 mb-3 cursor-pointer select-none shadow-[0_10px_24px_-16px_rgba(0,0,0,0.85)]',
+        'rounded-2xl p-4 mb-4 cursor-pointer select-none shadow-[0_10px_24px_-16px_rgba(0,0,0,0.85)]',
         'border transition-colors duration-150',
         isUrgent
           ? 'bg-red-950/20 border-red-900/60'
@@ -295,7 +295,7 @@ export function Subscriptions() {
   return (
     <div className="flex flex-col h-full">
       {/* ── Header editorial ── */}
-      <div className="px-5 pb-3 bg-background sticky top-0 z-20 header-safe-top">
+      <div className="px-5 pb-4 bg-background sticky top-0 z-20 header-safe-top">
         <div className="flex items-start justify-between mb-0">
           <div>
             <p className="text-xs font-medium text-muted-foreground mb-0.5">
@@ -338,12 +338,12 @@ export function Subscriptions() {
 
       {/* ── Summary stats row ── */}
       {active.length > 0 && (
-        <div className="px-5 pt-3 pb-2">
+        <div className="px-5 pt-4 pb-3">
           <motion.div
             initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ type: 'spring', stiffness: 300, damping: 28 }}
-            className="flex gap-3"
+            className="flex gap-3.5"
           >
             <div className="flex-1 bg-card border border-border rounded-2xl p-3.5">
               <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1">รายปี</p>
@@ -357,7 +357,7 @@ export function Subscriptions() {
         </div>
       )}
 
-      <div className="flex-1 overflow-y-auto no-scrollbar px-5 pt-3 safe-bottom">
+      <div className="flex-1 overflow-y-auto no-scrollbar px-5 pt-4 safe-bottom">
         {loading ? (
           <>{[0,1,2].map((i) => <SubSkeleton key={i} />)}</>
         ) : subscriptions.length === 0 ? (
@@ -378,7 +378,7 @@ export function Subscriptions() {
           <CalendarView subscriptions={subscriptions} />
         ) : (
           <>
-            <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center justify-between mb-4">
               <h2 className="text-[15px] font-black tracking-[-0.02em] text-foreground">รายการทั้งหมด</h2>
               <span className="text-[12px] font-bold text-primary">จัดการ</span>
             </div>

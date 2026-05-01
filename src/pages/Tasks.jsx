@@ -93,8 +93,8 @@ export function Tasks() {
       {confetti && <Confetti trigger={true} x={confetti.x} y={confetti.y} />}
 
       {/* Header */}
-      <div className="px-5 pb-3 bg-background sticky top-0 z-20 header-safe-top">
-        <div className="flex items-start justify-between mb-3.5">
+      <div className="px-5 pb-4 bg-background sticky top-0 z-20 header-safe-top">
+        <div className="flex items-start justify-between mb-4.5">
           <div>
             <p className="text-xs font-medium text-muted-foreground mb-0.5">
               {new Date().toLocaleDateString('th-TH', { weekday: 'long', day: 'numeric', month: 'long' })}
@@ -143,7 +143,7 @@ export function Tasks() {
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: 'auto', opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
-              className="overflow-hidden mb-3"
+              className="overflow-hidden mb-4"
             >
               <div className="relative mt-1">
                 <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
@@ -165,7 +165,7 @@ export function Tasks() {
         </AnimatePresence>
 
         {/* Priority filter pills */}
-        <div className="flex gap-2 mt-2 overflow-x-auto no-scrollbar">
+        <div className="flex gap-2 mt-3 overflow-x-auto no-scrollbar">
           {FILTERS.map((f) => {
             const isActive = filter === f
             const colors = {
@@ -200,12 +200,12 @@ export function Tasks() {
       )}
 
       {(loading || visibleTasks.length > 0 || remainingCompleted.length > 0) && (
-        <div className="flex-1 overflow-y-auto no-scrollbar px-5 safe-bottom">
+        <div className="flex-1 overflow-y-auto no-scrollbar px-5 pt-3 safe-bottom">
           {loading ? (
             <>{[0, 1, 2].map((i) => <TaskSkeleton key={i} />)}</>
           ) : (
             <>
-              <div className="flex items-center justify-between mb-3 pt-1.5">
+              <div className="flex items-center justify-between mb-4 pt-1.5">
                 <h2 className="text-[14px] font-black tracking-[-0.02em] text-foreground">งานที่ต้องทำ</h2>
                 <span className="text-[12px] font-bold text-primary">ดูทั้งหมด</span>
               </div>
@@ -226,10 +226,10 @@ export function Tasks() {
               </AnimatePresence>
 
               {remainingCompleted.length > 0 && (
-                <div className="mt-3 mb-5">
+                <div className="mt-6 mb-6">
                   <button
                     onClick={() => setShowCompleted((v) => !v)}
-                    className="flex items-center gap-2.5 mb-3 w-full text-muted-foreground"
+                    className="flex items-center gap-2.5 mb-4 w-full text-muted-foreground"
                   >
                     <CheckCircle2 size={14} />
                     <span className="text-xs font-semibold uppercase tracking-wider">

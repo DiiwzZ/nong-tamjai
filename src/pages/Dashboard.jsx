@@ -63,7 +63,7 @@ export function Dashboard() {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="px-5 pb-3 bg-background sticky top-0 z-20 header-safe-top">
+      <div className="px-5 pb-4 bg-background sticky top-0 z-20 header-safe-top">
         <div className="flex items-start justify-between">
           <div>
             <p className="text-xs font-medium text-muted-foreground mb-0.5">
@@ -85,8 +85,8 @@ export function Dashboard() {
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto no-scrollbar px-5 pt-2 pb-6 safe-bottom">
-        <div className="grid grid-cols-2 gap-3 mb-6">
+      <div className="flex-1 overflow-y-auto no-scrollbar px-5 pt-4 pb-6 safe-bottom">
+        <div className="grid grid-cols-2 gap-3.5 mb-7">
           <StatCard
             icon={CheckCircle2}
             label="งานวันนี้"
@@ -120,12 +120,12 @@ export function Dashboard() {
         </div>
 
         {upcomingSubs.length > 0 && (
-          <div className="mb-6">
-            <div className="flex items-center justify-between mb-3">
+          <div className="mb-7">
+            <div className="flex items-center justify-between mb-4">
               <h2 className="text-[15px] font-black tracking-[-0.02em] text-foreground">จ่ายเร็วๆ นี้</h2>
               <span className="text-[12px] font-bold text-primary">ดูทั้งหมด</span>
             </div>
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-3">
               {upcomingSubs.map((sub) => (
                 <motion.div
                   key={sub.id}
@@ -156,8 +156,8 @@ export function Dashboard() {
         )}
 
         {monthlyTotal > 0 && (
-          <div className="mb-6">
-            <h2 className="text-[15px] font-black tracking-[-0.02em] text-foreground mb-3">ค่าใช้จ่าย 6 เดือน</h2>
+          <div className="mb-7">
+            <h2 className="text-[15px] font-black tracking-[-0.02em] text-foreground mb-4">ค่าใช้จ่าย 6 เดือน</h2>
             <div className="bg-card border border-border rounded-2xl p-4">
               <ResponsiveContainer width="100%" height={160}>
                 <BarChart data={chartData} barSize={20}>
@@ -181,7 +181,7 @@ export function Dashboard() {
 
         {overdue.length > 0 && (
           <div>
-            <h2 className="text-[15px] font-black tracking-[-0.02em] text-destructive mb-3">งานเกินกำหนด</h2>
+            <h2 className="text-[15px] font-black tracking-[-0.02em] text-destructive mb-4">งานเกินกำหนด</h2>
             {overdue.map((task) => (
               <div key={task.id} className="bg-red-950/20 border border-red-900/60 rounded-2xl p-3 mb-2">
                 <p className="text-sm font-medium text-foreground">{task.title}</p>
