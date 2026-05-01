@@ -36,7 +36,13 @@ export function Onboarding() {
   const finish = () => update({ onboardingDone: true })
 
   return (
-    <div className="fixed inset-0 bg-background z-50 flex flex-col items-center justify-between px-8 py-16">
+    <div
+      className="fixed inset-0 bg-background z-50 flex flex-col items-center justify-between px-8"
+      style={{
+        paddingTop:    'max(4rem, calc(env(safe-area-inset-top, 0px) + 1.5rem))',
+        paddingBottom: 'max(2.5rem, calc(env(safe-area-inset-bottom, 0px) + 1.5rem))',
+      }}
+    >
       {/* Skip */}
       <button
         onClick={finish}

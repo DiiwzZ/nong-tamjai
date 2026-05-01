@@ -100,13 +100,13 @@ export function Archive({ onBack }) {
         <div className="h-px bg-border mt-4" />
       </div>
 
-      {/* List */}
-      <div className="flex-1 overflow-y-auto no-scrollbar px-5 pt-3 safe-bottom">
-        {archived.length === 0 ? (
+      {/* Empty state: sibling div so it truly fills remaining height */}
+      {archived.length === 0 && (
+        <div className="flex-1 flex items-center justify-center px-5 pb-20">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="flex flex-col items-center justify-center gap-5 py-24 text-center"
+            className="flex flex-col items-center gap-5 text-center"
           >
             <div className="w-24 h-24 rounded-3xl bg-muted border border-border flex items-center justify-center">
               <ArchiveX size={38} className="text-muted-foreground" />
@@ -118,14 +118,19 @@ export function Archive({ onBack }) {
               </p>
             </div>
           </motion.div>
-        ) : (
+        </div>
+      )}
+
+      {/* List: only when has items */}
+      {archived.length > 0 && (
+        <div className="flex-1 overflow-y-auto no-scrollbar px-5 pt-3 safe-bottom">
           <AnimatePresence>
             {archived.map((task) => (
               <ArchiveCard key={task.id} task={task} categories={categories} />
             ))}
           </AnimatePresence>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -321,15 +321,13 @@ export function Subscriptions() {
         </div>
       )}
 
-      {/* ── List / Calendar ── */}
-      <div className="flex-1 overflow-y-auto no-scrollbar px-5 safe-bottom">
-        {loading ? (
-          <>{[0, 1, 2].map((i) => <SubSkeleton key={i} />)}</>
-        ) : subscriptions.length === 0 ? (
+      {/* ── Empty state: sibling div so flex-1 truly centers it ── */}
+      {!loading && subscriptions.length === 0 && (
+        <div className="flex-1 flex items-center justify-center px-5 pb-20">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="flex flex-col items-center justify-center gap-5 py-24 text-center"
+            className="flex flex-col items-center gap-5 text-center"
           >
             <motion.div
               animate={{ y: [0, -10, 0] }}
@@ -343,16 +341,25 @@ export function Subscriptions() {
               <p className="text-sm text-muted-foreground mt-1.5 font-medium">กด + ให้น้องช่วยติดตาม</p>
             </div>
           </motion.div>
-        ) : view === 'calendar' ? (
-          <CalendarView subscriptions={subscriptions} />
-        ) : (
-          <AnimatePresence>
-            {subscriptions.map((sub, i) => (
-              <SubCard key={sub.id} sub={sub} onTap={handleTap} index={i} />
-            ))}
-          </AnimatePresence>
-        )}
-      </div>
+        </div>
+      )}
+
+      {/* ── List / Calendar: only when loading or has content ── */}
+      {(loading || subscriptions.length > 0) && (
+        <div className="flex-1 overflow-y-auto no-scrollbar px-5 safe-bottom">
+          {loading ? (
+            <>{[0, 1, 2].map((i) => <SubSkeleton key={i} />)}</>
+          ) : view === 'calendar' ? (
+            <CalendarView subscriptions={subscriptions} />
+          ) : (
+            <AnimatePresence>
+              {subscriptions.map((sub, i) => (
+                <SubCard key={sub.id} sub={sub} onTap={handleTap} index={i} />
+              ))}
+            </AnimatePresence>
+          )}
+        </div>
+      )}
 
       <QuickAddFAB onSelect={openNew} />
 
