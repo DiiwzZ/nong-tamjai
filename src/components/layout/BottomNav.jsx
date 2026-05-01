@@ -10,7 +10,7 @@ const tabs = [
 
 export function BottomNav({ active, onChange }) {
   return (
-    <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-[calc(100%-1.8rem)] max-w-[401px] z-30 nav-safe">
+    <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-[calc(100%-2.2rem)] max-w-[395px] z-30 nav-safe">
       {/* nav card — แนบกับ home indicator พอดี ไม่มี mb */}
       <div className="mx-3 bg-card/95 backdrop-blur-2xl border border-border/80 rounded-2xl shadow-2xl shadow-black/20 dark:shadow-black/60">
         <div className="flex items-center justify-around px-2 py-1">

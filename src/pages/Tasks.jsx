@@ -93,20 +93,12 @@ export function Tasks() {
       {confetti && <Confetti trigger={true} x={confetti.x} y={confetti.y} />}
 
       {/* Header */}
-      <div className="px-5 pb-5 bg-background sticky top-0 z-20 header-safe-top">
-        <div className="flex items-start justify-between mb-5">
-          <div className="pt-0.5">
-            <p className="text-xs font-medium text-muted-foreground mb-2">
-              {new Date().toLocaleDateString('th-TH', { weekday: 'long', day: 'numeric', month: 'long' })}
-            </p>
-            <h1 className="text-[2.25rem] font-black text-foreground leading-[0.96] tracking-[-0.04em]">
-              {active.length > 0
-                ? <>มี <span className="text-primary">{active.length} งาน</span><br />รอน้องจัดการ</>
-                : <>น้องว่าง<br />ไม่มีงานเลย</>
-              }
-            </h1>
-          </div>
-          <div className="flex items-center gap-2 mt-2">
+      <div className="px-6 pb-6 bg-background sticky top-0 z-20 header-safe-top">
+        <div className="flex items-start justify-between mb-4">
+          <p className="text-xs font-medium text-muted-foreground pt-1.5">
+            {new Date().toLocaleDateString('th-TH', { weekday: 'long', day: 'numeric', month: 'long' })}
+          </p>
+          <div className="flex items-center gap-2">
             <motion.button
               whileTap={{ scale: 0.85 }}
               onClick={() => setShowArchivePage(true)}
@@ -136,6 +128,15 @@ export function Tasks() {
           </div>
         </div>
 
+        <div className="mb-6 max-w-[14rem]">
+          <h1 className="text-[2.1rem] font-black text-foreground leading-[1.02] tracking-[-0.04em] text-balance">
+            {active.length > 0
+              ? <>มี <span className="text-primary">{active.length} งาน</span><br />รอน้องจัดการ</>
+              : <>น้องว่าง<br />ไม่มีงานเลย</>
+            }
+          </h1>
+        </div>
+
         {/* search bar */}
         <AnimatePresence>
           {searchOpen && (
@@ -143,9 +144,9 @@ export function Tasks() {
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: 'auto', opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
-              className="overflow-hidden mb-5"
+              className="overflow-hidden mb-6"
             >
-              <div className="relative mt-1">
+              <div className="relative">
                 <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
                 <input
                   autoFocus
@@ -165,7 +166,7 @@ export function Tasks() {
         </AnimatePresence>
 
         {/* Priority filter pills */}
-        <div className="flex gap-2 mt-1 overflow-x-auto no-scrollbar">
+        <div className="flex gap-2 overflow-x-auto no-scrollbar">
           {FILTERS.map((f) => {
             const isActive = filter === f
             const colors = {
@@ -200,7 +201,7 @@ export function Tasks() {
       )}
 
       {(loading || visibleTasks.length > 0 || remainingCompleted.length > 0) && (
-        <div className="flex-1 overflow-y-auto no-scrollbar px-5 pt-3 safe-bottom">
+        <div className="flex-1 overflow-y-auto no-scrollbar px-6 pt-4 safe-bottom">
           {loading ? (
             <>{[0, 1, 2].map((i) => <TaskSkeleton key={i} />)}</>
           ) : (

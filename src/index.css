@@ -72,11 +72,10 @@ body {
   max-width: 430px;
   margin: 0 auto;
   position: relative;
-  /* add an outer app frame gap so screens don't touch the viewport edges */
-  padding-top: 0.9rem;
-  padding-bottom: 0.9rem;
-  padding-left: calc(env(safe-area-inset-left, 0px) + 0.9rem);
-  padding-right: calc(env(safe-area-inset-right, 0px) + 0.9rem);
+  padding-top: 1.1rem;
+  padding-bottom: 1.1rem;
+  padding-left: calc(env(safe-area-inset-left, 0px) + 1.1rem);
+  padding-right: calc(env(safe-area-inset-right, 0px) + 1.1rem);
 }
 
 /* Safe-area utilities */
