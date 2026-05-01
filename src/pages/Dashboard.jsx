@@ -5,8 +5,8 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 
 import { cn, formatCurrency, daysUntil } from '@/lib/utils'
 import { useStore } from '@/store/useStore'
 
-/* ── Animated arc ring ── */
-function CompletionRing({ done, total, size = 80, stroke = 6 }) {
+/* ── Completion arc ring (inside hero card) ── */
+function CompletionRing({ done, total, size = 72, stroke = 5 }) {
   const r    = (size - stroke) / 2
   const circ = 2 * Math.PI * r
   const pct  = total === 0 ? 0 : done / total
@@ -14,7 +14,8 @@ function CompletionRing({ done, total, size = 80, stroke = 6 }) {
   return (
     <div className="relative flex-shrink-0">
       <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="-rotate-90">
-        <circle cx={size/2} cy={size/2} r={r} fill="none" strokeWidth={stroke} stroke="rgba(255,255,255,0.12)" />
+        <circle cx={size/2} cy={size/2} r={r} fill="none" strokeWidth={stroke}
+          stroke="rgba(255,255,255,0.15)" />
         <motion.circle
           cx={size/2} cy={size/2} r={r} fill="none" strokeWidth={stroke}
           strokeLinecap="round"
@@ -26,45 +27,65 @@ function CompletionRing({ done, total, size = 80, stroke = 6 }) {
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-xl font-black text-white leading-none">{Math.round(pct * 100)}</span>
-        <span className="text-[10px] font-bold text-white/50 leading-none mt-0.5">%</span>
+        <span className="text-[18px] font-black text-white leading-none">{Math.round(pct * 100)}</span>
+        <span className="text-[10px] font-bold text-white/50 leading-none">%</span>
       </div>
     </div>
   )
 }
 
 /* ── Stat tile ── */
-function StatCard({ icon: Icon, label, value, sub, gradient, index = 0 }) {
+function StatCard({ icon: Icon, label, value, sub, color, index = 0 }) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 16 }}
+      initial={{ opacity: 0, y: 14 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.1 + index * 0.07, type: 'spring', stiffness: 300, damping: 28 }}
+      transition={{ delay: 0.15 + index * 0.07, type: 'spring', stiffness: 300, damping: 28 }}
       className="rounded-2xl p-4 border border-border bg-card"
     >
-      <div className={cn(
-        'w-9 h-9 rounded-xl flex items-center justify-center mb-3',
-        gradient
-      )}>
+      <div className={cn('w-9 h-9 rounded-xl flex items-center justify-center mb-3 flex-shrink-0', color)}>
         <Icon size={17} className="text-white" />
       </div>
       <p className="text-2xl font-black tracking-tighter text-foreground leading-none">{value}</p>
-      <p className="text-[11px] font-semibold text-muted-foreground mt-1.5">{label}</p>
+      <p className="text-[11px] font-semibold text-muted-foreground mt-1.5 leading-tight">{label}</p>
       {sub && <p className="text-[11px] text-muted-foreground mt-0.5">{sub}</p>}
     </motion.div>
+  )
+}
+
+/* ── Section header ── */
+function SectionHeader({ label, count, overdue }) {
+  return (
+    <div className="flex items-center gap-2.5 mb-3">
+      <span className={cn(
+        'text-[10px] font-black uppercase tracking-[0.1em] flex-shrink-0',
+        overdue ? 'text-destructive' : 'text-muted-foreground'
+      )}>
+        {label}
+      </span>
+      <div className={cn('h-px flex-1', overdue ? 'bg-destructive/25' : 'bg-border')} />
+      {count != null && (
+        <span className={cn(
+          'text-[10px] font-bold px-1.5 py-0.5 rounded-full flex-shrink-0',
+          overdue ? 'bg-destructive/15 text-destructive' : 'bg-muted text-muted-foreground'
+        )}>
+          {count}
+        </span>
+      )}
+    </div>
   )
 }
 
 export function Dashboard() {
   const { tasks, subscriptions, darkMode, update } = useStore()
 
-  const activeTasks     = tasks.filter((t) => t.status === 'active')
-  const completedToday  = tasks.filter((t) => {
+  const activeTasks    = tasks.filter((t) => t.status === 'active')
+  const completedToday = tasks.filter((t) => {
     if (t.status !== 'completed') return false
     return new Date(t.completedAt).toDateString() === new Date().toDateString()
   })
-  const overdue         = activeTasks.filter((t) => t.dueDate && new Date(t.dueDate) < new Date())
-  const totalToday      = activeTasks.length + completedToday.length
+  const overdue        = activeTasks.filter((t) => t.dueDate && new Date(t.dueDate) < new Date())
+  const totalToday     = activeTasks.length + completedToday.length
 
   const activeSubs   = subscriptions.filter((s) => s.status === 'active')
   const monthlyTotal = activeSubs.reduce((sum, s) => {
@@ -94,10 +115,11 @@ export function Dashboard() {
   }, [monthlyTotal])
 
   return (
-    <div className="flex flex-col h-full overflow-y-auto no-scrollbar safe-bottom">
+    /* ── Outer: flex col, no overflow here ── */
+    <div className="flex flex-col h-full">
 
-      {/* ══ Sticky header ══ */}
-      <div className="px-5 bg-background sticky top-0 z-20 header-safe-top pb-3">
+      {/* ══ Sticky header — own div, no overflow ══ */}
+      <div className="px-5 bg-background sticky top-0 z-20 header-safe-top pb-4">
         <div className="flex items-end justify-between">
           <div>
             <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-[0.1em]">
@@ -120,35 +142,31 @@ export function Dashboard() {
             </motion.div>
           </motion.button>
         </div>
-        <div className="h-px bg-border mt-3" />
       </div>
 
-      <div className="px-5 pt-4">
+      {/* ══ Scrollable content — separate div ══ */}
+      <div className="flex-1 overflow-y-auto no-scrollbar px-5 safe-bottom">
 
-        {/* ── Hero card: today's progress ── */}
+        {/* ── Hero: today's progress ── */}
         <motion.div
-          initial={{ opacity: 0, y: 12 }}
+          initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ type: 'spring', stiffness: 300, damping: 28 }}
-          className="relative overflow-hidden rounded-3xl p-5 mb-5"
-          style={{ background: 'linear-gradient(135deg, hsl(217 91% 42%), hsl(228 40% 16%))' }}
+          className="rounded-3xl p-5 mb-4 overflow-hidden"
+          style={{ background: 'linear-gradient(135deg, hsl(217 80% 38%), hsl(228 35% 14%))' }}
         >
-          {/* Decorative glow */}
-          <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full bg-primary/20 blur-2xl pointer-events-none" />
-
-          <div className="flex items-center justify-between relative">
-            <div>
-              <p className="text-[11px] font-black text-white/50 uppercase tracking-[0.1em]">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex-1 min-w-0">
+              <p className="text-[10px] font-black text-white/50 uppercase tracking-[0.12em]">
                 คืบหน้าวันนี้
               </p>
-              <p className="text-4xl font-black text-white mt-2 tracking-tighter leading-none">
+              <p className="text-5xl font-black text-white mt-2 tracking-tighter leading-none">
                 {completedToday.length}
-                <span className="text-lg font-bold text-white/40 ml-1.5">เสร็จ</span>
               </p>
-              <p className="text-[13px] text-white/60 mt-1.5 font-medium">
+              <p className="text-[13px] text-white/50 font-semibold mt-1.5">
                 {activeTasks.length > 0
                   ? `ยังเหลืออีก ${activeTasks.length} งาน`
-                  : 'ทำเสร็จหมดแล้ว!'}
+                  : completedToday.length > 0 ? 'ทำเสร็จหมดแล้ว!' : 'ยังไม่มีงานวันนี้'}
               </p>
               {overdue.length > 0 && (
                 <p className="text-[12px] text-red-300 font-bold mt-1">
@@ -160,41 +178,25 @@ export function Dashboard() {
           </div>
         </motion.div>
 
-        {/* ── Stats 2×2 grid ── */}
+        {/* ── 2×2 Stats grid ── */}
         <div className="grid grid-cols-2 gap-3 mb-5">
-          <StatCard
-            index={0}
-            icon={CheckCircle2}
-            label="งานวันนี้"
-            value={`${completedToday.length}/${totalToday}`}
-            gradient="bg-emerald-500"
-          />
-          <StatCard
-            index={1}
-            icon={AlertCircle}
-            label="เกินกำหนด"
+          <StatCard index={0} icon={CheckCircle2} label="งานวันนี้"
+            value={`${completedToday.length}/${totalToday || 0}`}
+            color="bg-emerald-500" />
+          <StatCard index={1} icon={AlertCircle} label="เกินกำหนด"
             value={overdue.length}
             sub={overdue.length > 0 ? 'ต้องรีบแล้ว' : 'ดีมากเลย'}
-            gradient={overdue.length > 0 ? 'bg-destructive' : 'bg-blue-500'}
-          />
-          <StatCard
-            index={2}
-            icon={CreditCard}
-            label="Sub รายเดือน"
+            color={overdue.length > 0 ? 'bg-destructive' : 'bg-sky-500'} />
+          <StatCard index={2} icon={CreditCard} label="Sub รายเดือน"
             value={formatCurrency(monthlyTotal)}
             sub={`${activeSubs.length} รายการ`}
-            gradient="bg-violet-500"
-          />
-          <StatCard
-            index={3}
-            icon={TrendingUp}
-            label="Sub รายปี"
+            color="bg-violet-500" />
+          <StatCard index={3} icon={TrendingUp} label="Sub รายปี"
             value={formatCurrency(monthlyTotal * 12)}
-            gradient="bg-orange-500"
-          />
+            color="bg-orange-500" />
         </div>
 
-        {/* ── Upcoming payments — horizontal scroll ── */}
+        {/* ── Upcoming payments ── */}
         {upcomingSubs.length > 0 && (
           <div className="mb-5">
             <SectionHeader label="จ่ายเร็วๆ นี้" count={upcomingSubs.length} />
@@ -202,7 +204,7 @@ export function Dashboard() {
               {upcomingSubs.map((sub, i) => (
                 <motion.div
                   key={sub.id}
-                  initial={{ opacity: 0, x: 16 }}
+                  initial={{ opacity: 0, x: 14 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: i * 0.06 }}
                   className={cn(
@@ -225,14 +227,16 @@ export function Dashboard() {
                   )}>
                     {sub.days === 0 ? 'วันนี้!' : sub.days === 1 ? 'พรุ่งนี้' : `อีก ${sub.days} วัน`}
                   </p>
-                  <p className="text-[12px] font-black text-foreground mt-1.5">{formatCurrency(sub.amount)}</p>
+                  <p className="text-[13px] font-black text-foreground mt-1.5">
+                    {formatCurrency(sub.amount)}
+                  </p>
                 </motion.div>
               ))}
             </div>
           </div>
         )}
 
-        {/* ── Monthly bar chart ── */}
+        {/* ── Bar chart ── */}
         {monthlyTotal > 0 && (
           <div className="mb-5">
             <SectionHeader label="ค่าใช้จ่าย 6 เดือน" />
@@ -258,10 +262,9 @@ export function Dashboard() {
                   />
                   <Bar dataKey="amount" radius={[6, 6, 0, 0]}>
                     {chartData.map((entry, i) => (
-                      <Cell
-                        key={i}
+                      <Cell key={i}
                         fill={entry.active ? 'var(--color-primary)' : 'var(--color-muted-foreground)'}
-                        opacity={entry.active ? 1 : 0.4}
+                        opacity={entry.active ? 1 : 0.35}
                       />
                     ))}
                   </Bar>
@@ -279,7 +282,7 @@ export function Dashboard() {
               {overdue.map((task, i) => (
                 <motion.div
                   key={task.id}
-                  initial={{ opacity: 0, x: -10 }}
+                  initial={{ opacity: 0, x: -8 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: i * 0.06 }}
                   className="flex items-center gap-3 p-3.5 rounded-2xl bg-destructive/8 border border-destructive/20"
@@ -298,29 +301,6 @@ export function Dashboard() {
         )}
 
       </div>
-    </div>
-  )
-}
-
-/* Shared section header component */
-function SectionHeader({ label, count, overdue }) {
-  return (
-    <div className="flex items-center gap-2.5 mb-3">
-      <span className={cn(
-        'text-[10px] font-black uppercase tracking-[0.1em] flex-shrink-0',
-        overdue ? 'text-destructive' : 'text-muted-foreground'
-      )}>
-        {label}
-      </span>
-      <div className={cn('h-px flex-1', overdue ? 'bg-destructive/25' : 'bg-border')} />
-      {count != null && (
-        <span className={cn(
-          'text-[10px] font-bold px-1.5 py-0.5 rounded-full flex-shrink-0',
-          overdue ? 'bg-destructive/15 text-destructive' : 'bg-muted text-muted-foreground'
-        )}>
-          {count}
-        </span>
-      )}
     </div>
   )
 }

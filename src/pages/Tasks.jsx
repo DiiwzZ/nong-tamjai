@@ -263,11 +263,18 @@ export function Tasks() {
       </div>
 
       {/* ══ Task list ══ */}
+
+      {/* Empty state: render OUTSIDE scroll container so it truly fills remaining height */}
+      {!loading && groups.length === 0 && completed.length === 0 && (
+        <div className="flex-1 flex items-center justify-center px-5 pb-20">
+          <EmptyState />
+        </div>
+      )}
+
+      {loading || groups.length > 0 || completed.length > 0 ? (
       <div className="flex-1 overflow-y-auto no-scrollbar px-5 pt-1 safe-bottom">
         {loading ? (
           <>{[0, 1, 2].map((i) => <TaskSkeleton key={i} />)}</>
-        ) : groups.length === 0 && completed.length === 0 ? (
-          <EmptyState />
         ) : (
           <>
             {groups.map((group) => (
@@ -357,6 +364,7 @@ export function Tasks() {
           </>
         )}
       </div>
+      ) : null}
 
       <QuickAddFAB onSelect={(type) => { if (type === 'task') openNew() }} />
 
