@@ -101,7 +101,7 @@ export function Tasks() {
 
       <div className="sticky top-0 z-20 bg-background/84 px-6 pb-4 backdrop-blur-xl header-safe-top">
         <div className="rounded-[1.9rem] border border-white/6 bg-card/74 px-5 py-5 shadow-[0_22px_50px_-34px_rgba(0,0,0,0.96)] backdrop-blur-xl">
-          <div className="mb-5 flex items-start justify-between gap-3">
+          <div className="mb-6 flex items-start justify-between gap-3">
             <p className="pt-1.5 text-xs font-medium text-muted-foreground">
               {new Date().toLocaleDateString('th-TH', { weekday: 'long', day: 'numeric', month: 'long' })}
             </p>
@@ -143,9 +143,9 @@ export function Tasks() {
             </div>
           </div>
 
-          <div className="space-y-5">
-            <div className="max-w-[15rem]">
-              <h1 className="text-balance text-[2.18rem] font-black leading-[0.98] tracking-[-0.045em] text-foreground">
+          <div className="space-y-6">
+            <div className="pr-1">
+              <h1 className="text-balance text-[2.34rem] font-black leading-[0.92] tracking-[-0.05em] text-foreground">
                 {active.length > 0 ? (
                   <>
                     มี <span className="text-primary">{active.length} งาน</span>
@@ -189,7 +189,7 @@ export function Tasks() {
               )}
             </AnimatePresence>
 
-            <div className="flex gap-2 overflow-x-auto no-scrollbar">
+            <div className="flex gap-2 overflow-x-auto no-scrollbar pt-1">
               {FILTERS.map((f) => {
                 const isActive = filter === f
                 const colors = {
