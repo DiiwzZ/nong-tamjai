@@ -15,6 +15,10 @@ dist-ssr
 # Vercel
 .vercel
 
+# Skills (reinstall via skills-lock.json)
+.agents/
+.claude/skills/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
