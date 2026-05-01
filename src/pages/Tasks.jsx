@@ -100,17 +100,23 @@ export function Tasks() {
       {confetti && <Confetti trigger={true} x={confetti.x} y={confetti.y} />}
 
       <div className="sticky top-0 z-20 bg-background/84 px-6 pb-4 backdrop-blur-xl header-safe-top">
-        <div className="rounded-[1.9rem] border border-white/6 bg-card/74 px-5 py-5 shadow-[0_22px_50px_-34px_rgba(0,0,0,0.96)] backdrop-blur-xl">
-          <div className="mb-6 flex items-start justify-between gap-3">
+        <div className="relative overflow-hidden rounded-[2rem] border border-white/6 bg-[linear-gradient(180deg,rgba(31,35,56,0.94),rgba(20,22,34,0.98))] px-5 py-5 shadow-[0_24px_56px_-34px_rgba(0,0,0,0.98)]">
+          <div className="pointer-events-none absolute inset-0">
+            <div className="absolute -right-10 top-0 h-36 w-36 rounded-full bg-primary/18 blur-3xl" />
+            <div className="absolute left-0 top-0 h-24 w-full bg-[linear-gradient(180deg,rgba(255,255,255,0.05),transparent)]" />
+            <div className="absolute inset-x-5 bottom-[4.55rem] h-px bg-white/6" />
+          </div>
+
+          <div className="relative mb-6 flex items-start justify-between gap-3">
             <p className="pt-1.5 text-xs font-medium text-muted-foreground">
               {new Date().toLocaleDateString('th-TH', { weekday: 'long', day: 'numeric', month: 'long' })}
             </p>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 rounded-[1.15rem] border border-white/6 bg-background/34 p-1.5 backdrop-blur-md">
               <motion.button
                 whileTap={{ scale: 0.85 }}
                 onClick={() => setShowArchivePage(true)}
-                className="flex h-10 w-10 items-center justify-center rounded-[1rem] bg-muted/88 text-muted-foreground"
+                className="flex h-10 w-10 items-center justify-center rounded-[0.95rem] bg-muted/86 text-muted-foreground"
               >
                 <ArchiveIcon size={17} />
               </motion.button>
@@ -119,8 +125,8 @@ export function Tasks() {
                 whileTap={{ scale: 0.85 }}
                 onClick={() => setSearchOpen((v) => !v)}
                 className={cn(
-                  'flex h-10 w-10 items-center justify-center rounded-[1rem] transition-colors',
-                  searchOpen ? 'bg-primary text-white' : 'bg-muted/88 text-muted-foreground'
+                  'flex h-10 w-10 items-center justify-center rounded-[0.95rem] transition-colors',
+                  searchOpen ? 'bg-primary text-white' : 'bg-muted/86 text-muted-foreground'
                 )}
               >
                 <Search size={17} />
@@ -129,7 +135,7 @@ export function Tasks() {
               <motion.button
                 whileTap={{ scale: 0.85 }}
                 onClick={() => update({ darkMode: !darkMode })}
-                className="flex h-10 w-10 items-center justify-center rounded-[1rem] bg-muted/88 text-amber-300"
+                className="flex h-10 w-10 items-center justify-center rounded-[0.95rem] bg-muted/86 text-amber-300"
               >
                 <motion.div
                   key={darkMode ? 'moon' : 'sun'}
@@ -143,23 +149,35 @@ export function Tasks() {
             </div>
           </div>
 
-          <div className="space-y-6">
-            <div className="pr-1">
-              <h1 className="text-balance text-[2.34rem] font-black leading-[0.92] tracking-[-0.05em] text-foreground">
-                {active.length > 0 ? (
-                  <>
-                    มี <span className="text-primary">{active.length} งาน</span>
-                    <br />
-                    รอน้องจัดการ
-                  </>
-                ) : (
-                  <>
-                    น้องว่าง
-                    <br />
-                    ไม่มีงานเลย
-                  </>
-                )}
-              </h1>
+          <div className="relative space-y-6">
+            <div className="flex items-end justify-between gap-3">
+              <div className="min-w-0 flex-1 pr-2">
+                <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-primary/82">
+                  focus today
+                </p>
+                <h1 className="text-balance text-[2.3rem] font-black leading-[0.92] tracking-[-0.052em] text-foreground">
+                  {active.length > 0 ? (
+                    <>
+                      มี <span className="text-primary">{active.length} งาน</span>
+                      <br />
+                      รอน้องจัดการ
+                    </>
+                  ) : (
+                    <>
+                      น้องว่าง
+                      <br />
+                      ไม่มีงานเลย
+                    </>
+                  )}
+                </h1>
+              </div>
+
+              <div className="shrink-0 rounded-[1.4rem] border border-white/6 bg-background/42 px-3.5 py-3 text-right shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-md">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">ค้างอยู่</p>
+                <p className="mt-1 text-[1.65rem] font-black leading-none tracking-[-0.05em] text-foreground">
+                  {active.length}
+                </p>
+              </div>
             </div>
 
             <AnimatePresence>
@@ -177,7 +195,7 @@ export function Tasks() {
                       value={search}
                       onChange={(e) => setSearch(e.target.value)}
                       placeholder="ค้นหางาน..."
-                      className="h-11 w-full rounded-2xl border border-white/6 bg-background/86 pl-10 pr-9 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
+                      className="h-11 w-full rounded-[1.1rem] border border-white/6 bg-background/86 pl-10 pr-9 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
                     />
                     {search && (
                       <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2">
@@ -189,30 +207,32 @@ export function Tasks() {
               )}
             </AnimatePresence>
 
-            <div className="flex gap-2 overflow-x-auto no-scrollbar pt-1">
-              {FILTERS.map((f) => {
-                const isActive = filter === f
-                const colors = {
-                  ทั้งหมด: 'bg-primary shadow-primary/30',
-                  สูง: 'bg-red-500 shadow-red-500/30',
-                  กลาง: 'bg-amber-500 shadow-amber-500/30',
-                  ต่ำ: 'bg-emerald-500 shadow-emerald-500/30',
-                }
+            <div className="-mx-1 rounded-[1.35rem] border border-white/6 bg-background/28 p-1.5 backdrop-blur-md">
+              <div className="flex gap-2 overflow-x-auto no-scrollbar">
+                {FILTERS.map((f) => {
+                  const isActive = filter === f
+                  const colors = {
+                    ทั้งหมด: 'bg-primary shadow-primary/30',
+                    สูง: 'bg-red-500 shadow-red-500/30',
+                    กลาง: 'bg-amber-500 shadow-amber-500/30',
+                    ต่ำ: 'bg-emerald-500 shadow-emerald-500/30',
+                  }
 
-                return (
-                  <motion.button
-                    key={f}
-                    onClick={() => setFilter(f)}
-                    whileTap={{ scale: 0.93 }}
-                    className={cn(
-                      'min-w-[64px] flex-shrink-0 rounded-full px-4 py-2 text-[13px] font-bold transition-all duration-200',
-                      isActive ? `${colors[f]} text-white shadow-lg` : 'border border-white/6 bg-muted/82 text-muted-foreground'
-                    )}
-                  >
-                    {f}
-                  </motion.button>
-                )
-              })}
+                  return (
+                    <motion.button
+                      key={f}
+                      onClick={() => setFilter(f)}
+                      whileTap={{ scale: 0.93 }}
+                      className={cn(
+                        'min-w-[64px] flex-shrink-0 rounded-full px-4 py-2 text-[13px] font-bold transition-all duration-200',
+                        isActive ? `${colors[f]} text-white shadow-lg` : 'border border-white/6 bg-muted/76 text-muted-foreground'
+                      )}
+                    >
+                      {f}
+                    </motion.button>
+                  )
+                })}
+              </div>
             </div>
           </div>
         </div>
