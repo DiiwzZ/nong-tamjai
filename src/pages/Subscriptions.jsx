@@ -306,20 +306,20 @@ export function Subscriptions() {
 
   return (
     <div className="flex h-full flex-col">
-      <div className="sticky top-0 z-20 bg-background/84 px-6 pb-4 backdrop-blur-xl header-safe-top">
-        <div className="rounded-[1.9rem] border border-white/6 bg-card/74 px-5 py-5 shadow-[0_22px_50px_-34px_rgba(0,0,0,0.96)] backdrop-blur-xl">
-          <div className="mb-5 flex items-start justify-between gap-3">
-            <p className="pt-1.5 text-xs font-medium text-muted-foreground">
+      <div className="sticky top-0 z-20 bg-background/92 px-6 pb-5 backdrop-blur-xl header-safe-top">
+        <div className="space-y-6">
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-xs font-medium text-muted-foreground">
               {new Date().toLocaleDateString('th-TH', { weekday: 'long', day: 'numeric', month: 'long' })}
             </p>
 
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-2">
               {subscriptions.length > 0 && (
-                <div className="flex gap-1 rounded-[1rem] bg-muted/88 p-1">
+                <div className="flex items-center gap-1 rounded-[1rem] border border-white/6 bg-muted/52 p-1">
                   <button
                     onClick={() => setView('list')}
                     className={cn(
-                      'rounded-[0.85rem] p-1.5 transition-colors',
+                      'rounded-[0.9rem] p-1.5 transition-colors',
                       view === 'list' ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground'
                     )}
                   >
@@ -328,7 +328,7 @@ export function Subscriptions() {
                   <button
                     onClick={() => setView('calendar')}
                     className={cn(
-                      'rounded-[0.85rem] p-1.5 transition-colors',
+                      'rounded-[0.9rem] p-1.5 transition-colors',
                       view === 'calendar' ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground'
                     )}
                   >
@@ -343,44 +343,40 @@ export function Subscriptions() {
                   setEditSub(null)
                   setFormOpen(true)
                 }}
-                className="flex h-10 w-10 items-center justify-center rounded-[1rem] bg-primary text-white"
+                className="flex h-10 w-10 items-center justify-center rounded-[1rem] border border-primary bg-primary text-white"
               >
                 <Plus size={18} />
               </motion.button>
             </div>
           </div>
 
-          <div className="space-y-5">
-            <div className="max-w-[15rem]">
-              <h1 className="text-balance text-[2.06rem] font-black leading-[0.98] tracking-[-0.045em] text-foreground">
-                {active.length > 0 ? (
-                  <>
-                    จ่าย <span className="text-primary">{formatCurrency(monthly)}</span>
-                    <br />
-                    ต่อเดือน
-                  </>
-                ) : (
-                  <>
-                    น้องเตือน
-                    <br />
-                    ยังไม่มีรายจ่าย
-                  </>
-                )}
-              </h1>
+          <div className="space-y-3">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-primary/78">
+              recurring spend
+            </p>
+            <h1 className="max-w-[16rem] text-balance text-[2.45rem] font-black leading-[0.9] tracking-[-0.055em] text-foreground">
+              {active.length > 0 ? (
+                <>
+                  จ่าย <span className="text-primary">{formatCurrency(monthly)}</span>
+                  <br />
+                  ต่อเดือน
+                </>
+              ) : (
+                <>
+                  น้องเตือน
+                  <br />
+                  ยังไม่มีรายจ่าย
+                </>
+              )}
+            </h1>
+            <div className="flex flex-wrap gap-3 text-sm text-muted-foreground">
+              <span className="rounded-full border border-white/6 bg-muted/52 px-3 py-1.5 font-medium">
+                รายปี {formatCurrency(monthly * 12)}
+              </span>
+              <span className="rounded-full border border-white/6 bg-muted/52 px-3 py-1.5 font-medium">
+                {active.length} รายการ
+              </span>
             </div>
-
-            {active.length > 0 && (
-              <div className="grid grid-cols-2 gap-3">
-                <div className="rounded-[1.35rem] border border-white/6 bg-background/72 p-4">
-                  <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">รายปี</p>
-                  <p className="text-[15px] font-black tracking-[-0.02em] text-foreground">{formatCurrency(monthly * 12)}</p>
-                </div>
-                <div className="rounded-[1.35rem] border border-white/6 bg-background/72 p-4">
-                  <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">รายการ</p>
-                  <p className="text-[15px] font-black tracking-[-0.02em] text-foreground">{active.length} รายการ</p>
-                </div>
-              </div>
-            )}
           </div>
         </div>
       </div>

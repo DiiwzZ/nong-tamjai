@@ -63,29 +63,40 @@ export function Dashboard() {
 
   return (
     <div className="flex h-full flex-col">
-      <div className="sticky top-0 z-20 bg-background/84 px-6 pb-4 backdrop-blur-xl header-safe-top">
-        <div className="rounded-[1.9rem] border border-white/6 bg-card/74 px-5 py-5 shadow-[0_22px_50px_-34px_rgba(0,0,0,0.96)] backdrop-blur-xl">
-          <div className="mb-5 flex items-start justify-between gap-3">
-            <p className="pt-1.5 text-xs font-medium text-muted-foreground">
+      <div className="sticky top-0 z-20 bg-background/92 px-6 pb-5 backdrop-blur-xl header-safe-top">
+        <div className="space-y-6">
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-xs font-medium text-muted-foreground">
               {new Date().toLocaleDateString('th-TH', { weekday: 'long', day: 'numeric', month: 'long' })}
             </p>
 
             <motion.button
               whileTap={{ scale: 0.85 }}
-              className="flex h-10 w-10 items-center justify-center rounded-[1rem] bg-muted/88 text-primary"
+              className="flex h-10 w-10 items-center justify-center rounded-[1rem] border border-white/6 bg-muted/68 text-primary"
             >
               <ChartNoAxesColumn size={17} />
             </motion.button>
           </div>
 
-          <div className="max-w-[15rem]">
-            <h1 className="text-balance text-[2.12rem] font-black leading-[0.98] tracking-[-0.045em] text-foreground">
+          <div className="space-y-3">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-primary/78">
+              daily snapshot
+            </p>
+            <h1 className="max-w-[16rem] text-balance text-[2.45rem] font-black leading-[0.9] tracking-[-0.055em] text-foreground">
               ภาพรวม
               <br />
-              <span className="mt-1 inline-block text-primary">
+              <span className="text-primary">
                 {completedToday.length}/{activeTasks.length + completedToday.length} งาน
               </span>
             </h1>
+            <div className="flex flex-wrap gap-3 text-sm text-muted-foreground">
+              <span className="rounded-full border border-white/6 bg-muted/52 px-3 py-1.5 font-medium">
+                วันนี้เสร็จ {completedToday.length} งาน
+              </span>
+              <span className="rounded-full border border-white/6 bg-muted/52 px-3 py-1.5 font-medium">
+                เกินกำหนด {overdue.length} งาน
+              </span>
+            </div>
           </div>
         </div>
       </div>
