@@ -1,10 +1,9 @@
 import { useMemo } from 'react'
 import { motion } from 'motion/react'
-import { CheckCircle2, AlertCircle, CreditCard, TrendingUp } from 'lucide-react'
+import { CheckCircle2, AlertCircle, CreditCard, TrendingUp, ChartNoAxesColumn } from 'lucide-react'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
 import { cn, formatCurrency, daysUntil } from '@/lib/utils'
 import { useStore } from '@/store/useStore'
-import { Header } from '@/components/layout/Header'
 
 function StatCard({ icon: Icon, label, value, sub, color, index = 0 }) {
   return (
@@ -12,13 +11,13 @@ function StatCard({ icon: Icon, label, value, sub, color, index = 0 }) {
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.06, type: 'spring', stiffness: 300, damping: 28 }}
-      className="bg-card border border-border rounded-2xl p-4"
+      className="bg-card border border-border rounded-2xl p-4 shadow-[0_10px_24px_-16px_rgba(0,0,0,0.85)]"
     >
-      <div className={cn('w-9 h-9 rounded-xl flex items-center justify-center mb-3', color)}>
+      <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center mb-4', color)}>
         <Icon size={18} className="text-white" />
       </div>
-      <p className="text-2xl font-bold text-foreground tracking-tight">{value}</p>
-      <p className="text-xs font-medium text-muted-foreground mt-0.5">{label}</p>
+      <p className="text-[2rem] font-black text-foreground tracking-[-0.04em] leading-none">{value}</p>
+      <p className="text-[11px] font-semibold text-muted-foreground mt-1.5">{label}</p>
       {sub && <p className="text-[11px] text-muted-foreground mt-0.5">{sub}</p>}
     </motion.div>
   )
@@ -63,15 +62,14 @@ export function Dashboard() {
   }, [monthlyTotal])
 
   return (
-    <div className="flex flex-col h-full overflow-y-auto no-scrollbar safe-bottom">
-      {/* ── Editorial Header ── */}
+    <div className="flex flex-col h-full">
       <div className="px-5 pb-3 bg-background sticky top-0 z-20 header-safe-top">
         <div className="flex items-start justify-between">
           <div>
             <p className="text-xs font-medium text-muted-foreground mb-0.5">
               {new Date().toLocaleDateString('th-TH', { weekday: 'long', day: 'numeric', month: 'long' })}
             </p>
-            <h1 className="text-2xl font-bold text-foreground leading-tight tracking-tight">
+            <h1 className="text-[2.2rem] font-black text-foreground leading-[0.98] tracking-[-0.04em]">
               ภาพรวม<br />
               <span className="text-primary">
                 {completedToday.length}/{activeTasks.length + completedToday.length} งาน
@@ -80,15 +78,14 @@ export function Dashboard() {
           </div>
           <motion.button
             whileTap={{ scale: 0.85 }}
-            className="w-9 h-9 rounded-xl mt-1 flex items-center justify-center bg-muted text-muted-foreground"
+            className="w-9 h-9 rounded-2xl mt-1 flex items-center justify-center bg-muted text-primary"
           >
-            <TrendingUp size={17} />
+            <ChartNoAxesColumn size={17} />
           </motion.button>
         </div>
       </div>
 
-      <div className="px-5 pt-2 pb-6">
-        {/* Stats */}
+      <div className="flex-1 overflow-y-auto no-scrollbar px-5 pt-2 pb-6 safe-bottom">
         <div className="grid grid-cols-2 gap-3 mb-6">
           <StatCard
             icon={CheckCircle2}
@@ -122,10 +119,12 @@ export function Dashboard() {
           />
         </div>
 
-        {/* Upcoming payments */}
         {upcomingSubs.length > 0 && (
           <div className="mb-6">
-            <h2 className="text-[13px] font-bold text-foreground mb-3">จ่ายเร็วๆ นี้</h2>
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-[15px] font-black tracking-[-0.02em] text-foreground">จ่ายเร็วๆ นี้</h2>
+              <span className="text-[12px] font-bold text-primary">ดูทั้งหมด</span>
+            </div>
             <div className="flex flex-col gap-2">
               {upcomingSubs.map((sub) => (
                 <motion.div
@@ -133,7 +132,7 @@ export function Dashboard() {
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
                   className={cn(
-                    'flex items-center gap-3 p-3 rounded-2xl border',
+                    'flex items-center gap-3 p-3.5 rounded-2xl border',
                     sub.days <= 3 ? 'bg-red-950/20 border-red-900/60' : 'bg-card border-border'
                   )}
                 >
@@ -149,17 +148,16 @@ export function Dashboard() {
                       {sub.days === 0 ? 'วันนี้!' : sub.days === 1 ? 'พรุ่งนี้' : `อีก ${sub.days} วัน`}
                     </p>
                   </div>
-                  <p className="text-sm font-bold text-foreground">{formatCurrency(sub.amount)}</p>
+                  <p className="text-[15px] font-black tracking-[-0.02em] text-foreground">{formatCurrency(sub.amount)}</p>
                 </motion.div>
               ))}
             </div>
           </div>
         )}
 
-        {/* Monthly chart */}
         {monthlyTotal > 0 && (
           <div className="mb-6">
-            <h2 className="text-[13px] font-bold text-foreground mb-3">ค่าใช้จ่าย 6 เดือน</h2>
+            <h2 className="text-[15px] font-black tracking-[-0.02em] text-foreground mb-3">ค่าใช้จ่าย 6 เดือน</h2>
             <div className="bg-card border border-border rounded-2xl p-4">
               <ResponsiveContainer width="100%" height={160}>
                 <BarChart data={chartData} barSize={20}>
@@ -181,10 +179,9 @@ export function Dashboard() {
           </div>
         )}
 
-        {/* Overdue tasks */}
         {overdue.length > 0 && (
           <div>
-            <h2 className="text-[13px] font-bold text-destructive mb-3">งานเกินกำหนด</h2>
+            <h2 className="text-[15px] font-black tracking-[-0.02em] text-destructive mb-3">งานเกินกำหนด</h2>
             {overdue.map((task) => (
               <div key={task.id} className="bg-red-950/20 border border-red-900/60 rounded-2xl p-3 mb-2">
                 <p className="text-sm font-medium text-foreground">{task.title}</p>

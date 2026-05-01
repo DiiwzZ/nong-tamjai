@@ -1,4 +1,4 @@
-import { Moon, Sun, Archive } from 'lucide-react'
+import { Moon, Sun } from 'lucide-react'
 import { motion } from 'motion/react'
 import { useStore } from '@/store/useStore'
 import { cn } from '@/lib/utils'

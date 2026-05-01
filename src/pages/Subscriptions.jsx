@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import { Plus, CreditCard, X, List, CalendarDays } from 'lucide-react'
 import { Sheet } from '@/components/ui/Sheet'
@@ -338,20 +338,20 @@ export function Subscriptions() {
 
       {/* ── Summary stats row ── */}
       {active.length > 0 && (
-        <div className="px-5 pt-3 pb-1">
+        <div className="px-5 pt-3 pb-2">
           <motion.div
             initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ type: 'spring', stiffness: 300, damping: 28 }}
             className="flex gap-3"
           >
-            <div className="flex-1 bg-card border border-border rounded-2xl p-3">
+            <div className="flex-1 bg-card border border-border rounded-2xl p-3.5">
               <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1">รายปี</p>
-              <p className="text-base font-bold text-foreground">{formatCurrency(monthly * 12)}</p>
+              <p className="text-[15px] font-black text-foreground tracking-[-0.02em]">{formatCurrency(monthly * 12)}</p>
             </div>
-            <div className="flex-1 bg-card border border-border rounded-2xl p-3">
+            <div className="flex-1 bg-card border border-border rounded-2xl p-3.5">
               <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1">รายการ</p>
-              <p className="text-base font-bold text-foreground">{active.length} รายการ</p>
+              <p className="text-[15px] font-black text-foreground tracking-[-0.02em]">{active.length} รายการ</p>
             </div>
           </motion.div>
         </div>
@@ -377,11 +377,17 @@ export function Subscriptions() {
         ) : view === 'calendar' ? (
           <CalendarView subscriptions={subscriptions} />
         ) : (
-          <AnimatePresence>
-            {subscriptions.map((sub, i) => (
-              <SubCard key={sub.id} sub={sub} onTap={handleTap} index={i} />
-            ))}
-          </AnimatePresence>
+          <>
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-[15px] font-black tracking-[-0.02em] text-foreground">รายการทั้งหมด</h2>
+              <span className="text-[12px] font-bold text-primary">จัดการ</span>
+            </div>
+            <AnimatePresence>
+              {subscriptions.map((sub, i) => (
+                <SubCard key={sub.id} sub={sub} onTap={handleTap} index={i} />
+              ))}
+            </AnimatePresence>
+          </>
         )}
       </div>
 

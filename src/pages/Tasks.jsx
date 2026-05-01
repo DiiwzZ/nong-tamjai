@@ -1,7 +1,6 @@
 import { useState, useMemo, useEffect } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
-import { Search, CheckCircle2, Archive as ArchiveIcon, X, ClipboardList, Moon, Sun } from 'lucide-react'
-import { Button } from '@/components/ui/Button'
+import { Search, CheckCircle2, Archive as ArchiveIcon, X, ClipboardList, Moon, Sun, ChevronDown } from 'lucide-react'
 import { TaskCard } from '@/components/tasks/TaskCard'
 import { TaskForm } from '@/components/tasks/TaskForm'
 import { Confetti } from '@/components/ui/Confetti'
@@ -33,7 +32,7 @@ function EmptyState() {
 }
 
 export function Tasks() {
-  const { tasks, categories, archiveTask, darkMode, update } = useStore()
+  const { tasks, categories, darkMode, update } = useStore()
   const [formOpen, setFormOpen] = useState(false)
   const [editTask, setEditTask] = useState(null)
   const [search, setSearch] = useState('')
@@ -63,7 +62,17 @@ export function Tasks() {
   }, [tasks, filter, search])
 
   const completed = useMemo(() => tasks.filter((t) => t.status === 'completed'), [tasks])
-  const archived = useMemo(() => tasks.filter((t) => t.status === 'archived'), [tasks])
+  const highlightedCompleted = useMemo(
+    () => tasks
+      .filter((t) => t.status === 'completed')
+      .sort((a, b) => new Date(b.completedAt || 0) - new Date(a.completedAt || 0))
+      .slice(0, 1),
+    [tasks]
+  )
+  const remainingCompleted = useMemo(
+    () => completed.filter((t) => t.id !== highlightedCompleted[0]?.id),
+    [completed, highlightedCompleted]
+  )
 
   const handleTap = (task) => {
     setEditTask(task)
@@ -75,29 +84,7 @@ export function Tasks() {
     setFormOpen(true)
   }
 
-  // Group active tasks by date
-  const groups = useMemo(() => {
-    const today = new Date().toDateString()
-    const tomorrow = new Date(Date.now() + 86400000).toDateString()
-
-    const overdue = active.filter((t) => t.dueDate && new Date(t.dueDate) < new Date())
-    const todayTasks = active.filter((t) => t.dueDate && new Date(t.dueDate).toDateString() === today && !overdue.includes(t))
-    const tomorrowTasks = active.filter((t) => t.dueDate && new Date(t.dueDate).toDateString() === tomorrow)
-    const upcoming = active.filter((t) => {
-      if (!t.dueDate) return false
-      const d = new Date(t.dueDate)
-      return d.toDateString() !== today && d.toDateString() !== tomorrow && d > new Date()
-    })
-    const noDue = active.filter((t) => !t.dueDate)
-
-    return [
-      overdue.length && { label: 'เกินกำหนด', tasks: overdue, overdue: true },
-      todayTasks.length && { label: 'วันนี้', tasks: todayTasks },
-      tomorrowTasks.length && { label: 'พรุ่งนี้', tasks: tomorrowTasks },
-      upcoming.length && { label: 'กำลังจะมาถึง', tasks: upcoming },
-      noDue.length && { label: 'ไม่มีกำหนด', tasks: noDue },
-    ].filter(Boolean)
-  }, [active])
+  const visibleTasks = useMemo(() => [...highlightedCompleted, ...active], [highlightedCompleted, active])
 
   if (showArchivePage) return <Archive onBack={() => setShowArchivePage(false)} />
 
@@ -107,24 +94,23 @@ export function Tasks() {
 
       {/* Header */}
       <div className="px-5 pb-3 bg-background sticky top-0 z-20 header-safe-top">
-        {/* top row: greeting + actions */}
-        <div className="flex items-start justify-between mb-2">
+        <div className="flex items-start justify-between mb-3">
           <div>
             <p className="text-xs font-medium text-muted-foreground mb-0.5">
               {new Date().toLocaleDateString('th-TH', { weekday: 'long', day: 'numeric', month: 'long' })}
             </p>
-            <h1 className="text-2xl font-bold text-foreground leading-tight">
+            <h1 className="text-[2.35rem] font-black text-foreground leading-[0.96] tracking-[-0.04em]">
               {active.length > 0
                 ? <>มี <span className="text-primary">{active.length} งาน</span><br />รอน้องจัดการ</>
-                : <>น้องว่าง<br />ไม่มีงานเลย 🎉</>
+                : <>น้องว่าง<br />ไม่มีงานเลย</>
               }
             </h1>
           </div>
-          <div className="flex items-center gap-1.5 mt-1">
+          <div className="flex items-center gap-2 mt-1.5">
             <motion.button
               whileTap={{ scale: 0.85 }}
               onClick={() => setShowArchivePage(true)}
-              className="w-9 h-9 rounded-xl flex items-center justify-center bg-muted text-muted-foreground"
+              className="w-9 h-9 rounded-2xl flex items-center justify-center bg-muted text-muted-foreground"
             >
               <ArchiveIcon size={17} />
             </motion.button>
@@ -132,7 +118,7 @@ export function Tasks() {
               whileTap={{ scale: 0.85 }}
               onClick={() => setSearchOpen((v) => !v)}
               className={cn(
-                'w-9 h-9 rounded-xl flex items-center justify-center transition-colors',
+                'w-9 h-9 rounded-2xl flex items-center justify-center transition-colors',
                 searchOpen ? 'bg-primary text-white' : 'bg-muted text-muted-foreground'
               )}
             >
@@ -141,7 +127,7 @@ export function Tasks() {
             <motion.button
               whileTap={{ scale: 0.85 }}
               onClick={() => update({ darkMode: !darkMode })}
-              className="w-9 h-9 rounded-xl flex items-center justify-center bg-muted text-muted-foreground"
+              className="w-9 h-9 rounded-2xl flex items-center justify-center bg-muted text-amber-300"
             >
               <motion.div key={darkMode ? 'moon' : 'sun'} initial={{ rotate: -30, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} transition={{ duration: 0.2 }}>
                 {darkMode ? <Sun size={17} /> : <Moon size={17} />}
@@ -207,77 +193,75 @@ export function Tasks() {
         </div>
       </div>
 
-      {/* Task list */}
-      <div className="flex-1 overflow-y-auto no-scrollbar px-5 safe-bottom">
-        {loading ? (
-          <>{[0,1,2].map((i) => <TaskSkeleton key={i} />)}</>
-        ) : groups.length === 0 && completed.length === 0 ? (
+      {!loading && visibleTasks.length === 0 && remainingCompleted.length === 0 && (
+        <div className="flex-1 flex items-center justify-center px-5 pb-20">
           <EmptyState />
-        ) : (
-          <>
-            {groups.map((group) => (
-              <div key={group.label} className="mb-6">
-                <div className={cn(
-                  'flex items-center justify-between mb-3',
-                )}>
-                  <span className={cn(
-                    'text-[13px] font-bold tracking-wide',
-                    group.overdue ? 'text-destructive' : 'text-foreground'
-                  )}>
-                    {group.label}
-                  </span>
-                  <span className="text-xs text-muted-foreground font-medium">
-                    ดูทั้งหมด
-                  </span>
-                </div>
-                <AnimatePresence>
-                  {group.tasks.map((task, i) => (
-                    <motion.div
-                      key={task.id}
-                      layout
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, height: 0 }}
-                      transition={{ delay: i * 0.04, duration: 0.25 }}
-                    >
-                      <TaskCard task={task} onTap={handleTap} categories={categories} onComplete={triggerConfetti} />
-                    </motion.div>
-                  ))}
-                </AnimatePresence>
-              </div>
-            ))}
+        </div>
+      )}
 
-            {/* Completed section */}
-            {completed.length > 0 && (
-              <div className="mb-5">
-                <button
-                  onClick={() => setShowCompleted((v) => !v)}
-                  className="flex items-center gap-2 mb-3 text-muted-foreground"
-                >
-                  <CheckCircle2 size={14} />
-                  <span className="text-xs font-semibold uppercase tracking-wider">
-                    เสร็จแล้ว ({completed.length})
-                  </span>
-                  <span className="text-[10px] ml-auto">{showCompleted ? '▲' : '▼'}</span>
-                </button>
-                <AnimatePresence>
-                  {showCompleted && completed.map((task) => (
-                    <motion.div
-                      key={task.id}
-                      layout
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      exit={{ opacity: 0, height: 0 }}
-                    >
-                      <TaskCard task={task} onTap={handleTap} categories={categories} />
-                    </motion.div>
-                  ))}
-                </AnimatePresence>
+      {(loading || visibleTasks.length > 0 || remainingCompleted.length > 0) && (
+        <div className="flex-1 overflow-y-auto no-scrollbar px-5 safe-bottom">
+          {loading ? (
+            <>{[0, 1, 2].map((i) => <TaskSkeleton key={i} />)}</>
+          ) : (
+            <>
+              <div className="flex items-center justify-between mb-3 pt-1">
+                <h2 className="text-[15px] font-black tracking-[-0.02em] text-foreground">งานที่ต้องทำ</h2>
+                <span className="text-[12px] font-bold text-primary">ดูทั้งหมด</span>
               </div>
-            )}
-          </>
-        )}
-      </div>
+
+              <AnimatePresence>
+                {visibleTasks.map((task, i) => (
+                  <motion.div
+                    key={task.id}
+                    layout
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ delay: i * 0.04, duration: 0.25 }}
+                  >
+                    <TaskCard task={task} onTap={handleTap} categories={categories} onComplete={triggerConfetti} />
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+
+              {remainingCompleted.length > 0 && (
+                <div className="mt-3 mb-5">
+                  <button
+                    onClick={() => setShowCompleted((v) => !v)}
+                    className="flex items-center gap-2.5 mb-3 w-full text-muted-foreground"
+                  >
+                    <CheckCircle2 size={14} />
+                    <span className="text-xs font-semibold uppercase tracking-wider">
+                      เสร็จแล้ว ({remainingCompleted.length})
+                    </span>
+                    <motion.span
+                      animate={{ rotate: showCompleted ? 180 : 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="ml-auto"
+                    >
+                      <ChevronDown size={13} />
+                    </motion.span>
+                  </button>
+                  <AnimatePresence>
+                    {showCompleted && remainingCompleted.map((task) => (
+                      <motion.div
+                        key={task.id}
+                        layout
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                      >
+                        <TaskCard task={task} onTap={handleTap} categories={categories} />
+                      </motion.div>
+                    ))}
+                  </AnimatePresence>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      )}
 
       <QuickAddFAB onSelect={(type) => { if (type === 'task') openNew() }} />
 

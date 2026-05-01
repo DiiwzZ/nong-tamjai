@@ -79,11 +79,10 @@ export function QuickAddFAB({ onSelect }) {
         onPointerLeave={() => clearTimeout(pressTimer.current)}
         whileTap={{ scale: 0.88 }}
         animate={{ rotate: open ? 45 : 0 }}
-        /* ui-animation: spring rotation — snappy feel for FAB open/close */
         transition={{ type: 'spring', stiffness: 420, damping: 28 }}
-        className="fixed fab-bottom right-5 w-14 h-14 rounded-2xl bg-primary text-white shadow-lg shadow-primary/30 flex items-center justify-center z-30"
+        className="fixed fab-bottom right-5 w-13 h-13 rounded-[19px] bg-primary text-white shadow-[0_16px_36px_-10px_rgba(59,130,246,0.65)] flex items-center justify-center z-30"
       >
-        <Plus size={26} strokeWidth={2.5} />
+        <Plus size={24} strokeWidth={2.4} />
       </motion.button>
     </>
   )

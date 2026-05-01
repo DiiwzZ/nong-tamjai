@@ -11,7 +11,7 @@ const PRIORITY_PILL = {
 }
 
 export function TaskCard({ task, onTap, categories, onComplete }) {
-  const { completeTask, deleteTask } = useStore()
+  const { toggleTaskComplete, deleteTask } = useStore()
   const [dragging, setDragging] = useState(false)
   const x = useMotionValue(0)
   const deleteOpacity = useTransform(x, [-90, -30], [1, 0])
@@ -24,9 +24,14 @@ export function TaskCard({ task, onTap, categories, onComplete }) {
 
   const dueLabelShort = () => {
     if (!task.dueDate) return null
+    const date = new Date(task.dueDate)
+    const time = date.toLocaleTimeString('th-TH', {
+      hour: '2-digit',
+      minute: '2-digit',
+    })
     if (overdue) return 'เกินกำหนด'
-    if (days === 0) return 'วันนี้'
-    if (days === 1) return 'พรุ่งนี้'
+    if (days === 0) return `วันนี้ ${time}`
+    if (days === 1) return `พรุ่งนี้ ${time}`
     return formatDate(task.dueDate)
   }
 
@@ -42,14 +47,13 @@ export function TaskCard({ task, onTap, categories, onComplete }) {
   const handleComplete = (e) => {
     e.stopPropagation()
     if (task.status === 'active') onComplete?.(e)
-    completeTask(task.id)
+    toggleTaskComplete(task.id)
   }
 
   if (task.status === 'archived') return null
 
   return (
     <div className="relative overflow-hidden rounded-2xl mb-3">
-      {/* swipe-to-delete bg */}
       <motion.div
         style={{ opacity: deleteOpacity }}
         className="absolute inset-y-0 right-0 w-20 flex items-center justify-center bg-destructive rounded-2xl"
@@ -67,56 +71,48 @@ export function TaskCard({ task, onTap, categories, onComplete }) {
         onClick={() => !dragging && onTap?.(task)}
         whileTap={{ scale: 0.985 }}
         className={cn(
-          'relative rounded-2xl px-4 py-4 cursor-pointer select-none',
-          'bg-card border border-border',
-          isDone && 'opacity-50'
+          'relative rounded-[22px] px-4 py-4 cursor-pointer select-none',
+          'bg-card border border-border/85 shadow-[0_10px_24px_-16px_rgba(0,0,0,0.85)]',
+          isDone && 'opacity-70'
         )}
       >
         <div className="flex items-start gap-3">
-
-          {/* ── checkbox ── */}
           <button
             onClick={handleComplete}
             className={cn(
-              'mt-0.5 w-6 h-6 rounded-full border-2 flex-shrink-0 flex items-center justify-center transition-all duration-200',
+              'mt-0.5 w-6 h-6 rounded-full border flex-shrink-0 flex items-center justify-center transition-all duration-200',
               isDone
-                ? 'bg-primary border-primary'
-                : 'border-border hover:border-primary/60'
+                ? 'bg-primary border-primary shadow-[0_0_0_4px_rgba(59,130,246,0.12)]'
+                : 'border-border/90 hover:border-primary/60 bg-background/20'
             )}
           >
             {isDone && <Check size={12} strokeWidth={3} className="text-white" />}
           </button>
 
-          {/* ── body ── */}
           <div className="flex-1 min-w-0">
-
-            {/* priority pill */}
             {task.priority && !isDone && (
               <span className={cn(
-                'inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full mb-1.5',
+                'inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full mb-1.5 shadow-sm',
                 pill.bg, pill.text
               )}>
-                {task.priority === 'high' && <span className="text-[9px]">⚡</span>}
+                {task.priority === 'high' && <span className="text-[9px]">!</span>}
                 {pill.label}
               </span>
             )}
 
-            {/* title */}
             <p className={cn(
-              'text-sm font-semibold leading-snug text-foreground',
+              'text-[15px] font-semibold leading-snug text-foreground tracking-[-0.01em]',
               isDone && 'line-through text-muted-foreground'
             )}>
               {task.title}
             </p>
 
-            {/* note */}
             {task.note && (
-              <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
+              <p className="text-[12px] text-muted-foreground/90 mt-0.5 line-clamp-1">
                 {task.note}
               </p>
             )}
 
-            {/* meta row */}
             <div className="flex items-center justify-between mt-2">
               <div className="flex items-center gap-2">
                 {task.dueDate && (
@@ -129,12 +125,11 @@ export function TaskCard({ task, onTap, categories, onComplete }) {
                 )}
               </div>
 
-              {/* category tag — right aligned like reference */}
               {category && (
                 <span
-                  className="text-[10px] font-semibold px-2 py-0.5 rounded-md"
+                  className="text-[10px] font-semibold px-2 py-0.5 rounded-full"
                   style={{
-                    backgroundColor: category.color + '22',
+                    backgroundColor: category.color + '1f',
                     color: category.color,
                   }}
                 >
