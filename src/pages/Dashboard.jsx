@@ -6,16 +6,24 @@ import { cn, formatCurrency, daysUntil } from '@/lib/utils'
 import { useStore } from '@/store/useStore'
 import { Header } from '@/components/layout/Header'
 
-function StatCard({ icon: Icon, label, value, sub, color }) {
+function StatCard({ icon: Icon, label, value, sub, color, index = 0 }) {
   return (
-    <div className="bg-card border border-border rounded-xl p-4">
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * 0.06, type: 'spring', stiffness: 300, damping: 28 }}
+      className={cn(
+        'bg-card border border-border rounded-xl p-4',
+        'shadow-sm shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]'
+      )}
+    >
       <div className={cn('w-9 h-9 rounded-xl flex items-center justify-center mb-3', color)}>
         <Icon size={18} className="text-white" />
       </div>
-      <p className="text-xl font-bold text-foreground">{value}</p>
+      <p className="text-xl font-bold text-foreground tracking-tight">{value}</p>
       <p className="text-xs text-muted-foreground mt-0.5">{label}</p>
       {sub && <p className="text-xs text-muted-foreground">{sub}</p>}
-    </div>
+    </motion.div>
   )
 }
 
@@ -59,7 +67,7 @@ export function Dashboard() {
 
   return (
     <div className="flex flex-col h-full overflow-y-auto no-scrollbar">
-      <Header title="น้องสรุปให้ 📊" />
+      <Header title="น้องสรุปให้" />
       <div className="px-5 pb-2">
         <p className="text-sm text-muted-foreground -mt-2 mb-2">
           {new Date().toLocaleDateString('th-TH', { weekday: 'long', day: 'numeric', month: 'long' })}
@@ -74,6 +82,7 @@ export function Dashboard() {
             label="Task วันนี้"
             value={`${completedToday.length}/${activeTasks.length + completedToday.length}`}
             color="bg-green-500"
+            index={0}
           />
           <StatCard
             icon={AlertCircle}
@@ -81,6 +90,7 @@ export function Dashboard() {
             value={overdue.length}
             sub={overdue.length > 0 ? 'ต้องรีบจัดการ' : 'ดีมาก!'}
             color={overdue.length > 0 ? 'bg-destructive' : 'bg-blue-500'}
+            index={1}
           />
           <StatCard
             icon={CreditCard}
@@ -88,12 +98,14 @@ export function Dashboard() {
             value={formatCurrency(monthlyTotal)}
             sub={`${activeSubs.length} รายการ`}
             color="bg-purple-500"
+            index={2}
           />
           <StatCard
             icon={TrendingUp}
             label="ค่า Sub/ปี"
             value={formatCurrency(monthlyTotal * 12)}
             color="bg-orange-500"
+            index={3}
           />
         </div>
 

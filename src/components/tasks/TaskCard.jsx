@@ -66,11 +66,13 @@ export function TaskCard({ task, onTap, categories, onComplete }) {
         onDragStart={() => setDragging(true)}
         onDragEnd={handleDragEnd}
         onClick={() => !dragging && onTap?.(task)}
+        whileTap={{ scale: 0.985 }}
         className={cn(
           'relative rounded-xl p-4 cursor-pointer select-none',
-          'border transition-colors duration-150',
+          'border shadow-sm transition-colors duration-150',
+          'shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]',
           task.status === 'completed'
-            ? 'bg-muted/50 border-border opacity-60'
+            ? 'bg-muted/40 border-border/50 opacity-55'
             : [priority.bg, priority.border]
         )}
       >

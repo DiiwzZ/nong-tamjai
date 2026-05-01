@@ -25,7 +25,7 @@ function EmptyState() {
         <ClipboardList size={36} className="text-primary" />
       </div>
       <div>
-        <p className="font-semibold text-foreground">ยังไม่มีงานเลย น้องว่างงานแระ 🐣</p>
+        <p className="font-semibold text-foreground">ยังไม่มีงานเลย น้องว่างงานแระ</p>
         <p className="text-sm text-muted-foreground mt-1">กด + ให้น้องจดงานแรก</p>
       </div>
     </motion.div>
@@ -108,7 +108,7 @@ export function Tasks() {
       {/* Header */}
       <div className="px-5 pt-14 pb-4 bg-background sticky top-0 z-20">
         <div className="flex items-center justify-between mb-4">
-          <h1 className="text-xl font-bold text-foreground">น้องจด 📋</h1>
+          <h1 className="text-xl font-bold text-foreground">น้องจด</h1>
           <div className="flex gap-2">
             <Button
               variant="ghost"
@@ -204,13 +204,14 @@ export function Tasks() {
                   <span className="text-xs text-muted-foreground">{group.tasks.length}</span>
                 </div>
                 <AnimatePresence>
-                  {group.tasks.map((task) => (
+                  {group.tasks.map((task, i) => (
                     <motion.div
                       key={task.id}
                       layout
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, height: 0 }}
+                      transition={{ delay: i * 0.04, duration: 0.25 }}
                     >
                       <TaskCard task={task} onTap={handleTap} categories={categories} onComplete={triggerConfetti} />
                     </motion.div>

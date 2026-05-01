@@ -35,10 +35,10 @@ const POPULAR_SUBS = [
   { name: 'Adobe', color: '#FF0000' },
 ]
 
-function SubCard({ sub, onTap }) {
-  const { deleteSubscription, updateSubscription } = useStore()
+function SubCard({ sub, onTap, index = 0 }) {
   const days = daysUntil(sub.nextBillingDate)
   const status = STATUS_LABELS[sub.status] || STATUS_LABELS.active
+  const isUrgent = days !== null && days <= 3 && sub.status === 'active'
 
   const monthlyAmount =
     sub.billingCycle === 'yearly' ? sub.amount / 12 : sub.amount
@@ -49,12 +49,21 @@ function SubCard({ sub, onTap }) {
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, height: 0 }}
+      transition={{ delay: index * 0.04, duration: 0.25 }}
+      whileTap={{ scale: 0.985 }}
       onClick={() => onTap(sub)}
-      className="bg-card border border-border rounded-xl p-4 mb-3 cursor-pointer active:scale-[0.98] transition-transform"
+      className={cn(
+        'rounded-xl p-4 mb-3 cursor-pointer select-none',
+        'border shadow-sm transition-colors duration-150',
+        'shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]',
+        isUrgent
+          ? 'bg-red-50/80 dark:bg-red-950/20 border-red-200 dark:border-red-900/60'
+          : 'bg-card border-border'
+      )}
     >
       <div className="flex items-center gap-3">
         <div
-          className="w-10 h-10 rounded-xl flex items-center justify-center text-white text-sm font-bold flex-shrink-0"
+          className="w-10 h-10 rounded-xl flex items-center justify-center text-white text-sm font-bold flex-shrink-0 shadow-sm"
           style={{ backgroundColor: sub.color || '#6b7280' }}
         >
           {sub.name?.[0]?.toUpperCase()}
@@ -68,9 +77,11 @@ function SubCard({ sub, onTap }) {
             </span>
           </div>
           <div className="flex items-center gap-2 mt-0.5">
-            <span className="text-xs text-muted-foreground">{sub.paymentMethod}</span>
+            {sub.paymentMethod && (
+              <span className="text-xs text-muted-foreground">{sub.paymentMethod}</span>
+            )}
             {sub.nextBillingDate && (
-              <span className={cn('text-xs', days !== null && days <= 3 ? 'text-destructive font-medium' : 'text-muted-foreground')}>
+              <span className={cn('text-xs font-medium', isUrgent ? 'text-destructive' : 'text-muted-foreground')}>
                 {days === 0 ? 'จ่ายวันนี้' : days === 1 ? 'จ่ายพรุ่งนี้' : days !== null ? `อีก ${days} วัน` : ''}
               </span>
             )}
@@ -286,7 +297,7 @@ export function Subscriptions() {
   return (
     <div className="flex flex-col h-full">
       <Header
-        title="น้องเตือน 💳"
+        title="น้องเตือน"
         rightAction={
           subscriptions.length > 0 && (
             <div className="flex gap-1 bg-muted rounded-xl p-1">
@@ -309,13 +320,26 @@ export function Subscriptions() {
 
       <div className="px-5 pb-4">
         {active.length > 0 && (
-          <div className="bg-primary rounded-2xl p-4 mb-4 text-white">
-            <p className="text-sm opacity-80">รวมรายเดือน</p>
-            <p className="text-2xl font-bold mt-1">{formatCurrency(monthly)}</p>
-            <p className="text-xs opacity-70 mt-1">
-              {formatCurrency(monthly * 12)} / ปี · {active.length} รายการ
-            </p>
-          </div>
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 28 }}
+            className={cn(
+              'rounded-2xl p-4 mb-4 text-white',
+              'bg-gradient-to-br from-primary via-primary to-primary/80',
+              'shadow-lg shadow-primary/25',
+              'border border-white/10',
+              'shadow-[inset_0_1px_0_rgba(255,255,255,0.15)]'
+            )}
+          >
+            <p className="text-xs font-medium opacity-70 uppercase tracking-wider">รวมรายเดือน</p>
+            <p className="text-3xl font-bold mt-1 tracking-tight">{formatCurrency(monthly)}</p>
+            <div className="flex items-center gap-3 mt-2 pt-2 border-t border-white/15">
+              <p className="text-xs opacity-70">{formatCurrency(monthly * 12)} / ปี</p>
+              <span className="w-1 h-1 rounded-full bg-white/40" />
+              <p className="text-xs opacity-70">{active.length} รายการ</p>
+            </div>
+          </motion.div>
         )}
       </div>
 
@@ -332,7 +356,7 @@ export function Subscriptions() {
               <CreditCard size={36} className="text-primary" />
             </div>
             <div>
-              <p className="font-semibold text-foreground">ยังไม่มีรายจ่ายเลย น้องโล่งใจแทน 🐣</p>
+              <p className="font-semibold text-foreground">ยังไม่มีรายจ่ายเลย น้องโล่งใจแทน</p>
               <p className="text-sm text-muted-foreground mt-1">กด + ให้น้องช่วยติดตามค่าใช้จ่าย</p>
             </div>
           </motion.div>
@@ -340,8 +364,8 @@ export function Subscriptions() {
           <CalendarView subscriptions={subscriptions} />
         ) : (
           <AnimatePresence>
-            {subscriptions.map((sub) => (
-              <SubCard key={sub.id} sub={sub} onTap={handleTap} />
+            {subscriptions.map((sub, i) => (
+              <SubCard key={sub.id} sub={sub} onTap={handleTap} index={i} />
             ))}
           </AnimatePresence>
         )}

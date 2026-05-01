@@ -27,13 +27,14 @@ export function Sheet({ open, onClose, children, title }) {
           <motion.div
             className={cn(
               'fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] z-50',
-              'bg-card/80 backdrop-blur-2xl rounded-t-2xl shadow-2xl border border-border/50',
+              'bg-card/85 backdrop-blur-3xl rounded-t-3xl shadow-2xl',
+              'border border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]',
               'max-h-[90svh] flex flex-col'
             )}
             initial={{ y: '100%' }}
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
-            transition={{ type: 'spring', damping: 28, stiffness: 300 }}
+            transition={{ type: 'spring', damping: 32, stiffness: 340, mass: 0.9 }}
             drag="y"
             dragConstraints={{ top: 0 }}
             dragElastic={{ top: 0, bottom: 0.3 }}
