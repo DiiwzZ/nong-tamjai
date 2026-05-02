@@ -167,101 +167,100 @@ export function Tasks() {
     <div className="flex h-full flex-col">
       {confetti && <Confetti trigger={true} x={confetti.x} y={confetti.y} />}
 
-      {/* Sticky header — identity + hero only */}
-      <div className="sticky top-0 z-20 bg-background/92 px-5 pb-4 backdrop-blur-xl header-safe-top">
-        <div className="space-y-4">
+      {/* Sticky header */}
+      <div className="sticky top-0 z-20 bg-background/92 px-5 pb-5 backdrop-blur-xl header-safe-top">
+        <div className="flex flex-col gap-5">
 
-          {/* Row 1: date / icon buttons */}
-          <div className="flex items-center justify-between gap-3">
-            <span className="text-[12px] text-muted-foreground">{dateLabel}</span>
+        {/* Date + action buttons */}
+        <div className="flex items-center justify-between gap-3">
+          <span className="text-[12px] text-muted-foreground">{dateLabel}</span>
+          <div className="flex items-center gap-1.5">
+            <motion.button
+              whileTap={{ scale: 0.9 }}
+              onClick={() => setShowArchivePage(true)}
+              aria-label="เปิดคลังงาน"
+              className="flex h-11 w-11 items-center justify-center rounded-[0.85rem] border border-white/[0.07] bg-white/[0.04] text-muted-foreground"
+            >
+              <ArchiveIcon size={15} />
+            </motion.button>
 
-            <div className="flex items-center gap-1.5">
-              <motion.button
-                whileTap={{ scale: 0.9 }}
-                onClick={() => setShowArchivePage(true)}
-                aria-label="เปิดคลังงาน"
-                className="flex h-11 w-11 items-center justify-center rounded-[0.85rem] border border-white/[0.07] bg-white/[0.04] text-muted-foreground"
-              >
-                <ArchiveIcon size={15} />
-              </motion.button>
+            <motion.button
+              whileTap={{ scale: 0.9 }}
+              onClick={() => setSearchOpen((value) => !value)}
+              aria-label={searchOpen ? 'ปิดการค้นหา' : 'เปิดการค้นหา'}
+              className={cn(
+                'flex h-11 w-11 items-center justify-center rounded-[0.85rem] border transition-colors',
+                searchOpen
+                  ? 'border-primary/30 bg-primary text-white'
+                  : 'border-white/[0.07] bg-white/[0.04] text-muted-foreground'
+              )}
+            >
+              <Search size={15} />
+            </motion.button>
 
-              <motion.button
-                whileTap={{ scale: 0.9 }}
-                onClick={() => setSearchOpen((value) => !value)}
-                aria-label={searchOpen ? 'ปิดการค้นหา' : 'เปิดการค้นหา'}
-                className={cn(
-                  'flex h-11 w-11 items-center justify-center rounded-[0.85rem] border transition-colors',
-                  searchOpen
-                    ? 'border-primary/30 bg-primary text-white'
-                    : 'border-white/[0.07] bg-white/[0.04] text-muted-foreground'
-                )}
-              >
-                <Search size={15} />
-              </motion.button>
-
-              <motion.button
-                whileTap={{ scale: 0.9 }}
-                onClick={() => update({ darkMode: !darkMode })}
-                aria-label={darkMode ? 'สลับเป็นโหมดสว่าง' : 'สลับเป็นโหมดมืด'}
-                className="flex h-11 w-11 items-center justify-center rounded-[0.85rem] border border-white/[0.07] bg-white/[0.04] text-amber-300"
-              >
-                <motion.div
-                  key={darkMode ? 'sun' : 'moon'}
-                  initial={{ rotate: -30, opacity: 0 }}
-                  animate={{ rotate: 0, opacity: 1 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  {darkMode ? <Sun size={15} /> : <Moon size={15} />}
-                </motion.div>
-              </motion.button>
-            </div>
-          </div>
-
-          {/* Hero — title + stats only, no filler body text */}
-          <div>
-            <h1 className="text-[2.2rem] font-black leading-[0.9] tracking-[-0.06em] text-foreground">
-              {heroTitle}
-            </h1>
-            <div className="mt-3 flex items-center gap-1 text-[12px]">
-              <span className="numeric-tabular font-bold text-foreground">{active.length}</span>
-              <span className="text-muted-foreground">&nbsp;งานค้าง</span>
-              <span className="mx-2 text-white/20">·</span>
-              <span className="numeric-tabular font-bold text-emerald-300">{completed.length}</span>
-              <span className="text-muted-foreground">&nbsp;เสร็จแล้ว</span>
-            </div>
-          </div>
-
-          {/* Search */}
-          <AnimatePresence>
-            {searchOpen && (
+            <motion.button
+              whileTap={{ scale: 0.9 }}
+              onClick={() => update({ darkMode: !darkMode })}
+              aria-label={darkMode ? 'สลับเป็นโหมดสว่าง' : 'สลับเป็นโหมดมืด'}
+              className="flex h-11 w-11 items-center justify-center rounded-[0.85rem] border border-white/[0.07] bg-white/[0.04] text-amber-300"
+            >
               <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: 'auto', opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                className="overflow-hidden"
+                key={darkMode ? 'sun' : 'moon'}
+                initial={{ rotate: -30, opacity: 0 }}
+                animate={{ rotate: 0, opacity: 1 }}
+                transition={{ duration: 0.2 }}
               >
-                <div className="relative rounded-[1.2rem] border border-white/8 bg-white/[0.04]">
-                  <Search size={15} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                  <input
-                    autoFocus
-                    value={search}
-                    onChange={(event) => setSearch(event.target.value)}
-                    placeholder="ค้นหางาน..."
-                    className="h-11 w-full bg-transparent pl-10 pr-9 text-[16px] text-foreground placeholder:text-muted-foreground focus:outline-none"
-                  />
-                  {search && (
-                    <button
-                      onClick={() => setSearch('')}
-                      aria-label="ล้างคำค้นหา"
-                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground"
-                    >
-                      <X size={14} />
-                    </button>
-                  )}
-                </div>
+                {darkMode ? <Sun size={15} /> : <Moon size={15} />}
               </motion.div>
-            )}
-          </AnimatePresence>
+            </motion.button>
+          </div>
+        </div>
+
+        {/* Hero title */}
+        <h1 className="text-[2.2rem] font-black leading-[0.88] tracking-[-0.06em] text-foreground">
+          {heroTitle}
+        </h1>
+
+        {/* Stats */}
+        <div className="flex items-center gap-1 text-[12px]">
+          <span className="numeric-tabular font-bold text-foreground">{active.length}</span>
+          <span className="text-muted-foreground">&nbsp;งานค้าง</span>
+          <span className="mx-2 text-white/20">·</span>
+          <span className="numeric-tabular font-bold text-emerald-300">{completed.length}</span>
+          <span className="text-muted-foreground">&nbsp;เสร็จแล้ว</span>
+        </div>
+
+        {/* Search */}
+        <AnimatePresence>
+          {searchOpen && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="overflow-hidden"
+            >
+              <div className="relative rounded-[1.2rem] border border-white/8 bg-white/[0.04]">
+                <Search size={15} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                <input
+                  autoFocus
+                  value={search}
+                  onChange={(event) => setSearch(event.target.value)}
+                  placeholder="ค้นหางาน..."
+                  className="h-11 w-full bg-transparent pl-10 pr-9 text-[16px] text-foreground placeholder:text-muted-foreground focus:outline-none"
+                />
+                {search && (
+                  <button
+                    onClick={() => setSearch('')}
+                    aria-label="ล้างคำค้นหา"
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground"
+                  >
+                    <X size={14} />
+                  </button>
+                )}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         </div>
       </div>
