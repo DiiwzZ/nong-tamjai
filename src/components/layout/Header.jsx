@@ -1,4 +1,4 @@
-import { Moon, Sun } from 'lucide-react'
+import { Moon, Sun, Archive } from 'lucide-react'
 import { motion } from 'motion/react'
 import { useStore } from '@/store/useStore'
 import { cn } from '@/lib/utils'
@@ -7,9 +7,9 @@ export function Header({ title, rightAction }) {
   const { darkMode, update } = useStore()
 
   return (
-    <div className="flex items-center justify-between px-5 pb-4 bg-background sticky top-0 z-20 header-safe-top">
-      <h1 className="text-xl font-bold text-foreground tracking-tight">{title}</h1>
-      <div className="flex items-center gap-1.5">
+    <div className="flex items-center justify-between px-5 pt-14 pb-4 bg-background sticky top-0 z-20">
+      <h1 className="text-xl font-bold text-foreground">{title}</h1>
+      <div className="flex items-center gap-1">
         {rightAction}
         <motion.button
           whileTap={{ scale: 0.85 }}
@@ -25,7 +25,7 @@ export function Header({ title, rightAction }) {
             animate={{ rotate: 0, opacity: 1 }}
             transition={{ duration: 0.2 }}
           >
-            {darkMode ? <Sun size={17} /> : <Moon size={17} />}
+            {darkMode ? <Sun size={18} /> : <Moon size={18} />}
           </motion.div>
         </motion.button>
       </div>

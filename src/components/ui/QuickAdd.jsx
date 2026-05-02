@@ -1,11 +1,11 @@
-import { useRef, useState } from 'react'
+import { useState, useRef } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import { Plus, CheckSquare, CreditCard } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const ACTIONS = [
   { id: 'task', label: 'Task ใหม่', icon: CheckSquare, color: 'bg-blue-500' },
-  { id: 'sub', label: 'Subscription', icon: CreditCard, color: 'bg-emerald-500' },
+  { id: 'sub', label: 'Subscription', icon: CreditCard, color: 'bg-purple-500' },
 ]
 
 export function QuickAddFAB({ onSelect }) {
@@ -46,7 +46,7 @@ export function QuickAddFAB({ onSelect }) {
               onClick={() => setOpen(false)}
             />
             <motion.div
-              className="fixed fab-menu-bottom right-5 z-30 flex flex-col-reverse gap-3"
+              className="fixed bottom-28 right-5 z-30 flex flex-col-reverse gap-3"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -54,18 +54,17 @@ export function QuickAddFAB({ onSelect }) {
               {ACTIONS.map(({ id, label, icon: Icon, color }, i) => (
                 <motion.button
                   key={id}
-                  initial={{ opacity: 0, y: 10, scale: 0.88 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: 10, scale: 0.88, transition: { duration: 0.15 } }}
-                  transition={{ type: 'spring', stiffness: 420, damping: 28, delay: i * 0.07 }}
+                  initial={{ opacity: 0, x: 20, scale: 0.8 }}
+                  animate={{ opacity: 1, x: 0, scale: 1 }}
+                  exit={{ opacity: 0, x: 20, scale: 0.8 }}
+                  transition={{ delay: i * 0.05 }}
                   onClick={() => select(id)}
-                  aria-label={label}
-                  className="flex h-12 items-center gap-3 rounded-[1.15rem] border border-white/7 bg-card/96 pl-3 pr-4 shadow-[0_22px_40px_-24px_rgba(0,0,0,1)]"
+                  className="flex items-center gap-3 pr-4 pl-3 h-12 rounded-2xl bg-card border border-border shadow-xl"
                 >
-                  <div className={cn('flex h-8 w-8 items-center justify-center rounded-xl text-white', color)}>
+                  <div className={cn('w-8 h-8 rounded-xl flex items-center justify-center text-white', color)}>
                     <Icon size={16} />
                   </div>
-                  <span className="whitespace-nowrap text-sm font-medium text-foreground">{label}</span>
+                  <span className="text-sm font-medium text-foreground whitespace-nowrap">{label}</span>
                 </motion.button>
               ))}
             </motion.div>
@@ -79,11 +78,10 @@ export function QuickAddFAB({ onSelect }) {
         onPointerLeave={() => clearTimeout(pressTimer.current)}
         whileTap={{ scale: 0.88 }}
         animate={{ rotate: open ? 45 : 0 }}
-        transition={{ type: 'spring', stiffness: 420, damping: 28 }}
-        aria-label="เพิ่มรายการใหม่"
-        className="fixed fab-bottom right-5 z-30 flex h-13 w-13 items-center justify-center rounded-[1.25rem] border border-primary/35 bg-[linear-gradient(180deg,rgba(74,149,255,1),rgba(42,108,243,1))] text-white shadow-[0_18px_38px_-10px_rgba(59,130,246,0.72)]"
+        transition={{ duration: 0.2 }}
+        className="fixed bottom-24 right-5 w-14 h-14 rounded-2xl bg-primary text-white shadow-lg shadow-primary/30 flex items-center justify-center z-30"
       >
-        <Plus size={24} strokeWidth={2.4} />
+        <Plus size={26} strokeWidth={2.5} />
       </motion.button>
     </>
   )

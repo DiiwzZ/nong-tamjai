@@ -1,45 +1,25 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { motion, useMotionValue, useTransform, animate } from 'motion/react'
-import { Check, Trash2 } from 'lucide-react'
-import { cn, formatDate, isOverdue, daysUntil } from '@/lib/utils'
+import { Check, Trash2, ChevronRight } from 'lucide-react'
+import { cn, PRIORITY, formatDate, isOverdue, daysUntil } from '@/lib/utils'
 import { useStore } from '@/store/useStore'
 
-const PRIORITY_PILL = {
-  high: { label: 'สูง', bg: 'bg-red-500', text: 'text-white' },
-  medium: { label: 'กลาง', bg: 'bg-amber-500', text: 'text-white' },
-  low: { label: 'ต่ำ', bg: 'bg-emerald-500', text: 'text-white' },
-}
-
 export function TaskCard({ task, onTap, categories, onComplete }) {
-  const { toggleTaskComplete, deleteTask } = useStore()
+  const { completeTask, deleteTask } = useStore()
   const [dragging, setDragging] = useState(false)
   const x = useMotionValue(0)
-  const deleteOpacity = useTransform(x, [-90, -30], [1, 0])
+  const opacity = useTransform(x, [-80, -20], [1, 0])
+  const actionOpacity = useTransform(x, [-80, -30], [1, 0])
 
-  const pill = PRIORITY_PILL[task.priority] || PRIORITY_PILL.medium
+  const priority = PRIORITY[task.priority] || PRIORITY.medium
   const category = categories?.find((c) => c.id === task.categoryId)
   const overdue = isOverdue(task.dueDate) && task.status === 'active'
   const days = daysUntil(task.dueDate)
-  const isDone = task.status === 'completed'
-
-  const dueLabelShort = () => {
-    if (!task.dueDate) return null
-    const date = new Date(task.dueDate)
-    const time = date.toLocaleTimeString('th-TH', {
-      hour: '2-digit',
-      minute: '2-digit',
-    })
-
-    if (overdue) return 'เกินกำหนด'
-    if (days === 0) return `วันนี้ ${time}`
-    if (days === 1) return `พรุ่งนี้ ${time}`
-    return formatDate(task.dueDate)
-  }
 
   const handleDragEnd = (_, info) => {
     setDragging(false)
     if (info.offset.x < -60) {
-      animate(x, -100, { duration: 0.15, onComplete: () => deleteTask(task.id) })
+      animate(x, -100, { duration: 0.2 })
     } else {
       animate(x, 0, { type: 'spring', stiffness: 400, damping: 30 })
     }
@@ -48,100 +28,99 @@ export function TaskCard({ task, onTap, categories, onComplete }) {
   const handleComplete = (e) => {
     e.stopPropagation()
     if (task.status === 'active') onComplete?.(e)
-    toggleTaskComplete(task.id)
+    completeTask(task.id)
+  }
+
+  const handleDelete = (e) => {
+    e.stopPropagation()
+    deleteTask(task.id)
   }
 
   if (task.status === 'archived') return null
 
   return (
-    <div className="relative mb-5 overflow-hidden rounded-[24px]">
-      <motion.div
-        style={{ opacity: deleteOpacity }}
-        className="absolute inset-y-0 right-0 flex w-20 items-center justify-center rounded-2xl bg-destructive"
-      >
-        <Trash2 size={18} className="text-white" />
-      </motion.div>
+    <div className="relative overflow-hidden rounded-xl mb-2">
+      {/* Action buttons behind */}
+      <div className="absolute inset-y-0 right-0 flex items-center gap-1 pr-2">
+        <motion.button
+          style={{ opacity: actionOpacity }}
+          onClick={handleComplete}
+          className="flex items-center justify-center w-12 h-12 rounded-xl bg-green-500 text-white"
+        >
+          <Check size={20} />
+        </motion.button>
+        <motion.button
+          style={{ opacity: actionOpacity }}
+          onClick={handleDelete}
+          className="flex items-center justify-center w-12 h-12 rounded-xl bg-destructive text-white"
+        >
+          <Trash2 size={18} />
+        </motion.button>
+      </div>
 
       <motion.div
         drag="x"
         dragConstraints={{ right: 0 }}
-        dragElastic={{ left: 0.08, right: 0 }}
+        dragElastic={{ left: 0.1, right: 0 }}
         style={{ x }}
         onDragStart={() => setDragging(true)}
         onDragEnd={handleDragEnd}
         onClick={() => !dragging && onTap?.(task)}
-        whileTap={{ scale: 0.985 }}
         className={cn(
-          'relative cursor-pointer select-none rounded-[24px] p-[18px]',
-          'border border-white/[0.07] bg-card shadow-[0_20px_42px_-26px_rgba(0,0,0,1)]',
-          isDone && 'opacity-70'
+          'relative rounded-xl p-4 cursor-pointer select-none',
+          'border transition-colors duration-150',
+          task.status === 'completed'
+            ? 'bg-muted/50 border-border opacity-60'
+            : [priority.bg, priority.border]
         )}
       >
-        <div className="flex items-start gap-4">
+        <div className="flex items-start gap-3">
           <button
             onClick={handleComplete}
-            aria-label={isDone ? 'ยกเลิกว่างานเสร็จ' : 'ทำเครื่องหมายว่าเสร็จ'}
             className={cn(
-              'mt-0.5 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full border transition-[border-color,background-color,box-shadow] duration-200',
-              isDone
-                ? 'border-primary bg-primary shadow-[0_0_0_4px_rgba(59,130,246,0.12)]'
-                : 'border-border/80 bg-background/25 hover:border-primary/60'
+              'mt-0.5 w-5 h-5 rounded-full border-2 flex-shrink-0 flex items-center justify-center transition-all',
+              task.status === 'completed'
+                ? 'bg-green-500 border-green-500'
+                : 'border-current opacity-50'
             )}
           >
-            {isDone && <Check size={12} strokeWidth={3} className="text-white" />}
+            {task.status === 'completed' && <Check size={11} strokeWidth={3} className="text-white" />}
           </button>
 
-          <div className="min-w-0 flex-1">
-            {task.priority && !isDone && (
-              <span className={cn('mb-2 inline-flex items-center gap-1 rounded-full px-2 py-[3px] text-[10px] font-bold shadow-sm', pill.bg, pill.text)}>
-                {task.priority === 'high' && <span className="text-[9px]">!</span>}
-                {pill.label}
-              </span>
-            )}
-
-            <p
-              className={cn(
-                'text-[15px] font-semibold leading-[1.28] tracking-[-0.015em] text-foreground',
-                isDone && 'text-muted-foreground line-through'
-              )}
-            >
+          <div className="flex-1 min-w-0">
+            <p className={cn(
+              'text-sm font-medium leading-snug',
+              task.status === 'completed' ? 'line-through text-muted-foreground' : priority.text
+            )}>
               {task.title}
             </p>
 
-            {task.note && (
-              <p className="mt-1 line-clamp-1 text-[12px] text-muted-foreground/90">
-                {task.note}
-              </p>
-            )}
-
-            <div className="mt-3 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                {task.dueDate && (
-                  <span
-                    className={cn(
-                      'rounded-full px-2 py-1 text-[11px] font-medium tabular-nums',
-                      overdue ? 'text-destructive' : 'text-muted-foreground'
-                    )}
-                    style={!overdue ? { backgroundColor: 'rgba(255,255,255,0.04)' } : undefined}
-                  >
-                    {dueLabelShort()}
-                  </span>
-                )}
-              </div>
-
+            <div className="flex items-center gap-2 mt-1.5 flex-wrap">
               {category && (
                 <span
-                  className="rounded-full px-2.5 py-[3px] text-[10px] font-semibold"
-                  style={{
-                    backgroundColor: `${category.color}20`,
-                    color: category.color,
-                  }}
+                  className="text-[10px] font-medium px-1.5 py-0.5 rounded-md text-white"
+                  style={{ backgroundColor: category.color }}
                 >
                   {category.label}
                 </span>
               )}
+              {task.dueDate && (
+                <span className={cn(
+                  'text-[10px] font-medium',
+                  overdue ? 'text-destructive' : 'text-muted-foreground'
+                )}>
+                  {overdue ? 'เกินกำหนด' : days === 0 ? 'วันนี้' : days === 1 ? 'พรุ่งนี้' : formatDate(task.dueDate)}
+                </span>
+              )}
+              {task.note && (
+                <span className="text-[10px] text-muted-foreground truncate max-w-[120px]">
+                  {task.note}
+                </span>
+              )}
             </div>
           </div>
+
+          <ChevronRight size={16} className="text-muted-foreground flex-shrink-0 mt-0.5" />
         </div>
       </motion.div>
     </div>

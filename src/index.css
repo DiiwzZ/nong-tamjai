@@ -1,52 +1,50 @@
 @import "tailwindcss";
 
 @theme {
-  /* Light mode — clean off-white */
-  --color-background: hsl(240 20% 97%);
-  --color-foreground: hsl(240 15% 10%);
+  --color-background: hsl(0 0% 100%);
+  --color-foreground: hsl(222 47% 11%);
   --color-card: hsl(0 0% 100%);
-  --color-card-foreground: hsl(240 15% 10%);
-  --color-border: hsl(240 10% 90%);
-  --color-input: hsl(240 10% 92%);
-  --color-primary: hsl(217 91% 60%);
+  --color-card-foreground: hsl(222 47% 11%);
+  --color-border: hsl(214 32% 91%);
+  --color-input: hsl(214 32% 91%);
+  --color-primary: hsl(221 83% 53%);
   --color-primary-foreground: hsl(0 0% 100%);
-  --color-muted: hsl(240 12% 93%);
-  --color-muted-foreground: hsl(240 8% 52%);
-  --color-accent: hsl(217 91% 60%);
-  --color-accent-foreground: hsl(0 0% 100%);
+  --color-muted: hsl(210 40% 96%);
+  --color-muted-foreground: hsl(215 16% 47%);
+  --color-accent: hsl(210 40% 96%);
+  --color-accent-foreground: hsl(222 47% 11%);
   --color-destructive: hsl(0 84% 60%);
   --radius: 0.75rem;
 
-  --color-priority-high-bg: hsl(0 63% 18%);
-  --color-priority-high-text: hsl(0 84% 70%);
-  --color-priority-medium-bg: hsl(32 81% 18%);
-  --color-priority-medium-text: hsl(38 96% 65%);
-  --color-priority-low-bg: hsl(142 50% 16%);
-  --color-priority-low-text: hsl(142 76% 55%);
+  --color-priority-high-bg: hsl(0 93% 94%);
+  --color-priority-high-text: hsl(0 72% 51%);
+  --color-priority-medium-bg: hsl(48 96% 89%);
+  --color-priority-medium-text: hsl(32 95% 44%);
+  --color-priority-low-bg: hsl(138 76% 90%);
+  --color-priority-low-text: hsl(142 71% 45%);
 }
 
 .dark {
-  /* Dark mode — warm near-black */
-  --color-background: hsl(240 12% 8%);
-  --color-foreground: hsl(240 15% 95%);
-  --color-card: hsl(240 10% 13%);
-  --color-card-foreground: hsl(240 15% 95%);
-  --color-border: hsl(240 8% 20%);
-  --color-input: hsl(240 8% 18%);
+  --color-background: hsl(222 47% 7%);
+  --color-foreground: hsl(210 40% 98%);
+  --color-card: hsl(222 47% 11%);
+  --color-card-foreground: hsl(210 40% 98%);
+  --color-border: hsl(217 33% 17%);
+  --color-input: hsl(217 33% 17%);
   --color-primary: hsl(217 91% 60%);
-  --color-primary-foreground: hsl(0 0% 100%);
-  --color-muted: hsl(240 8% 18%);
-  --color-muted-foreground: hsl(240 8% 52%);
-  --color-accent: hsl(217 91% 60%);
-  --color-accent-foreground: hsl(0 0% 100%);
-  --color-destructive: hsl(0 72% 56%);
+  --color-primary-foreground: hsl(222 47% 11%);
+  --color-muted: hsl(217 33% 17%);
+  --color-muted-foreground: hsl(215 20% 65%);
+  --color-accent: hsl(217 33% 17%);
+  --color-accent-foreground: hsl(210 40% 98%);
+  --color-destructive: hsl(0 63% 50%);
 
-  --color-priority-high-bg: hsl(0 63% 18%);
+  --color-priority-high-bg: hsl(0 63% 15%);
   --color-priority-high-text: hsl(0 84% 70%);
-  --color-priority-medium-bg: hsl(32 81% 18%);
-  --color-priority-medium-text: hsl(38 96% 65%);
-  --color-priority-low-bg: hsl(142 50% 16%);
-  --color-priority-low-text: hsl(142 76% 55%);
+  --color-priority-medium-bg: hsl(32 81% 15%);
+  --color-priority-medium-text: hsl(48 96% 65%);
+  --color-priority-low-bg: hsl(142 50% 13%);
+  --color-priority-low-text: hsl(138 76% 60%);
 }
 
 * {
@@ -57,79 +55,24 @@
 
 body {
   background-color: var(--color-background);
-  background-image:
-    radial-gradient(circle at top, rgba(59, 130, 246, 0.22), transparent 26%),
-    radial-gradient(circle at 20% 80%, rgba(255, 255, 255, 0.05), transparent 22%),
-    linear-gradient(180deg, hsl(230 20% 10%), hsl(240 14% 7%));
   color: var(--color-foreground);
-  font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   -webkit-tap-highlight-color: transparent;
   overscroll-behavior: none;
   -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  letter-spacing: -0.01em;
-  min-height: 100svh;
-}
-
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  background-image:
-    linear-gradient(rgba(255,255,255,0.018) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,0.018) 1px, transparent 1px);
-  background-size: 26px 26px;
-  mask-image: radial-gradient(circle at center, black, transparent 88%);
-  opacity: 0.35;
 }
 
 #root {
   min-height: 100svh;
-  max-width: 442px;
+  max-width: 430px;
   margin: 0 auto;
   position: relative;
-  padding-top: 1rem;
-  padding-bottom: 1rem;
-  padding-left: calc(env(safe-area-inset-left, 0px) + 1rem);
-  padding-right: calc(env(safe-area-inset-right, 0px) + 1rem);
 }
 
-/* Safe-area utilities */
-.safe-top   { padding-top: env(safe-area-inset-top, 0px); }
-
-/* Sticky page headers: safe area + 1rem for standalone iPhone web apps */
-.header-safe-top {
-  padding-top: calc(env(safe-area-inset-top, 0px) + 0.85rem);
-}
-
-/* Scrollable content areas: clear the floating nav + home indicator
-   nav card สูงประมาณ 64px + safe-area-inset-bottom (34px) + เผื่อ 8px */
-.safe-bottom {
-  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 5.3rem);
-}
-
-/* Bottom nav: แนบขอบล่างพอดี ให้ nav card นั่งเหนือ home indicator */
-.nav-safe {
-  padding-bottom: env(safe-area-inset-bottom, 0px);
-}
-
-/* FAB positioning: ลอยเหนือ nav card + home indicator */
-.fab-bottom      { bottom: calc(env(safe-area-inset-bottom, 0px) + 4.95rem); }
-.fab-menu-bottom { bottom: calc(env(safe-area-inset-bottom, 0px) + 9.8rem); }
+.safe-top { padding-top: env(safe-area-inset-top); }
+.safe-bottom { padding-bottom: calc(env(safe-area-inset-bottom) + 4rem); }
 
 html { scroll-behavior: smooth; }
 
-.numeric-tabular { font-variant-numeric: tabular-nums; }
-.text-pretty { text-wrap: pretty; }
-
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-
-/* iOS PWA fullscreen — when installed to home screen, remove root padding/max-width */
-@media (display-mode: standalone) {
-  #root {
-    padding: 0;
-    max-width: 100%;
-  }
-}
