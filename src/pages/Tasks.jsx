@@ -48,7 +48,7 @@ function EmptyState() {
 }
 
 
-export function Tasks() {
+export function Tasks({ onTabChange }) {
   const { tasks, categories, darkMode, update } = useStore()
   const [formOpen, setFormOpen] = useState(false)
   const [editTask, setEditTask] = useState(null)
@@ -414,9 +414,8 @@ export function Tasks() {
 
       <QuickAddFAB
         onSelect={(type) => {
-          if (type === 'task') {
-            openNew()
-          }
+          if (type === 'task') openNew()
+          if (type === 'sub') onTabChange?.('subscriptions')
         }}
       />
     </div>

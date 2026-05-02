@@ -55,7 +55,7 @@ function AppInner() {
           exit={{ opacity: 0, y: -8 }}
           transition={{ duration: 0.18 }}
         >
-          <Page />
+          <Page onTabChange={setTab} />
         </motion.div>
       </AnimatePresence>
 
