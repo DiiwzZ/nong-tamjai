@@ -72,7 +72,7 @@ export function TaskCard({ task, onTap, categories, onComplete }) {
         onClick={() => !dragging && onTap?.(task)}
         whileTap={{ scale: 0.985 }}
         className={cn(
-          'relative min-h-[112px] cursor-pointer select-none rounded-[24px] p-[18px]',
+          'relative cursor-pointer select-none rounded-[24px] p-[18px]',
           'border border-white/[0.07] bg-card shadow-[0_20px_42px_-26px_rgba(0,0,0,1)]',
           isDone && 'opacity-70'
         )}
