@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { AnimatePresence, motion } from 'motion/react'
 import {
   Archive as ArchiveIcon,
@@ -7,7 +8,6 @@ import {
   ClipboardList,
   Moon,
   Search,
-  Sparkles,
   Sun,
   X,
 } from 'lucide-react'
@@ -47,21 +47,6 @@ function EmptyState() {
   )
 }
 
-function SummaryChip({ label, value, tone = 'default' }) {
-  const toneClass = {
-    default: 'border-white/8 bg-white/[0.04] text-foreground',
-    primary: 'border-primary/20 bg-primary/10 text-primary',
-  }
-
-  return (
-    <div className={cn('rounded-[1.3rem] border p-4 shadow-[0_22px_40px_-28px_rgba(0,0,0,1)]', toneClass[tone])}>
-      <p className="text-[11px] font-medium tracking-[0.12em] text-muted-foreground uppercase">{label}</p>
-      <p className={cn('mt-2 numeric-tabular text-[1.45rem] font-black leading-none tracking-[-0.045em]', tone === 'primary' ? 'text-primary' : 'text-foreground')}>
-        {value}
-      </p>
-    </div>
-  )
-}
 
 export function Tasks() {
   const { tasks, categories, darkMode, update } = useStore()
@@ -140,10 +125,6 @@ export function Tasks() {
         </>
       )
 
-  const heroBody = active.length > 0
-    ? 'แยกคิววันนี้ให้แล้ว งานเร่งอยู่บนสุด ที่เหลือเลื่อนดูต่อได้เลย'
-    : 'คิววันนี้เคลียร์หมดแล้ว ถ้ามีอะไรเพิ่มเข้ามา เดี๋ยวน้องช่วยจัดให้ใหม่ทันที'
-
   const triggerConfetti = (event) => {
     const rect = event.currentTarget?.getBoundingClientRect?.()
     setConfetti({
@@ -167,29 +148,41 @@ export function Tasks() {
     return <Archive onBack={() => setShowArchivePage(false)} />
   }
 
+  if (formOpen) {
+    return createPortal(
+      <div className="fixed inset-0 z-50 bg-background">
+        <TaskForm
+          task={editTask}
+          onClose={() => {
+            setFormOpen(false)
+            setEditTask(null)
+          }}
+        />
+      </div>,
+      document.body
+    )
+  }
+
   return (
     <div className="flex h-full flex-col">
       {confetti && <Confetti trigger={true} x={confetti.x} y={confetti.y} />}
 
-      <div className="sticky top-0 z-20 bg-background/92 px-6 pb-6 backdrop-blur-xl header-safe-top">
-        <div className="space-y-6">
-          <div className="flex items-start justify-between gap-4">
-            <div className="space-y-2">
-              <p className="text-[11px] font-medium tracking-[0.08em] text-muted-foreground">{dateLabel}</p>
-              <div className="inline-flex items-center gap-2 rounded-full border border-primary/14 bg-primary/8 px-3 py-1 text-[11px] font-semibold tracking-[0.14em] text-primary uppercase">
-                <Sparkles size={12} />
-                Focus board
-              </div>
-            </div>
+      {/* Sticky header — identity + hero only */}
+      <div className="sticky top-0 z-20 bg-background/92 px-5 pb-4 backdrop-blur-xl header-safe-top">
+        <div className="space-y-4">
 
-            <div className="flex items-center gap-2">
+          {/* Row 1: date / icon buttons */}
+          <div className="flex items-center justify-between gap-3">
+            <span className="text-[12px] text-muted-foreground">{dateLabel}</span>
+
+            <div className="flex items-center gap-1.5">
               <motion.button
                 whileTap={{ scale: 0.9 }}
                 onClick={() => setShowArchivePage(true)}
                 aria-label="เปิดคลังงาน"
-                className="flex h-11 w-11 items-center justify-center rounded-[1.05rem] border border-white/7 bg-white/[0.04] text-muted-foreground shadow-[0_18px_34px_-26px_rgba(0,0,0,1)]"
+                className="flex h-11 w-11 items-center justify-center rounded-[0.85rem] border border-white/[0.07] bg-white/[0.04] text-muted-foreground"
               >
-                <ArchiveIcon size={17} />
+                <ArchiveIcon size={15} />
               </motion.button>
 
               <motion.button
@@ -197,20 +190,20 @@ export function Tasks() {
                 onClick={() => setSearchOpen((value) => !value)}
                 aria-label={searchOpen ? 'ปิดการค้นหา' : 'เปิดการค้นหา'}
                 className={cn(
-                  'flex h-11 w-11 items-center justify-center rounded-[1.05rem] border shadow-[0_18px_34px_-26px_rgba(0,0,0,1)] transition-colors',
+                  'flex h-11 w-11 items-center justify-center rounded-[0.85rem] border transition-colors',
                   searchOpen
                     ? 'border-primary/30 bg-primary text-white'
-                    : 'border-white/7 bg-white/[0.04] text-muted-foreground'
+                    : 'border-white/[0.07] bg-white/[0.04] text-muted-foreground'
                 )}
               >
-                <Search size={17} />
+                <Search size={15} />
               </motion.button>
 
               <motion.button
                 whileTap={{ scale: 0.9 }}
                 onClick={() => update({ darkMode: !darkMode })}
                 aria-label={darkMode ? 'สลับเป็นโหมดสว่าง' : 'สลับเป็นโหมดมืด'}
-                className="flex h-11 w-11 items-center justify-center rounded-[1.05rem] border border-white/7 bg-white/[0.04] text-amber-300 shadow-[0_18px_34px_-26px_rgba(0,0,0,1)]"
+                className="flex h-11 w-11 items-center justify-center rounded-[0.85rem] border border-white/[0.07] bg-white/[0.04] text-amber-300"
               >
                 <motion.div
                   key={darkMode ? 'sun' : 'moon'}
@@ -218,28 +211,27 @@ export function Tasks() {
                   animate={{ rotate: 0, opacity: 1 }}
                   transition={{ duration: 0.2 }}
                 >
-                  {darkMode ? <Sun size={17} /> : <Moon size={17} />}
+                  {darkMode ? <Sun size={15} /> : <Moon size={15} />}
                 </motion.div>
               </motion.button>
             </div>
           </div>
 
-          <div className="space-y-4">
-            <div className="space-y-3">
-              <h1 className="max-w-[16rem] text-pretty text-[2.9rem] font-black leading-[0.88] tracking-[-0.065em] text-foreground">
-                {heroTitle}
-              </h1>
-              <p className="max-w-[19rem] text-sm leading-6 text-muted-foreground">
-                {heroBody}
-              </p>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <SummaryChip label="คิวค้างอยู่" value={`${active.length} งาน`} tone="primary" />
-              <SummaryChip label="งานที่เคลียร์แล้ว" value={`${completed.length} งาน`} />
+          {/* Hero — title + stats only, no filler body text */}
+          <div>
+            <h1 className="text-[2.2rem] font-black leading-[0.9] tracking-[-0.06em] text-foreground">
+              {heroTitle}
+            </h1>
+            <div className="mt-3 flex items-center gap-1 text-[12px]">
+              <span className="numeric-tabular font-bold text-foreground">{active.length}</span>
+              <span className="text-muted-foreground">&nbsp;งานค้าง</span>
+              <span className="mx-2 text-white/20">·</span>
+              <span className="numeric-tabular font-bold text-emerald-300">{completed.length}</span>
+              <span className="text-muted-foreground">&nbsp;เสร็จแล้ว</span>
             </div>
           </div>
 
+          {/* Search */}
           <AnimatePresence>
             {searchOpen && (
               <motion.div
@@ -248,22 +240,22 @@ export function Tasks() {
                 exit={{ height: 0, opacity: 0 }}
                 className="overflow-hidden"
               >
-                <div className="relative rounded-[1.35rem] border border-white/8 bg-white/[0.04] p-1.5">
-                  <Search size={16} className="absolute left-5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                <div className="relative rounded-[1.2rem] border border-white/8 bg-white/[0.04]">
+                  <Search size={15} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" />
                   <input
                     autoFocus
                     value={search}
                     onChange={(event) => setSearch(event.target.value)}
                     placeholder="ค้นหางาน..."
-                    className="h-12 w-full rounded-[1rem] bg-transparent pl-12 pr-10 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
+                    className="h-11 w-full bg-transparent pl-10 pr-9 text-[16px] text-foreground placeholder:text-muted-foreground focus:outline-none"
                   />
                   {search && (
                     <button
                       onClick={() => setSearch('')}
                       aria-label="ล้างคำค้นหา"
-                      className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground"
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground"
                     >
-                      <X size={15} />
+                      <X size={14} />
                     </button>
                   )}
                 </div>
@@ -271,29 +263,28 @@ export function Tasks() {
             )}
           </AnimatePresence>
 
-          <div className="rounded-[1.45rem] border border-white/8 bg-white/[0.03] p-1.5 shadow-[0_22px_42px_-30px_rgba(0,0,0,1)]">
-            <div className="flex gap-2 overflow-x-auto no-scrollbar">
-              {FILTERS.map((item) => {
-                const isActive = filter === item.id
+        </div>
+      </div>
 
-                return (
-                  <motion.button
-                    key={item.id}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => setFilter(item.id)}
-                    className={cn(
-                      'min-w-[72px] rounded-[1rem] px-4 py-2.5 text-[13px] font-semibold tracking-[-0.01em] transition-all',
-                      isActive
-                        ? item.activeClass
-                        : 'bg-transparent text-muted-foreground'
-                    )}
-                  >
-                    {item.label}
-                  </motion.button>
-                )
-              })}
-            </div>
-          </div>
+      {/* Filter bar — sits between header and content, clear visual zone */}
+      <div className="z-10 border-b border-white/[0.05] bg-background/80 px-5 py-3 backdrop-blur-md">
+        <div className="flex gap-2 overflow-x-auto no-scrollbar">
+          {FILTERS.map((item) => {
+            const isActive = filter === item.id
+            return (
+              <motion.button
+                key={item.id}
+                whileTap={{ scale: 0.93 }}
+                onClick={() => setFilter(item.id)}
+                className={cn(
+                  'flex-shrink-0 rounded-full px-4 py-2 text-[13px] font-semibold transition-all',
+                  isActive ? item.activeClass : 'bg-white/[0.06] text-muted-foreground'
+                )}
+              >
+                {item.label}
+              </motion.button>
+            )
+          })}
         </div>
       </div>
 
@@ -428,15 +419,6 @@ export function Tasks() {
             openNew()
           }
         }}
-      />
-
-      <TaskForm
-        open={formOpen}
-        onClose={() => {
-          setFormOpen(false)
-          setEditTask(null)
-        }}
-        task={editTask}
       />
     </div>
   )

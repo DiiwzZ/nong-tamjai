@@ -5,35 +5,22 @@ import {
   ChartNoAxesColumn,
   CheckCircle2,
   CreditCard,
-  Sparkles,
   TrendingUp,
 } from 'lucide-react'
 import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { cn, daysUntil, formatCurrency } from '@/lib/utils'
 import { useStore } from '@/store/useStore'
 
-function MetricTile({ icon: Icon, label, value, note, tone = 'default', index = 0 }) {
-  const toneClass = {
-    default: 'border-white/8 bg-[linear-gradient(180deg,rgba(31,34,48,0.9),rgba(21,24,35,0.96))]',
-    primary: 'border-primary/20 bg-[linear-gradient(180deg,rgba(34,60,117,0.54),rgba(21,30,49,0.94))]',
-    alert: 'border-red-900/55 bg-[linear-gradient(180deg,rgba(66,26,34,0.82),rgba(34,18,22,0.92))]',
-  }
-
-  const iconTone = {
-    default: 'bg-white/[0.05] text-muted-foreground',
-    primary: 'bg-primary/15 text-primary',
-    alert: 'bg-red-500/15 text-red-300',
-  }
-
+function MetricTile({ icon: Icon, label, value, note, iconBg, iconColor, index = 0 }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.06, type: 'spring', stiffness: 300, damping: 28 }}
-      className={cn('rounded-[1.6rem] border p-[18px] shadow-[0_22px_42px_-28px_rgba(0,0,0,1)]', toneClass[tone])}
+      className="rounded-[1.6rem] border border-white/[0.07] bg-card p-[18px] shadow-[0_22px_42px_-28px_rgba(0,0,0,1)]"
     >
-      <div className={cn('mb-4 flex h-10 w-10 items-center justify-center rounded-[1rem]', iconTone[tone])}>
-        <Icon size={18} />
+      <div className={cn('mb-4 flex h-10 w-10 items-center justify-center rounded-[1rem]', iconBg)}>
+        <Icon size={18} className={iconColor} />
       </div>
       <p className="numeric-tabular text-[1.95rem] font-black leading-none tracking-[-0.05em] text-foreground">{value}</p>
       <p className="mt-2 text-[11px] font-medium tracking-[0.12em] text-muted-foreground uppercase">{label}</p>
@@ -51,8 +38,8 @@ function DueRow({ sub, index }) {
       className={cn(
         'flex items-center gap-3.5 rounded-[1.45rem] border p-4 shadow-[0_20px_40px_-28px_rgba(0,0,0,1)]',
         sub.days <= 3
-          ? 'border-red-900/55 bg-[linear-gradient(180deg,rgba(64,22,30,0.86),rgba(34,18,22,0.92))]'
-          : 'border-white/8 bg-[linear-gradient(180deg,rgba(32,35,52,0.92),rgba(21,24,36,0.96))]'
+          ? 'border-red-900/55 bg-card'
+          : 'border-white/[0.07] bg-card'
       )}
     >
       <div
@@ -129,40 +116,29 @@ export function Dashboard() {
   return (
     <div className="flex h-full flex-col">
       <div className="sticky top-0 z-20 bg-background/92 px-6 pb-6 backdrop-blur-xl header-safe-top">
-        <div className="space-y-6">
+        <div className="space-y-5">
           <div className="flex items-start justify-between gap-4">
-            <div className="space-y-2">
-              <p className="text-[11px] font-medium tracking-[0.08em] text-muted-foreground">{dateLabel}</p>
-              <div className="inline-flex items-center gap-2 rounded-full border border-primary/14 bg-primary/8 px-3 py-1 text-[11px] font-semibold tracking-[0.14em] text-primary uppercase">
-                <Sparkles size={12} />
-                Daily snapshot
-              </div>
-            </div>
+            <p className="text-[11px] font-medium tracking-[0.08em] text-muted-foreground">{dateLabel}</p>
 
             <motion.button
               whileTap={{ scale: 0.9 }}
               aria-label="ดูสรุปภาพรวม"
-              className="flex h-11 w-11 items-center justify-center rounded-[1.05rem] border border-white/7 bg-white/[0.04] text-primary shadow-[0_18px_34px_-26px_rgba(0,0,0,1)]"
+              className="flex h-11 w-11 items-center justify-center rounded-[1.05rem] border border-white/[0.07] bg-white/[0.04] text-primary shadow-[0_18px_34px_-26px_rgba(0,0,0,1)]"
             >
               <ChartNoAxesColumn size={17} />
             </motion.button>
           </div>
 
-          <div className="space-y-4">
-            <div className="space-y-3">
-              <h1 className="max-w-[16rem] text-pretty text-[2.8rem] font-black leading-[0.88] tracking-[-0.065em] text-foreground">
-                ภาพรวม
-                <br />
-                <span className="text-primary">
-                  {completedToday.length}/{totalToday || 0} งาน
-                </span>
-              </h1>
-              <p className="max-w-[19rem] text-sm leading-6 text-muted-foreground">
-                ดูภาพรวมงานวันนี้กับค่าใช้จ่ายที่กำลังจะตัด จะได้รู้ว่าต้องโฟกัสตรงไหนก่อน
-              </p>
-            </div>
+          <div className="space-y-3">
+            <h1 className="max-w-[16rem] text-pretty text-[2.8rem] font-black leading-[0.88] tracking-[-0.065em] text-foreground">
+              ภาพรวม
+              <br />
+              <span className="text-primary">
+                {completedToday.length}/{totalToday || 0} งาน
+              </span>
+            </h1>
 
-            <div className="rounded-[1.6rem] border border-primary/18 bg-[linear-gradient(180deg,rgba(34,60,117,0.48),rgba(21,30,49,0.94))] p-5 shadow-[0_24px_44px_-28px_rgba(0,0,0,1)]">
+            <div className="rounded-[1.6rem] border border-white/[0.07] bg-card p-5 shadow-[0_24px_44px_-28px_rgba(0,0,0,1)]">
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <p className="text-[11px] font-medium tracking-[0.14em] text-primary/80 uppercase">
@@ -198,7 +174,8 @@ export function Dashboard() {
               label="งานวันนี้"
               value={`${completedToday.length}/${totalToday || 0}`}
               note="งานที่ปิดได้แล้ววันนี้"
-              tone="primary"
+              iconBg="bg-emerald-500/15"
+              iconColor="text-emerald-400"
               index={0}
             />
             <MetricTile
@@ -206,7 +183,8 @@ export function Dashboard() {
               label="เกินกำหนด"
               value={overdue.length}
               note={overdue.length > 0 ? 'มีงานที่ควรเคลียร์ก่อน' : 'ไม่มีงานค้างเกินเวลา'}
-              tone={overdue.length > 0 ? 'alert' : 'default'}
+              iconBg="bg-amber-500/15"
+              iconColor="text-amber-400"
               index={1}
             />
             <MetricTile
@@ -214,6 +192,8 @@ export function Dashboard() {
               label="ค่า Sub/เดือน"
               value={formatCurrency(monthlyTotal)}
               note={`${activeSubs.length} รายการที่ยัง active`}
+              iconBg="bg-primary/15"
+              iconColor="text-primary"
               index={2}
             />
             <MetricTile
@@ -221,6 +201,8 @@ export function Dashboard() {
               label="ค่า Sub/ปี"
               value={formatCurrency(monthlyTotal * 12)}
               note="ประเมินจากรายการที่ใช้อยู่ตอนนี้"
+              iconBg="bg-yellow-500/15"
+              iconColor="text-yellow-400"
               index={3}
             />
           </section>
@@ -260,7 +242,7 @@ export function Dashboard() {
                 </h2>
               </div>
 
-              <div className="rounded-[1.7rem] border border-white/8 bg-[linear-gradient(180deg,rgba(31,34,48,0.9),rgba(21,24,35,0.96))] p-4 shadow-[0_22px_42px_-28px_rgba(0,0,0,1)]">
+              <div className="rounded-[1.7rem] border border-white/[0.07] bg-card p-4 shadow-[0_22px_42px_-28px_rgba(0,0,0,1)]">
                 <ResponsiveContainer width="100%" height={176}>
                   <BarChart data={chartData} barSize={20}>
                     <XAxis
@@ -301,7 +283,7 @@ export function Dashboard() {
                 {overdue.map((task) => (
                   <div
                     key={task.id}
-                    className="rounded-[1.45rem] border border-red-900/55 bg-[linear-gradient(180deg,rgba(64,22,30,0.86),rgba(34,18,22,0.92))] p-4 shadow-[0_20px_40px_-28px_rgba(0,0,0,1)]"
+                    className="rounded-[1.45rem] border border-red-900/55 bg-card p-4 shadow-[0_20px_40px_-28px_rgba(0,0,0,1)]"
                   >
                     <p className="text-sm font-semibold tracking-[-0.02em] text-foreground">{task.title}</p>
                     <p className="mt-2 text-xs text-red-300">

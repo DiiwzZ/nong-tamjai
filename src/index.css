@@ -125,3 +125,11 @@ html { scroll-behavior: smooth; }
 
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* iOS PWA fullscreen — when installed to home screen, remove root padding/max-width */
+@media (display-mode: standalone) {
+  #root {
+    padding: 0;
+    max-width: 100%;
+  }
+}

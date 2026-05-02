@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
-import { CalendarDays, CreditCard, List, Plus, Sparkles } from 'lucide-react'
+import { CalendarDays, CreditCard, List, Plus } from 'lucide-react'
 import { CalendarView } from '@/components/subscriptions/CalendarView'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
@@ -93,10 +93,10 @@ function SubCard({ sub, onTap, index = 0 }) {
       whileTap={{ scale: 0.985 }}
       onClick={() => onTap(sub)}
       className={cn(
-        'w-full rounded-[1.7rem] border p-[18px] text-left shadow-[0_22px_42px_-28px_rgba(0,0,0,1)] transition-all',
+        'w-full rounded-[1.7rem] border p-[18px] text-left shadow-[0_22px_42px_-28px_rgba(0,0,0,1)] transition-[border-color,background-color,box-shadow]',
         isUrgent
-          ? 'border-red-900/55 bg-[linear-gradient(180deg,rgba(64,22,30,0.86),rgba(34,18,22,0.92))]'
-          : 'border-white/8 bg-[linear-gradient(180deg,rgba(32,35,52,0.92),rgba(21,24,36,0.96))]'
+          ? 'border-red-900/55 bg-card'
+          : 'border-white/[0.07] bg-card'
       )}
     >
       <div className="flex items-start gap-4">
@@ -371,12 +371,8 @@ export function Subscriptions() {
       <div className="sticky top-0 z-20 bg-background/92 px-6 pb-6 backdrop-blur-xl header-safe-top">
         <div className="space-y-6">
           <div className="flex items-start justify-between gap-4">
-            <div className="space-y-2">
+            <div>
               <p className="text-[11px] font-medium tracking-[0.08em] text-muted-foreground">{dateLabel}</p>
-              <div className="inline-flex items-center gap-2 rounded-full border border-primary/14 bg-primary/8 px-3 py-1 text-[11px] font-semibold tracking-[0.14em] text-primary uppercase">
-                <Sparkles size={12} />
-                Recurring spend
-              </div>
             </div>
 
             <div className="flex items-center gap-2">
@@ -436,11 +432,6 @@ export function Subscriptions() {
                   </>
                 )}
               </h1>
-              <p className="max-w-[19rem] text-sm leading-6 text-muted-foreground">
-                {active.length > 0
-                  ? 'รวมรอบจ่ายหลักให้แล้ว จะได้เห็นว่าแต่ละเดือนเงินไหลออกเท่าไรแบบไม่ต้องไล่จำเอง'
-                  : 'เริ่มจากเพิ่มบริการที่จ่ายประจำไว้ก่อน แล้วเดี๋ยวน้องจะตามให้เองเป็นรอบ ๆ'}
-              </p>
             </div>
 
             <div className="grid grid-cols-2 gap-3">

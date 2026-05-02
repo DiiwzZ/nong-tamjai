@@ -23,7 +23,6 @@ function ArchiveCard({ task, categories }) {
       style={{ borderLeftColor: accent.color }}
     >
       <div className="px-4 py-3.5 flex items-center gap-3">
-        {/* Check icon */}
         <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
           <Check size={12} strokeWidth={3} className="text-white" />
         </div>
@@ -72,7 +71,8 @@ export function Archive({ onBack }) {
           <motion.button
             whileTap={{ scale: 0.85 }}
             onClick={onBack}
-            className="w-9 h-9 rounded-xl flex items-center justify-center bg-muted text-foreground"
+            aria-label="กลับ"
+            className="h-11 w-11 rounded-xl flex items-center justify-center bg-muted text-foreground"
           >
             <ArrowLeft size={18} />
           </motion.button>
@@ -89,10 +89,14 @@ export function Archive({ onBack }) {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="ค้นหาใน archive..."
-            className="w-full h-10 pl-10 pr-9 rounded-2xl border border-border bg-card text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
+            className="w-full h-10 pl-10 pr-9 rounded-2xl border border-border bg-card text-[16px] text-foreground placeholder:text-muted-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
           />
           {search && (
-            <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2">
+            <button
+              onClick={() => setSearch('')}
+              aria-label="ล้างคำค้นหา"
+              className="absolute right-3 top-1/2 -translate-y-1/2"
+            >
               <X size={13} className="text-muted-foreground" />
             </button>
           )}
@@ -100,7 +104,7 @@ export function Archive({ onBack }) {
         <div className="h-px bg-border mt-4" />
       </div>
 
-      {/* Empty state: sibling div so it truly fills remaining height */}
+      {/* Empty state */}
       {archived.length === 0 && (
         <div className="flex-1 flex items-center justify-center px-5 pb-20">
           <motion.div
@@ -121,7 +125,7 @@ export function Archive({ onBack }) {
         </div>
       )}
 
-      {/* List: only when has items */}
+      {/* List */}
       {archived.length > 0 && (
         <div className="flex-1 overflow-y-auto no-scrollbar px-5 pt-3 safe-bottom">
           <AnimatePresence>
