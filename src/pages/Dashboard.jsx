@@ -27,6 +27,143 @@ function todayShort() {
   })
 }
 
+/* ── Monthly spending bar chart ── */
+function SpendingChart({ subscriptions }) {
+  const [selected, setSelected] = useState(5) // default: current month
+
+  const data = useMemo(() => {
+    const now = new Date()
+    return Array.from({ length: 6 }, (_, i) => {
+      const offset = 5 - i
+      const d = new Date(now.getFullYear(), now.getMonth() - offset, 1)
+      const monthEnd = new Date(d.getFullYear(), d.getMonth() + 1, 0, 23, 59, 59)
+
+      let total = 0
+      subscriptions.forEach((s) => {
+        if (s.status === 'cancelled') return
+        if (new Date(s.createdAt) > monthEnd) return
+        if (s.billingCycle === 'monthly') total += Number(s.amount) || 0
+        else if (s.billingCycle === 'yearly') total += (Number(s.amount) || 0) / 12
+      })
+
+      return {
+        label:     d.toLocaleDateString('th-TH', { month: 'short' }),
+        fullLabel: d.toLocaleDateString('th-TH', { month: 'long', year: 'numeric' }),
+        amount:    total,
+        isCurrent: offset === 0,
+      }
+    })
+  }, [subscriptions])
+
+  const max = Math.max(...data.map((d) => d.amount), 1)
+  const sel = data[selected]
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 14 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, delay: 0.08 }}
+      style={{
+        background: '#1a1a22', border: '1px solid #252530',
+        borderRadius: 20, padding: '18px 16px 14px',
+        marginBottom: 20,
+      }}
+    >
+      {/* Header */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
+        <p style={{ fontSize: 12, fontWeight: 700, color: '#6b6b88', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+          ค่าใช้จ่าย 6 เดือน
+        </p>
+        <motion.p
+          key={selected}
+          initial={{ opacity: 0, y: -4 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.18 }}
+          style={{ fontSize: 15, fontWeight: 700, color: sel.isCurrent ? '#3b82f6' : '#f0f0f8' }}
+        >
+          {formatCurrency(sel.amount)}
+        </motion.p>
+      </div>
+
+      {/* Bars */}
+      <div style={{ display: 'flex', alignItems: 'flex-end', gap: 7, height: 90 }}>
+        {data.map((d, i) => {
+          const isSelected = i === selected
+          const pct = Math.max((d.amount / max) * 100, d.amount > 0 ? 8 : 4)
+          return (
+            <div
+              key={i}
+              onClick={() => setSelected(i)}
+              style={{
+                flex: 1, height: '100%',
+                display: 'flex', flexDirection: 'column', justifyContent: 'flex-end',
+                cursor: 'pointer',
+              }}
+            >
+              <motion.div
+                initial={{ scaleY: 0 }}
+                animate={{ scaleY: 1 }}
+                transition={{ delay: i * 0.06, type: 'spring', stiffness: 280, damping: 26 }}
+                style={{
+                  width: '100%',
+                  height: `${pct}%`,
+                  transformOrigin: 'bottom',
+                  borderRadius: '5px 5px 3px 3px',
+                  background: isSelected
+                    ? '#3b82f6'
+                    : d.isCurrent
+                    ? 'rgba(59,130,246,0.35)'
+                    : '#252535',
+                  boxShadow: isSelected ? '0 0 14px rgba(59,130,246,0.30)' : 'none',
+                  transition: 'background 0.15s, box-shadow 0.15s',
+                }}
+              />
+            </div>
+          )
+        })}
+      </div>
+
+      {/* Month labels */}
+      <div style={{ display: 'flex', gap: 7, marginTop: 7 }}>
+        {data.map((d, i) => (
+          <div
+            key={i}
+            onClick={() => setSelected(i)}
+            style={{
+              flex: 1, textAlign: 'center', cursor: 'pointer',
+              fontSize: 10, fontWeight: 600,
+              color: i === selected ? '#f0f0f8' : '#3b3b52',
+              transition: 'color 0.15s',
+            }}
+          >
+            {d.label}
+          </div>
+        ))}
+      </div>
+
+      {/* Selected detail */}
+      <div style={{
+        marginTop: 12, paddingTop: 10,
+        borderTop: '1px solid #252530',
+        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+      }}>
+        <motion.span
+          key={selected}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.18 }}
+          style={{ fontSize: 12, color: '#6b6b88' }}
+        >
+          {sel.fullLabel}
+        </motion.span>
+        <span style={{ fontSize: 12, color: '#4a4a62' }}>
+          {subscriptions.filter((s) => s.status !== 'cancelled').length} subscriptions
+        </span>
+      </div>
+    </motion.div>
+  )
+}
+
 export function Dashboard({ onTabChange }) {
   const { tasks, subscriptions, categories } = useStore()
 
@@ -129,6 +266,11 @@ export function Dashboard({ onTabChange }) {
           <p style={{ fontSize: 12, color: '#6b6b88' }}>{activeSubs.length} subs</p>
         </div>
       </motion.div>
+
+      {/* Spending chart — shown when there are any subs */}
+      {subscriptions.length > 0 && (
+        <SpendingChart subscriptions={subscriptions} />
+      )}
 
       {/* Upcoming payments */}
       {upcoming.length > 0 && (
