@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { motion, useMotionValue, useTransform, animate } from 'motion/react'
 import { Trash2, Check } from 'lucide-react'
-import { formatDate, isOverdue, daysUntil } from '@/lib/utils'
+import { formatDate, formatTime, isOverdue, daysUntil } from '@/lib/utils'
 import { useStore } from '@/store/useStore'
 
 const PRIORITY_COLOR = {
@@ -129,15 +129,15 @@ export function TaskCard({ task, onTap, categories, onComplete }) {
                 {task.dueDate && (
                   <span style={{
                     fontSize: 12, fontWeight: 500,
-                    color: overdue ? '#f87171' : '#6b6b88',
+                    color: overdue ? '#f87171' : days === 0 ? '#f0f0f8' : '#6b6b88',
                   }}>
                     {overdue
-                      ? '⚠ เกินกำหนด'
+                      ? `⚠ เกินกำหนด · ${formatTime(task.dueDate)}`
                       : days === 0
-                      ? 'วันนี้'
+                      ? `วันนี้ · ${formatTime(task.dueDate)}`
                       : days === 1
-                      ? 'พรุ่งนี้'
-                      : formatDate(task.dueDate)}
+                      ? `พรุ่งนี้ · ${formatTime(task.dueDate)}`
+                      : `${formatDate(task.dueDate)} · ${formatTime(task.dueDate)}`}
                   </span>
                 )}
                 {task.dueDate && category && (

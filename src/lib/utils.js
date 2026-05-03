@@ -42,6 +42,12 @@ export function formatDate(date) {
   })
 }
 
+export function formatTime(date) {
+  if (!date) return ''
+  const d = date instanceof Date ? date : new Date(date)
+  return d.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })
+}
+
 export function formatCurrency(amount) {
   return new Intl.NumberFormat('th-TH', {
     style: 'currency',
@@ -57,6 +63,10 @@ export function isOverdue(dueDate) {
 
 export function daysUntil(date) {
   if (!date) return null
-  const diff = new Date(date) - new Date()
-  return Math.ceil(diff / (1000 * 60 * 60 * 24))
+  const now = new Date()
+  const due = new Date(date)
+  // Compare calendar dates only (strip time) so "today at 23:59" → 0, not 1
+  const nowDay = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  const dueDay = new Date(due.getFullYear(), due.getMonth(), due.getDate())
+  return Math.round((dueDay - nowDay) / (1000 * 60 * 60 * 24))
 }
