@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import { motion, AnimatePresence, useMotionValue, animate } from 'motion/react'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Plus, X } from 'lucide-react'
 import { QuickAddFAB } from '@/components/ui/QuickAdd'
 import { SubSkeleton } from '@/components/ui/Skeleton'
 import { PageHeader } from '@/components/layout/PageHeader'
@@ -112,6 +112,21 @@ function SubCard({ sub, onTap }) {
             }}>
               {statusLabel}
             </span>
+            {sub.split?.enabled && (sub.split?.members?.length ?? 0) > 1 && (
+              <span style={{
+                fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 99, flexShrink: 0,
+                display: 'flex', alignItems: 'center', gap: 3,
+                background: 'rgba(59,130,246,0.12)', color: '#3b82f6',
+              }}>
+                <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                  <circle cx="9" cy="7" r="4"/>
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                </svg>
+                หาร {sub.split.members.length}
+              </span>
+            )}
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
             {sub.paymentMethod && (
@@ -145,13 +160,14 @@ function SubCard({ sub, onTap }) {
 
 /* ─── SubForm — full-page slide-in ─── */
 function SubForm({ onClose, sub }) {
-  const { addSubscription, updateSubscription, deleteSubscription } = useStore()
+  const { addSubscription, updateSubscription, deleteSubscription, userName, setUserName } = useStore()
   const isEdit = !!sub
 
   const blank = {
     name: '', amount: '', billingCycle: 'monthly',
     nextBillingDate: '', paymentMethod: 'เดบิต',
     status: 'active', alertDays: 3, color: '#6b7280', note: '',
+    split: { enabled: false, type: 'equal', members: [] },
   }
 
   const [form, setForm] = useState(() => sub ? {
@@ -163,18 +179,70 @@ function SubForm({ onClose, sub }) {
     alertDays: sub.alertDays || 3,
     color: sub.color || '#6b7280',
     note: sub.note || '',
+    split: sub.split || { enabled: false, type: 'equal', members: [] },
   } : blank)
 
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }))
+  const setSplit = (patch) => setForm((f) => ({ ...f, split: { ...(f.split || {}), ...patch } }))
+
+  /* ── Split helpers ── */
+  const toggleSplit = () => {
+    if (form.split?.enabled) {
+      setSplit({ enabled: false })
+    } else {
+      const me = userName.trim()
+      setSplit({
+        enabled: true, type: 'equal',
+        members: me ? [{ id: crypto.randomUUID(), name: me, paid: true }] : [],
+      })
+    }
+  }
+
+  const addMember = () => {
+    const newM = { id: crypto.randomUUID(), name: '', paid: false, share: 0 }
+    setSplit({ members: [...(form.split?.members || []), newM] })
+  }
+
+  const removeMember = (id) =>
+    setSplit({ members: form.split.members.filter((m) => m.id !== id) })
+
+  const updateMember = (id, key, value) =>
+    setSplit({ members: form.split.members.map((m) => m.id === id ? { ...m, [key]: value } : m) })
+
+  // Equal share (calculated on the fly — not stored until submit)
+  const totalAmt    = parseFloat(form.amount) || 0
+  const memberCount = form.split?.members?.length || 1
+  const equalShare  = memberCount > 0 ? Math.floor(totalAmt / memberCount) : 0
+  const remainder   = totalAmt - equalShare * memberCount   // goes to first member (user)
+
+  // Custom: sum of all shares
+  const customTotal = (form.split?.members || []).reduce((s, m) => s + (parseFloat(m.share) || 0), 0)
+  const customDiff  = totalAmt - customTotal
 
   const canSubmit = form.name.trim() && form.amount
 
   const submit = () => {
     if (!canSubmit) return
+
+    // Bake shares into members before saving
+    let splitData = { enabled: false, type: 'equal', members: [] }
+    if (form.split?.enabled && (form.split?.members?.length ?? 0) > 0) {
+      splitData = {
+        ...form.split,
+        members: form.split.members.map((m, i) => ({
+          ...m,
+          share: form.split.type === 'equal'
+            ? (i === 0 ? equalShare + remainder : equalShare)
+            : (parseFloat(m.share) || 0),
+        })),
+      }
+    }
+
     const data = {
       ...form,
-      amount: parseFloat(form.amount),
+      amount: totalAmt,
       nextBillingDate: form.nextBillingDate ? new Date(form.nextBillingDate).toISOString() : null,
+      split: splitData,
     }
     if (isEdit) updateSubscription(sub.id, data)
     else addSubscription(data)
@@ -390,6 +458,222 @@ function SubForm({ onClose, sub }) {
             onChange={(e) => set('alertDays', parseInt(e.target.value))}
             style={{ width: '100%', accentColor: '#3b82f6' }}
           />
+        </div>
+
+        {/* ── Split section ── */}
+        <div style={{ borderTop: '1px solid #252530', paddingTop: 22 }}>
+          {/* Toggle row */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: form.split?.enabled ? 18 : 0 }}>
+            <div>
+              <p style={{ fontSize: 15, fontWeight: 700, color: '#f0f0f8', marginBottom: 2 }}>หารกัน</p>
+              <p style={{ fontSize: 12, color: '#6b6b88' }}>แยกค่า Subscription กับเพื่อน</p>
+            </div>
+            {/* Toggle switch */}
+            <div
+              onClick={toggleSplit}
+              style={{
+                width: 48, height: 28, borderRadius: 14,
+                background: form.split?.enabled ? '#3b82f6' : '#252530',
+                position: 'relative', cursor: 'pointer', flexShrink: 0,
+                transition: 'background 0.22s',
+              }}
+            >
+              <motion.div
+                animate={{ x: form.split?.enabled ? 22 : 2 }}
+                transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                style={{
+                  position: 'absolute', top: 4, width: 20, height: 20,
+                  borderRadius: '50%', background: '#fff',
+                  boxShadow: '0 1px 4px rgba(0,0,0,0.3)',
+                }}
+              />
+            </div>
+          </div>
+
+          <AnimatePresence>
+            {form.split?.enabled && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.22 }}
+                style={{ overflow: 'hidden' }}
+              >
+                {/* If userName not set yet — prompt inline */}
+                {!userName && (
+                  <div style={{ marginBottom: 16 }}>
+                    <label style={lbl}>ชื่อของคุณ</label>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <input
+                        placeholder="ชื่อคุณ..."
+                        style={{ ...inp, flex: 1 }}
+                        onBlur={(e) => {
+                          const n = e.target.value.trim()
+                          if (n) {
+                            setUserName(n)
+                            // Add user as first member
+                            if ((form.split?.members || []).length === 0) {
+                              setSplit({ members: [{ id: crypto.randomUUID(), name: n, paid: true }] })
+                            } else {
+                              updateMember(form.split.members[0].id, 'name', n)
+                            }
+                          }
+                        }}
+                        onFocus={(e) => (e.target.style.borderColor = '#3b82f6')}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Equal / Custom type */}
+                <div style={{ display: 'flex', gap: 8, marginBottom: 18 }}>
+                  {[{ id: 'equal', label: 'หารเท่ากัน' }, { id: 'custom', label: 'กำหนดเอง' }].map((t) => {
+                    const a = form.split.type === t.id
+                    return (
+                      <button
+                        key={t.id}
+                        type="button"
+                        onClick={() => setSplit({ type: t.id })}
+                        style={{
+                          flex: 1, height: 42, borderRadius: 12,
+                          border: `1.5px solid ${a ? '#3b82f6' : '#252530'}`,
+                          background: a ? '#3b82f61a' : '#0f0f14',
+                          color: a ? '#3b82f6' : '#6b6b88',
+                          fontSize: 14, fontWeight: 700,
+                          cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.15s',
+                        }}
+                      >{t.label}</button>
+                    )
+                  })}
+                </div>
+
+                {/* Members list */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 12 }}>
+                  {(form.split?.members || []).map((member, idx) => {
+                    const isUser = idx === 0
+                    const shareDisplay = form.split.type === 'equal'
+                      ? formatCurrency(idx === 0 ? equalShare + remainder : equalShare)
+                      : null
+
+                    return (
+                      <div key={member.id} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        {/* Name */}
+                        <div style={{ flex: 1, position: 'relative' }}>
+                          <input
+                            value={member.name}
+                            onChange={(e) => {
+                              updateMember(member.id, 'name', e.target.value)
+                              if (isUser) setUserName(e.target.value)
+                            }}
+                            placeholder={isUser ? 'ชื่อคุณ...' : 'ชื่อเพื่อน...'}
+                            style={{
+                              ...inp, height: 46,
+                              paddingRight: isUser ? 52 : 16,
+                            }}
+                            onFocus={(e) => (e.target.style.borderColor = '#3b82f6')}
+                            onBlur={(e) => (e.target.style.borderColor = '#252530')}
+                          />
+                          {isUser && (
+                            <span style={{
+                              position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)',
+                              fontSize: 11, fontWeight: 700, color: '#3b82f6',
+                              background: 'rgba(59,130,246,0.12)', padding: '2px 7px', borderRadius: 6,
+                            }}>คุณ</span>
+                          )}
+                        </div>
+
+                        {/* Share */}
+                        {form.split.type === 'equal' ? (
+                          <span style={{
+                            fontSize: 14, fontWeight: 700, color: '#3b82f6',
+                            minWidth: 68, textAlign: 'right', flexShrink: 0,
+                          }}>
+                            {shareDisplay}
+                          </span>
+                        ) : (
+                          <input
+                            type="number"
+                            inputMode="decimal"
+                            value={member.share || ''}
+                            onChange={(e) => updateMember(member.id, 'share', e.target.value)}
+                            placeholder="0"
+                            style={{
+                              ...inp, height: 46, width: 90, flexShrink: 0,
+                              padding: '0 12px', textAlign: 'right',
+                            }}
+                            onFocus={(e) => (e.target.style.borderColor = '#3b82f6')}
+                            onBlur={(e) => (e.target.style.borderColor = '#252530')}
+                          />
+                        )}
+
+                        {/* Remove (not for user) */}
+                        {!isUser ? (
+                          <button
+                            type="button"
+                            onClick={() => removeMember(member.id)}
+                            style={{
+                              width: 34, height: 34, borderRadius: 10, flexShrink: 0,
+                              background: 'rgba(239,68,68,0.08)',
+                              border: '1px solid rgba(239,68,68,0.2)',
+                              display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              cursor: 'pointer',
+                            }}
+                          >
+                            <X size={14} color="#f87171" />
+                          </button>
+                        ) : (
+                          <div style={{ width: 34, flexShrink: 0 }} />
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+
+                {/* Add member button */}
+                <button
+                  type="button"
+                  onClick={addMember}
+                  style={{
+                    width: '100%', height: 44, borderRadius: 12,
+                    border: '1.5px dashed #3b3b50',
+                    background: 'transparent', color: '#6b6b88',
+                    fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                    marginBottom: 12,
+                  }}
+                >
+                  <Plus size={14} />
+                  เพิ่มคน
+                </button>
+
+                {/* Summary */}
+                {totalAmt > 0 && (form.split?.members?.length ?? 0) > 0 && (
+                  <div style={{
+                    padding: '10px 14px', borderRadius: 12,
+                    background: form.split.type === 'equal' || Math.abs(customDiff) < 0.01
+                      ? 'rgba(74,222,128,0.06)' : 'rgba(248,113,113,0.06)',
+                    border: `1px solid ${form.split.type === 'equal' || Math.abs(customDiff) < 0.01
+                      ? 'rgba(74,222,128,0.18)' : 'rgba(248,113,113,0.18)'}`,
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                  }}>
+                    <span style={{ fontSize: 13, color: '#6b6b88' }}>
+                      {form.split.type === 'equal'
+                        ? `หาร ${memberCount} คน`
+                        : Math.abs(customDiff) < 0.01 ? 'ครบยอด' : customDiff > 0 ? `ขาดอีก ${formatCurrency(customDiff)}` : `เกิน ${formatCurrency(-customDiff)}`}
+                    </span>
+                    <span style={{
+                      fontSize: 13, fontWeight: 700,
+                      color: form.split.type === 'equal' || Math.abs(customDiff) < 0.01 ? '#4ade80' : '#f87171',
+                    }}>
+                      {form.split.type === 'equal'
+                        ? `คุณได้รับ ${formatCurrency(totalAmt - (equalShare * (memberCount - 1)))}`
+                        : `${formatCurrency(customTotal)} / ${formatCurrency(totalAmt)}`}
+                    </span>
+                  </div>
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
         {/* Delete (edit mode) */}

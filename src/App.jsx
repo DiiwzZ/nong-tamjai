@@ -6,17 +6,19 @@ import { Onboarding } from '@/components/Onboarding'
 import { NotificationBanner } from '@/components/NotificationBanner'
 import { Tasks } from '@/pages/Tasks'
 import { Subscriptions } from '@/pages/Subscriptions'
+import { Split } from '@/pages/Split'
 import { Dashboard } from '@/pages/Dashboard'
 import { Archive } from '@/pages/Archive'
 
 const PAGES = {
   tasks: Tasks,
   subscriptions: Subscriptions,
+  split: Split,
   dashboard: Dashboard,
   archive: Archive,
 }
 
-const NAV_TABS = ['tasks', 'subscriptions', 'dashboard']
+const NAV_TABS = ['tasks', 'subscriptions', 'split', 'dashboard']
 
 function AppInner() {
   const [tab, setTab] = useState('tasks')

@@ -24,6 +24,7 @@ const initialState = {
   tasks: [],
   subscriptions: [],
   categories: DEFAULT_CATEGORIES,
+  userName: '',
   darkMode: window.matchMedia('(prefers-color-scheme: dark)').matches,
   onboardingDone: false,
 }
@@ -155,6 +156,34 @@ export function StoreProvider({ children }) {
   const addCategory = (cat) =>
     update({ categories: [...state.categories, { id: crypto.randomUUID(), ...cat }] })
 
+  // --- Profile ---
+
+  const setUserName = (name) => update({ userName: name.trim() })
+
+  // --- Split ---
+
+  const markSplitPaid = (subId, memberId, paid = true) => {
+    const subscriptions = state.subscriptions.map((s) => {
+      if (s.id !== subId || !s.split) return s
+      return {
+        ...s,
+        split: {
+          ...s.split,
+          members: s.split.members.map((m) =>
+            m.id === memberId
+              ? { ...m, paid, paidAt: paid ? new Date().toISOString() : null }
+              : m
+          ),
+        },
+      }
+    })
+    update({ subscriptions })
+    if (uid) {
+      const sub = subscriptions.find((s) => s.id === subId)
+      if (sub) saveSub(uid, sub).catch(console.error)
+    }
+  }
+
   const value = {
     ...state,
     uid,
@@ -162,6 +191,8 @@ export function StoreProvider({ children }) {
     addTask, updateTask, deleteTask, completeTask, uncompleteTask, toggleTaskComplete, archiveTask, clearArchive,
     addSubscription, updateSubscription, deleteSubscription,
     addCategory,
+    setUserName,
+    markSplitPaid,
   }
 
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>
