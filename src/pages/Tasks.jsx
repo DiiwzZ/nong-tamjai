@@ -45,7 +45,7 @@ function EmptyState() {
   )
 }
 
-export function Tasks({ onTabChange }) {
+export function Tasks({ onTabChange, onSettings }) {
   const { tasks, categories } = useStore()
   const [formOpen, setFormOpen] = useState(false)
   const [editTask, setEditTask] = useState(null)
@@ -111,7 +111,7 @@ export function Tasks({ onTabChange }) {
       {confetti && <Confetti trigger={true} x={confetti.x} y={confetti.y} />}
 
       {/* ── Main list ── */}
-      <PageHeader title="งาน" right={headerRight} />
+      <PageHeader title="งาน" right={headerRight} onSettings={onSettings} />
 
       <div
         className="no-scrollbar"

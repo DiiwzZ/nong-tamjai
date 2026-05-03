@@ -156,6 +156,22 @@ export function StoreProvider({ children }) {
   const addCategory = (cat) =>
     update({ categories: [...state.categories, { id: crypto.randomUUID(), ...cat }] })
 
+  const updateCategory = (id, patch) =>
+    update({ categories: state.categories.map((c) => c.id === id ? { ...c, ...patch } : c) })
+
+  const deleteCategory = (id) =>
+    update({ categories: state.categories.filter((c) => c.id !== id) })
+
+  // --- Data ---
+
+  const clearAllData = () => {
+    if (uid) {
+      state.tasks.forEach((t) => removeTask(uid, t.id).catch(console.error))
+      state.subscriptions.forEach((s) => removeSub(uid, s.id).catch(console.error))
+    }
+    update({ tasks: [], subscriptions: [], categories: DEFAULT_CATEGORIES, userName: '' })
+  }
+
   // --- Profile ---
 
   const setUserName = (name) => update({ userName: name.trim() })
@@ -193,6 +209,8 @@ export function StoreProvider({ children }) {
     addCategory,
     setUserName,
     markSplitPaid,
+    addCategory, updateCategory, deleteCategory,
+    clearAllData,
   }
 
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>

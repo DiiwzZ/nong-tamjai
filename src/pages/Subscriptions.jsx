@@ -724,7 +724,7 @@ function SubForm({ onClose, sub }) {
 }
 
 /* ─── Page ─── */
-export function Subscriptions({ onTabChange }) {
+export function Subscriptions({ onTabChange, onSettings }) {
   const { subscriptions } = useStore()
   const [formOpen, setFormOpen] = useState(false)
   const [editSub, setEditSub] = useState(null)
@@ -778,7 +778,7 @@ export function Subscriptions({ onTabChange }) {
   return (
     /* position:relative lets the form overlay sit inside this view */
     <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', height: '100%' }}>
-      <PageHeader title="Subscriptions" right={headerRight} />
+      <PageHeader title="Subscriptions" right={headerRight} onSettings={onSettings} />
 
       <div className="no-scrollbar" style={{ flex: 1, overflowY: 'auto', padding: '16px 16px 140px', display: 'flex', flexDirection: 'column' }}>
         {loading ? (

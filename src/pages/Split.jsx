@@ -226,7 +226,7 @@ function EmptyState() {
 }
 
 /* ── Page ── */
-export function Split() {
+export function Split({ onSettings }) {
   const { subscriptions, userName, setUserName, markSplitPaid } = useStore()
 
   // Subs that have split enabled and have at least 2 members
@@ -282,7 +282,7 @@ export function Split() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      <PageHeader title="Split" right={headerRight} />
+      <PageHeader title="Split" right={headerRight} onSettings={onSettings} />
 
       {!userName ? (
         <SetupName onConfirm={setUserName} />

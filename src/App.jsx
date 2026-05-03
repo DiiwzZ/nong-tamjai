@@ -9,6 +9,7 @@ import { Subscriptions } from '@/pages/Subscriptions'
 import { Split } from '@/pages/Split'
 import { Dashboard } from '@/pages/Dashboard'
 import { Archive } from '@/pages/Archive'
+import { Settings } from '@/pages/Settings'
 
 const PAGES = {
   tasks: Tasks,
@@ -20,10 +21,16 @@ const PAGES = {
 
 const NAV_TABS = ['tasks', 'subscriptions', 'split', 'dashboard']
 
+/* Pages that show the Settings gear icon */
+const SETTINGS_TABS = ['tasks', 'subscriptions', 'split']
+
 function AppInner() {
   const [tab, setTab] = useState('tasks')
+  const [settingsOpen, setSettingsOpen] = useState(false)
   const { onboardingDone } = useStore()
   const Page = PAGES[tab]
+
+  const showSettings = SETTINGS_TABS.includes(tab)
 
   return (
     <div className="relative h-svh overflow-hidden bg-background">
@@ -40,7 +47,10 @@ function AppInner() {
           exit={{ opacity: 0, scale: 0.97 }}
           transition={{ duration: 0.22, ease: [0.25, 0.46, 0.45, 0.94] }}
         >
-          <Page onTabChange={setTab} />
+          <Page
+            onTabChange={setTab}
+            onSettings={showSettings ? () => setSettingsOpen(true) : undefined}
+          />
         </motion.div>
       </AnimatePresence>
 
@@ -50,6 +60,21 @@ function AppInner() {
       )}
 
       {onboardingDone && <NotificationBanner />}
+
+      {/* Settings overlay — sits above BottomNav (zIndex 60) */}
+      <AnimatePresence>
+        {settingsOpen && (
+          <motion.div
+            initial={{ x: '100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '100%' }}
+            transition={{ type: 'spring', stiffness: 340, damping: 34 }}
+            style={{ position: 'absolute', inset: 0, zIndex: 60 }}
+          >
+            <Settings onClose={() => setSettingsOpen(false)} />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }
