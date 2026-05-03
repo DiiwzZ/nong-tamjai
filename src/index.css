@@ -1,50 +1,27 @@
 @import "tailwindcss";
 
 @theme {
-  --color-background: hsl(0 0% 100%);
-  --color-foreground: hsl(222 47% 11%);
-  --color-card: hsl(0 0% 100%);
-  --color-card-foreground: hsl(222 47% 11%);
-  --color-border: hsl(214 32% 91%);
-  --color-input: hsl(214 32% 91%);
-  --color-primary: hsl(221 83% 53%);
-  --color-primary-foreground: hsl(0 0% 100%);
-  --color-muted: hsl(210 40% 96%);
-  --color-muted-foreground: hsl(215 16% 47%);
-  --color-accent: hsl(210 40% 96%);
-  --color-accent-foreground: hsl(222 47% 11%);
-  --color-destructive: hsl(0 84% 60%);
+  --color-background: #0f0f14;
+  --color-foreground: #f0f0f8;
+  --color-card: #1a1a22;
+  --color-card-foreground: #f0f0f8;
+  --color-border: #252530;
+  --color-input: #252530;
+  --color-primary: #3b82f6;
+  --color-primary-foreground: #ffffff;
+  --color-muted: #252530;
+  --color-muted-foreground: #6b6b88;
+  --color-accent: #252530;
+  --color-accent-foreground: #f0f0f8;
+  --color-destructive: #ef4444;
   --radius: 0.75rem;
 
-  --color-priority-high-bg: hsl(0 93% 94%);
-  --color-priority-high-text: hsl(0 72% 51%);
-  --color-priority-medium-bg: hsl(48 96% 89%);
-  --color-priority-medium-text: hsl(32 95% 44%);
-  --color-priority-low-bg: hsl(138 76% 90%);
-  --color-priority-low-text: hsl(142 71% 45%);
-}
-
-.dark {
-  --color-background: hsl(222 47% 7%);
-  --color-foreground: hsl(210 40% 98%);
-  --color-card: hsl(222 47% 11%);
-  --color-card-foreground: hsl(210 40% 98%);
-  --color-border: hsl(217 33% 17%);
-  --color-input: hsl(217 33% 17%);
-  --color-primary: hsl(217 91% 60%);
-  --color-primary-foreground: hsl(222 47% 11%);
-  --color-muted: hsl(217 33% 17%);
-  --color-muted-foreground: hsl(215 20% 65%);
-  --color-accent: hsl(217 33% 17%);
-  --color-accent-foreground: hsl(210 40% 98%);
-  --color-destructive: hsl(0 63% 50%);
-
-  --color-priority-high-bg: hsl(0 63% 15%);
-  --color-priority-high-text: hsl(0 84% 70%);
-  --color-priority-medium-bg: hsl(32 81% 15%);
-  --color-priority-medium-text: hsl(48 96% 65%);
-  --color-priority-low-bg: hsl(142 50% 13%);
-  --color-priority-low-text: hsl(138 76% 60%);
+  --color-priority-high-bg: rgba(239,68,68,0.18);
+  --color-priority-high-text: #ef4444;
+  --color-priority-medium-bg: rgba(245,158,11,0.18);
+  --color-priority-medium-text: #f59e0b;
+  --color-priority-low-bg: rgba(34,197,94,0.18);
+  --color-priority-low-text: #22c55e;
 }
 
 * {
@@ -56,7 +33,7 @@
 body {
   background-color: var(--color-background);
   color: var(--color-foreground);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
   -webkit-tap-highlight-color: transparent;
   overscroll-behavior: none;
   -webkit-font-smoothing: antialiased;
@@ -76,3 +53,21 @@ html { scroll-behavior: smooth; }
 
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* ── Premium shimmer skeleton ── */
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    #1a1a22 0%,
+    #252535 40%,
+    #2a2a3a 50%,
+    #252535 60%,
+    #1a1a22 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.6s ease-in-out infinite;
+}

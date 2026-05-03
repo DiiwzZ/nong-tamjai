@@ -1,175 +1,285 @@
-import { useMemo } from 'react'
-import { motion } from 'motion/react'
-import { CheckCircle2, AlertCircle, CreditCard, TrendingUp } from 'lucide-react'
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
-import { cn, formatCurrency, daysUntil } from '@/lib/utils'
+import { useMemo, useState, useEffect } from 'react'
+import { motion, useMotionValue, animate } from 'motion/react'
 import { useStore } from '@/store/useStore'
-import { Header } from '@/components/layout/Header'
+import { PageHeader } from '@/components/layout/PageHeader'
+import { formatCurrency, daysUntil, isOverdue } from '@/lib/utils'
 
-function StatCard({ icon: Icon, label, value, sub, color }) {
-  return (
-    <div className="bg-card border border-border rounded-xl p-4">
-      <div className={cn('w-9 h-9 rounded-xl flex items-center justify-center mb-3', color)}>
-        <Icon size={18} className="text-white" />
-      </div>
-      <p className="text-xl font-bold text-foreground">{value}</p>
-      <p className="text-xs text-muted-foreground mt-0.5">{label}</p>
-      {sub && <p className="text-xs text-muted-foreground">{sub}</p>}
-    </div>
-  )
+/* ── Animated counting number ── */
+function AnimatedNumber({ value, format = String }) {
+  const mv = useMotionValue(0)
+  const [display, setDisplay] = useState(() => format(value))
+
+  useEffect(() => {
+    const ctrl = animate(mv, value, {
+      duration: 0.7,
+      ease: [0.25, 0.46, 0.45, 0.94],
+      onUpdate: (v) => setDisplay(format(v)),
+    })
+    return ctrl.stop
+  }, [value])
+
+  return <span>{display}</span>
 }
 
-export function Dashboard() {
-  const { tasks, subscriptions } = useStore()
-
-  const activeTasks = tasks.filter((t) => t.status === 'active')
-  const completedToday = tasks.filter((t) => {
-    if (t.status !== 'completed') return false
-    const completed = new Date(t.completedAt)
-    const today = new Date()
-    return completed.toDateString() === today.toDateString()
+function todayShort() {
+  return new Date().toLocaleDateString('th-TH', {
+    weekday: 'short', day: 'numeric', month: 'short',
   })
-  const overdue = activeTasks.filter((t) => t.dueDate && new Date(t.dueDate) < new Date())
+}
 
-  const activeSubs = subscriptions.filter((s) => s.status === 'active')
-  const monthlyTotal = activeSubs.reduce((sum, s) => {
-    if (s.billingCycle === 'yearly') return sum + s.amount / 12
-    if (s.billingCycle === 'monthly') return sum + s.amount
-    return sum
-  }, 0)
+export function Dashboard({ onTabChange }) {
+  const { tasks, subscriptions, categories } = useStore()
 
-  const upcomingSubs = subscriptions
-    .filter((s) => s.status === 'active' && s.nextBillingDate)
-    .map((s) => ({ ...s, days: daysUntil(s.nextBillingDate) }))
-    .filter((s) => s.days !== null && s.days >= 0 && s.days <= 14)
-    .sort((a, b) => a.days - b.days)
+  const activeTasks = useMemo(() => tasks.filter((t) => t.status === 'active'), [tasks])
+  const overdueTasks = useMemo(() => activeTasks.filter((t) => isOverdue(t.dueDate)), [activeTasks])
 
-  const chartData = useMemo(() => {
-    const months = []
-    for (let i = 5; i >= 0; i--) {
-      const d = new Date()
-      d.setMonth(d.getMonth() - i)
-      months.push({
-        name: d.toLocaleDateString('th-TH', { month: 'short' }),
-        amount: monthlyTotal,
-      })
-    }
-    return months
-  }, [monthlyTotal])
+  const activeSubs = useMemo(() => subscriptions.filter((s) => s.status !== 'cancelled'), [subscriptions])
+  const monthly = useMemo(() =>
+    activeSubs.reduce((sum, s) => {
+      if (s.billingCycle === 'yearly')  return sum + s.amount / 12
+      if (s.billingCycle === 'monthly') return sum + s.amount
+      return sum
+    }, 0),
+  [activeSubs])
+
+  /* Upcoming payments ≤7 days */
+  const upcoming = useMemo(() =>
+    subscriptions
+      .filter((s) => s.status !== 'cancelled' && s.nextBillingDate)
+      .map((s) => ({ ...s, days: daysUntil(s.nextBillingDate) }))
+      .filter((s) => s.days !== null && s.days >= 0 && s.days <= 7)
+      .sort((a, b) => a.days - b.days),
+  [subscriptions])
+
+  /* Urgent tasks: overdue or due today/tomorrow */
+  const urgentTasks = useMemo(() =>
+    activeTasks
+      .filter((t) => t.dueDate && daysUntil(t.dueDate) !== null && daysUntil(t.dueDate) <= 1)
+      .sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate))
+      .slice(0, 5),
+  [activeTasks])
+
+  const isEmpty = activeTasks.length === 0 && subscriptions.length === 0
+
+  const dateRight = (
+    <span style={{ fontSize: 13, fontWeight: 500, color: '#6b6b88' }}>
+      {todayShort()}
+    </span>
+  )
 
   return (
-    <div className="flex flex-col h-full overflow-y-auto no-scrollbar">
-      <Header title="ภาพรวม" />
-      <div className="px-5 pb-2">
-        <p className="text-sm text-muted-foreground -mt-2 mb-2">
-          {new Date().toLocaleDateString('th-TH', { weekday: 'long', day: 'numeric', month: 'long' })}
-        </p>
-      </div>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+      <PageHeader title="ภาพรวม" right={dateRight} />
 
-      <div className="px-5 pb-6">
-        {/* Stats */}
-        <div className="grid grid-cols-2 gap-3 mb-6">
-          <StatCard
-            icon={CheckCircle2}
-            label="Task วันนี้"
-            value={`${completedToday.length}/${activeTasks.length + completedToday.length}`}
-            color="bg-green-500"
-          />
-          <StatCard
-            icon={AlertCircle}
-            label="เกินกำหนด"
-            value={overdue.length}
-            sub={overdue.length > 0 ? 'ต้องรีบจัดการ' : 'ดีมาก!'}
-            color={overdue.length > 0 ? 'bg-destructive' : 'bg-blue-500'}
-          />
-          <StatCard
-            icon={CreditCard}
-            label="ค่า Sub/เดือน"
-            value={formatCurrency(monthlyTotal)}
-            sub={`${activeSubs.length} รายการ`}
-            color="bg-purple-500"
-          />
-          <StatCard
-            icon={TrendingUp}
-            label="ค่า Sub/ปี"
-            value={formatCurrency(monthlyTotal * 12)}
-            color="bg-orange-500"
-          />
+      <div
+        className="no-scrollbar"
+        style={{ flex: 1, overflowY: 'auto', padding: '20px 16px 140px', display: 'flex', flexDirection: 'column' }}
+      >
+
+      {/* Stat cards */}
+      <motion.div
+        initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.28 }}
+        style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 24 }}
+      >
+        {/* Tasks card */}
+        <div
+          onClick={() => onTabChange?.('tasks')}
+          style={{
+            background: '#1a1a22', border: '1px solid #252530',
+            borderRadius: 20, padding: '18px 16px', cursor: 'pointer',
+          }}
+        >
+          <p style={{
+            fontSize: 11, fontWeight: 700, color: '#6b6b88',
+            textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10,
+          }}>งานที่ต้องทำ</p>
+          <p style={{ fontSize: 38, fontWeight: 800, color: '#f0f0f8', lineHeight: 1, marginBottom: 6 }}>
+            <AnimatedNumber value={activeTasks.length} format={(v) => Math.round(v).toString()} />
+          </p>
+          {overdueTasks.length > 0 ? (
+            <span style={{
+              fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 7,
+              background: 'rgba(239,68,68,0.12)', color: '#f87171',
+            }}>
+              {overdueTasks.length} เกินกำหนด
+            </span>
+          ) : (
+            <p style={{ fontSize: 12, color: '#6b6b88' }}>รายการ</p>
+          )}
         </div>
 
-        {/* Upcoming payments */}
-        {upcomingSubs.length > 0 && (
-          <div className="mb-6">
-            <h2 className="text-sm font-semibold text-foreground mb-3">จ่ายเร็วๆ นี้</h2>
-            <div className="flex flex-col gap-2">
-              {upcomingSubs.map((sub) => (
-                <motion.div
-                  key={sub.id}
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  className={cn(
-                    'flex items-center gap-3 p-3 rounded-xl border',
-                    sub.days <= 3 ? 'bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-900' : 'bg-card border-border'
-                  )}
-                >
-                  <div
-                    className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
-                    style={{ backgroundColor: sub.color || '#6b7280' }}
-                  >
-                    {sub.name?.[0]?.toUpperCase()}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-foreground">{sub.name}</p>
-                    <p className={cn('text-xs', sub.days <= 3 ? 'text-destructive' : 'text-muted-foreground')}>
-                      {sub.days === 0 ? 'วันนี้!' : sub.days === 1 ? 'พรุ่งนี้' : `อีก ${sub.days} วัน`}
-                    </p>
-                  </div>
-                  <p className="text-sm font-bold text-foreground">{formatCurrency(sub.amount)}</p>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        )}
+        {/* Subs card */}
+        <div
+          onClick={() => onTabChange?.('subscriptions')}
+          style={{
+            background: '#1a1a22', border: '1px solid #252530',
+            borderRadius: 20, padding: '18px 16px', cursor: 'pointer',
+          }}
+        >
+          <p style={{
+            fontSize: 11, fontWeight: 700, color: '#6b6b88',
+            textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10,
+          }}>รายเดือน</p>
+          <p style={{
+            fontSize: monthly >= 10000 ? 24 : 32,
+            fontWeight: 800, color: '#3b82f6', lineHeight: 1, marginBottom: 6,
+          }}>
+            <AnimatedNumber value={monthly} format={(v) => formatCurrency(v)} />
+          </p>
+          <p style={{ fontSize: 12, color: '#6b6b88' }}>{activeSubs.length} subs</p>
+        </div>
+      </motion.div>
 
-        {/* Monthly chart */}
-        {monthlyTotal > 0 && (
-          <div className="mb-6">
-            <h2 className="text-sm font-semibold text-foreground mb-3">ค่าใช้จ่าย 6 เดือน</h2>
-            <div className="bg-card border border-border rounded-xl p-4">
-              <ResponsiveContainer width="100%" height={160}>
-                <BarChart data={chartData} barSize={20}>
-                  <XAxis dataKey="name" tick={{ fontSize: 11, fill: 'var(--color-muted-foreground)' }} axisLine={false} tickLine={false} />
-                  <YAxis hide />
-                  <Tooltip
-                    formatter={(value) => [formatCurrency(value), 'ค่าใช้จ่าย']}
-                    contentStyle={{
-                      backgroundColor: 'var(--color-card)',
-                      border: '1px solid var(--color-border)',
-                      borderRadius: '8px',
-                      fontSize: '12px',
-                    }}
-                  />
-                  <Bar dataKey="amount" radius={[6, 6, 0, 0]} fill="var(--color-primary)" />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-        )}
+      {/* Upcoming payments */}
+      {upcoming.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.28, delay: 0.06 }}
+          style={{ marginBottom: 20 }}
+        >
+          <p style={{
+            fontSize: 12, fontWeight: 700, color: '#6b6b88',
+            textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10,
+          }}>จ่ายเงินเร็วๆ นี้</p>
 
-        {/* Overdue tasks */}
-        {overdue.length > 0 && (
-          <div>
-            <h2 className="text-sm font-semibold text-destructive mb-3">Task เกินกำหนด</h2>
-            {overdue.map((task) => (
-              <div key={task.id} className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900 rounded-xl p-3 mb-2">
-                <p className="text-sm font-medium text-foreground">{task.title}</p>
-                <p className="text-xs text-destructive mt-0.5">
-                  {new Date(task.dueDate).toLocaleDateString('th-TH', { day: 'numeric', month: 'short' })}
+          <div style={{ background: '#1a1a22', border: '1px solid #252530', borderRadius: 18, overflow: 'hidden' }}>
+            {upcoming.map((sub, i) => (
+              <div
+                key={sub.id}
+                onClick={() => onTabChange?.('subscriptions')}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 12,
+                  padding: '13px 16px', cursor: 'pointer',
+                  borderBottom: i < upcoming.length - 1 ? '1px solid #252530' : 'none',
+                }}
+              >
+                <div style={{
+                  width: 38, height: 38, borderRadius: 11, flexShrink: 0,
+                  background: sub.color || '#6b7280',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: 15, fontWeight: 800, color: '#fff',
+                }}>
+                  {sub.name?.[0]?.toUpperCase()}
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <p style={{
+                    fontSize: 15, fontWeight: 600, color: '#f0f0f8',
+                    overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginBottom: 2,
+                  }}>{sub.name}</p>
+                  <p style={{
+                    fontSize: 12, fontWeight: 500,
+                    color: sub.days <= 1 ? '#f87171' : '#6b6b88',
+                  }}>
+                    {sub.days === 0 ? 'จ่ายวันนี้' : sub.days === 1 ? 'จ่ายพรุ่งนี้' : `อีก ${sub.days} วัน`}
+                  </p>
+                </div>
+                <p style={{ fontSize: 15, fontWeight: 700, color: '#f0f0f8', flexShrink: 0 }}>
+                  {formatCurrency(sub.amount)}
                 </p>
               </div>
             ))}
           </div>
-        )}
+        </motion.div>
+      )}
+
+      {/* Urgent tasks */}
+      {urgentTasks.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.28, delay: 0.1 }}
+          style={{ marginBottom: 20 }}
+        >
+          <p style={{
+            fontSize: 12, fontWeight: 700, color: '#6b6b88',
+            textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10,
+          }}>งานด่วน</p>
+
+          <div style={{ background: '#1a1a22', border: '1px solid #252530', borderRadius: 18, overflow: 'hidden' }}>
+            {urgentTasks.map((task, i) => {
+              const overdue = isOverdue(task.dueDate)
+              const days = daysUntil(task.dueDate)
+              const cat = categories?.find((c) => c.id === task.categoryId)
+              const pColor = task.priority === 'high' ? '#ef4444' : task.priority === 'medium' ? '#f59e0b' : '#22c55e'
+
+              return (
+                <div
+                  key={task.id}
+                  onClick={() => onTabChange?.('tasks')}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 12,
+                    padding: '13px 16px', cursor: 'pointer',
+                    borderBottom: i < urgentTasks.length - 1 ? '1px solid #252530' : 'none',
+                  }}
+                >
+                  <div style={{
+                    width: 6, height: 6, borderRadius: 99, flexShrink: 0,
+                    background: overdue ? '#ef4444' : pColor,
+                  }} />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <p style={{
+                      fontSize: 15, fontWeight: 600, color: '#f0f0f8',
+                      overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginBottom: 2,
+                    }}>{task.title}</p>
+                    <p style={{ fontSize: 12, fontWeight: 500, color: overdue ? '#f87171' : '#6b6b88' }}>
+                      {overdue ? '⚠ เกินกำหนด' : days === 0 ? 'วันนี้' : 'พรุ่งนี้'}
+                    </p>
+                  </div>
+                  {cat && (
+                    <span style={{
+                      fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 7, flexShrink: 0,
+                      background: `${cat.color}22`, color: cat.color,
+                    }}>{cat.label}</span>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        </motion.div>
+      )}
+
+      {/* Empty */}
+      {isEmpty && (
+        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <motion.div
+          initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.1, ease: [0.25, 0.46, 0.45, 0.94] }}
+          style={{
+            display: 'flex', flexDirection: 'column', alignItems: 'center',
+            gap: 20, textAlign: 'center',
+          }}
+        >
+          <motion.div
+            initial={{ scale: 0.75, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ delay: 0.18, type: 'spring', stiffness: 260, damping: 22 }}
+            style={{
+              width: 84, height: 84, borderRadius: 24,
+              background: 'linear-gradient(145deg, rgba(59,130,246,0.16) 0%, rgba(16,185,129,0.07) 100%)',
+              border: '1px solid rgba(59,130,246,0.22)',
+              boxShadow: '0 0 36px rgba(59,130,246,0.11), inset 0 1px 0 rgba(255,255,255,0.06)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}
+          >
+            <svg width="40" height="40" viewBox="0 0 40 40" fill="none" strokeLinecap="round" strokeLinejoin="round">
+              {/* Baseline */}
+              <path d="M5 33h30" stroke="#3b82f6" strokeWidth="1.8"/>
+              {/* Bar 1 — short */}
+              <rect x="7" y="23" width="7" height="10" rx="2.5" fill="rgba(59,130,246,0.14)" stroke="#3b82f6" strokeWidth="1.7"/>
+              {/* Bar 2 — mid */}
+              <rect x="17" y="15" width="7" height="18" rx="2.5" fill="rgba(59,130,246,0.22)" stroke="#3b82f6" strokeWidth="1.7"/>
+              {/* Bar 3 — tall */}
+              <rect x="27" y="8" width="7" height="25" rx="2.5" fill="rgba(59,130,246,0.32)" stroke="#3b82f6" strokeWidth="1.7"/>
+              {/* Trend arrow on top of bar 3 */}
+              <path d="M13 20l6-5 6 3 6-8" stroke="#3b82f6" strokeWidth="1.7" strokeOpacity="0.5"/>
+            </svg>
+          </motion.div>
+          <div>
+            <p style={{ fontSize: 17, fontWeight: 700, color: '#f0f0f8', marginBottom: 6 }}>ยังไม่มีอะไร</p>
+            <p style={{ fontSize: 14, color: '#6b6b88' }}>เพิ่ม task หรือ subscription เพื่อเริ่มต้น</p>
+          </div>
+        </motion.div>
+        </div>
+      )}
       </div>
     </div>
   )

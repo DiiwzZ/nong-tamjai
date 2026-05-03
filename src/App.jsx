@@ -7,12 +7,16 @@ import { NotificationBanner } from '@/components/NotificationBanner'
 import { Tasks } from '@/pages/Tasks'
 import { Subscriptions } from '@/pages/Subscriptions'
 import { Dashboard } from '@/pages/Dashboard'
+import { Archive } from '@/pages/Archive'
 
 const PAGES = {
   tasks: Tasks,
   subscriptions: Subscriptions,
   dashboard: Dashboard,
+  archive: Archive,
 }
+
+const NAV_TABS = ['tasks', 'subscriptions', 'dashboard']
 
 function AppInner() {
   const [tab, setTab] = useState('tasks')
@@ -29,16 +33,20 @@ function AppInner() {
         <motion.div
           key={tab}
           className="absolute inset-0"
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -8 }}
-          transition={{ duration: 0.18 }}
+          initial={{ opacity: 0, scale: 0.97 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.97 }}
+          transition={{ duration: 0.22, ease: [0.25, 0.46, 0.45, 0.94] }}
         >
-          <Page />
+          <Page onTabChange={setTab} />
         </motion.div>
       </AnimatePresence>
 
-      <BottomNav active={tab} onChange={setTab} />
+      {/* Bottom nav — hidden on archive page */}
+      {NAV_TABS.includes(tab) && (
+        <BottomNav active={tab} onChange={setTab} />
+      )}
+
       {onboardingDone && <NotificationBanner />}
     </div>
   )

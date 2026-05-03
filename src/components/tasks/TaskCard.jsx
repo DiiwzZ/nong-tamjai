@@ -1,20 +1,26 @@
-import { useState, useRef } from 'react'
+import { useState } from 'react'
 import { motion, useMotionValue, useTransform, animate } from 'motion/react'
-import { Check, Trash2, ChevronRight } from 'lucide-react'
-import { cn, PRIORITY, formatDate, isOverdue, daysUntil } from '@/lib/utils'
+import { Trash2, Check } from 'lucide-react'
+import { formatDate, isOverdue, daysUntil } from '@/lib/utils'
 import { useStore } from '@/store/useStore'
+
+const PRIORITY_COLOR = {
+  high:   '#ef4444',
+  medium: '#f59e0b',
+  low:    '#22c55e',
+}
 
 export function TaskCard({ task, onTap, categories, onComplete }) {
   const { completeTask, deleteTask } = useStore()
   const [dragging, setDragging] = useState(false)
   const x = useMotionValue(0)
-  const opacity = useTransform(x, [-80, -20], [1, 0])
-  const actionOpacity = useTransform(x, [-80, -30], [1, 0])
+  const deleteOpacity = useTransform(x, [-90, -24], [1, 0])
 
-  const priority = PRIORITY[task.priority] || PRIORITY.medium
   const category = categories?.find((c) => c.id === task.categoryId)
   const overdue = isOverdue(task.dueDate) && task.status === 'active'
   const days = daysUntil(task.dueDate)
+  const isDone = task.status === 'completed'
+  const priorityColor = PRIORITY_COLOR[task.priority] || '#3b3b50'
 
   const handleDragEnd = (_, info) => {
     setDragging(false)
@@ -39,88 +45,115 @@ export function TaskCard({ task, onTap, categories, onComplete }) {
   if (task.status === 'archived') return null
 
   return (
-    <div className="relative overflow-hidden rounded-xl mb-2">
-      {/* Action buttons behind */}
-      <div className="absolute inset-y-0 right-0 flex items-center gap-1 pr-2">
+    <div style={{ position: 'relative', overflow: 'hidden', borderRadius: 18, marginBottom: 10 }}>
+      {/* Delete zone */}
+      <div style={{
+        position: 'absolute', inset: 'auto 0 auto auto',
+        height: '100%', display: 'flex', alignItems: 'center', paddingRight: 14,
+      }}>
         <motion.button
-          style={{ opacity: actionOpacity }}
-          onClick={handleComplete}
-          className="flex items-center justify-center w-12 h-12 rounded-xl bg-green-500 text-white"
-        >
-          <Check size={20} />
-        </motion.button>
-        <motion.button
-          style={{ opacity: actionOpacity }}
           onClick={handleDelete}
-          className="flex items-center justify-center w-12 h-12 rounded-xl bg-destructive text-white"
+          style={{
+            width: 44, height: 44, borderRadius: 14,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            background: '#ef4444', border: 'none', cursor: 'pointer',
+            opacity: deleteOpacity,
+          }}
         >
-          <Trash2 size={18} />
+          <Trash2 size={17} color="#fff" />
         </motion.button>
       </div>
 
+      {/* Card */}
       <motion.div
         drag="x"
         dragConstraints={{ right: 0 }}
-        dragElastic={{ left: 0.1, right: 0 }}
-        style={{ x }}
+        dragElastic={{ left: 0.08, right: 0 }}
+        style={{
+          x,
+          position: 'relative',
+          background: overdue ? 'rgba(239,68,68,0.05)' : '#1a1a22',
+          border: `1px solid ${overdue ? 'rgba(239,68,68,0.22)' : '#252530'}`,
+          borderRadius: 18,
+          opacity: isDone ? 0.42 : 1,
+          overflow: 'hidden',
+        }}
         onDragStart={() => setDragging(true)}
         onDragEnd={handleDragEnd}
         onClick={() => !dragging && onTap?.(task)}
-        className={cn(
-          'relative rounded-xl p-4 cursor-pointer select-none',
-          'border transition-colors duration-150',
-          task.status === 'completed'
-            ? 'bg-muted/50 border-border opacity-60'
-            : [priority.bg, priority.border]
-        )}
+        className="cursor-pointer select-none"
       >
-        <div className="flex items-start gap-3">
+        {/* Priority bar */}
+        {!isDone && (
+          <div style={{
+            position: 'absolute', left: 0, top: 0, bottom: 0, width: 3,
+            background: overdue ? '#ef4444' : priorityColor,
+            borderRadius: '18px 0 0 18px',
+          }} />
+        )}
+
+        <div style={{ display: 'flex', alignItems: 'center', padding: '12px 16px 12px 20px', gap: 4 }}>
+          {/* Checkbox — 44×44 hit area */}
           <button
             onClick={handleComplete}
-            className={cn(
-              'mt-0.5 w-5 h-5 rounded-full border-2 flex-shrink-0 flex items-center justify-center transition-all',
-              task.status === 'completed'
-                ? 'bg-green-500 border-green-500'
-                : 'border-current opacity-50'
-            )}
+            style={{
+              flexShrink: 0, width: 44, height: 44, marginLeft: -6,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: 'none', border: 'none', cursor: 'pointer',
+            }}
           >
-            {task.status === 'completed' && <Check size={11} strokeWidth={3} className="text-white" />}
+            <div style={{
+              width: 22, height: 22, borderRadius: '50%',
+              border: isDone ? 'none' : '2px solid #3b3b50',
+              background: isDone ? '#3b82f6' : 'transparent',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              transition: 'all 0.18s',
+            }}>
+              {isDone && <Check size={11} strokeWidth={3} color="#fff" />}
+            </div>
           </button>
 
-          <div className="flex-1 min-w-0">
-            <p className={cn(
-              'text-sm font-medium leading-snug',
-              task.status === 'completed' ? 'line-through text-muted-foreground' : priority.text
-            )}>
+          {/* Content */}
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <p style={{
+              fontSize: 17, fontWeight: 600, lineHeight: 1.3,
+              color: isDone ? '#6b6b88' : '#f0f0f8',
+              textDecoration: isDone ? 'line-through' : 'none',
+              overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+            }}>
               {task.title}
             </p>
 
-            <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-              {category && (
-                <span
-                  className="text-[10px] font-medium px-1.5 py-0.5 rounded-md text-white"
-                  style={{ backgroundColor: category.color }}
-                >
-                  {category.label}
-                </span>
-              )}
-              {task.dueDate && (
-                <span className={cn(
-                  'text-[10px] font-medium',
-                  overdue ? 'text-destructive' : 'text-muted-foreground'
-                )}>
-                  {overdue ? 'เกินกำหนด' : days === 0 ? 'วันนี้' : days === 1 ? 'พรุ่งนี้' : formatDate(task.dueDate)}
-                </span>
-              )}
-              {task.note && (
-                <span className="text-[10px] text-muted-foreground truncate max-w-[120px]">
-                  {task.note}
-                </span>
-              )}
-            </div>
+            {(task.dueDate || category) && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 4, flexWrap: 'wrap' }}>
+                {task.dueDate && (
+                  <span style={{
+                    fontSize: 12, fontWeight: 500,
+                    color: overdue ? '#f87171' : '#6b6b88',
+                  }}>
+                    {overdue
+                      ? '⚠ เกินกำหนด'
+                      : days === 0
+                      ? 'วันนี้'
+                      : days === 1
+                      ? 'พรุ่งนี้'
+                      : formatDate(task.dueDate)}
+                  </span>
+                )}
+                {task.dueDate && category && (
+                  <span style={{ fontSize: 12, color: '#3b3b50' }}>·</span>
+                )}
+                {category && (
+                  <span style={{
+                    fontSize: 11, fontWeight: 700, padding: '1px 8px', borderRadius: 7,
+                    background: `${category.color}22`, color: category.color,
+                  }}>
+                    {category.label}
+                  </span>
+                )}
+              </div>
+            )}
           </div>
-
-          <ChevronRight size={16} className="text-muted-foreground flex-shrink-0 mt-0.5" />
         </div>
       </motion.div>
     </div>

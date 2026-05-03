@@ -111,6 +111,14 @@ export function StoreProvider({ children }) {
 
   const archiveTask = (id) => updateTask(id, { status: 'archived' })
 
+  const clearArchive = () => {
+    const toDelete = state.tasks.filter(
+      (t) => t.status === 'completed' || t.status === 'archived',
+    )
+    update({ tasks: state.tasks.filter((t) => t.status !== 'completed' && t.status !== 'archived') })
+    if (uid) toDelete.forEach((t) => removeTask(uid, t.id).catch(console.error))
+  }
+
   // --- Subscriptions ---
 
   const addSubscription = (sub) => {
@@ -151,7 +159,7 @@ export function StoreProvider({ children }) {
     ...state,
     uid,
     update,
-    addTask, updateTask, deleteTask, completeTask, uncompleteTask, toggleTaskComplete, archiveTask,
+    addTask, updateTask, deleteTask, completeTask, uncompleteTask, toggleTaskComplete, archiveTask, clearArchive,
     addSubscription, updateSubscription, deleteSubscription,
     addCategory,
   }
