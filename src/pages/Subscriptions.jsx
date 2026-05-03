@@ -1,7 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
-import { createPortal } from 'react-dom'
 import { motion, AnimatePresence, useMotionValue, animate } from 'motion/react'
-import { X } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
 import { QuickAddFAB } from '@/components/ui/QuickAdd'
 import { SubSkeleton } from '@/components/ui/Skeleton'
 import { PageHeader } from '@/components/layout/PageHeader'
@@ -142,8 +141,8 @@ function SubCard({ sub, onTap }) {
   )
 }
 
-/* ─── SubForm ─── */
-function SubForm({ open, onClose, sub }) {
+/* ─── SubForm — full-page slide-in ─── */
+function SubForm({ onClose, sub }) {
   const { addSubscription, updateSubscription, deleteSubscription } = useStore()
   const isEdit = !!sub
 
@@ -153,26 +152,23 @@ function SubForm({ open, onClose, sub }) {
     status: 'active', alertDays: 3, color: '#6b7280', note: '',
   }
 
-  const [form, setForm] = useState(blank)
-
-  useEffect(() => {
-    if (!open) return
-    setForm(sub ? {
-      name: sub.name || '', amount: sub.amount || '',
-      billingCycle: sub.billingCycle || 'monthly',
-      nextBillingDate: sub.nextBillingDate?.slice(0, 10) || '',
-      paymentMethod: sub.paymentMethod || 'เดบิต',
-      status: sub.status || 'active',
-      alertDays: sub.alertDays || 3,
-      color: sub.color || '#6b7280',
-      note: sub.note || '',
-    } : blank)
-  }, [sub, open])
+  const [form, setForm] = useState(() => sub ? {
+    name: sub.name || '', amount: sub.amount || '',
+    billingCycle: sub.billingCycle || 'monthly',
+    nextBillingDate: sub.nextBillingDate?.slice(0, 10) || '',
+    paymentMethod: sub.paymentMethod || 'เดบิต',
+    status: sub.status || 'active',
+    alertDays: sub.alertDays || 3,
+    color: sub.color || '#6b7280',
+    note: sub.note || '',
+  } : blank)
 
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }))
 
+  const canSubmit = form.name.trim() && form.amount
+
   const submit = () => {
-    if (!form.name.trim() || !form.amount) return
+    if (!canSubmit) return
     const data = {
       ...form,
       amount: parseFloat(form.amount),
@@ -183,193 +179,249 @@ function SubForm({ open, onClose, sub }) {
     onClose()
   }
 
-  return createPortal(
-    <AnimatePresence>
-      {open && (
-        <>
-          <motion.div
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+  const handleDelete = () => {
+    deleteSubscription(sub.id)
+    onClose()
+  }
+
+  return (
+    <div style={{
+      display: 'flex', flexDirection: 'column', height: '100%',
+      background: '#0f0f14',
+    }}>
+      {/* ── Header ── */}
+      <div style={{
+        flexShrink: 0,
+        background: 'rgba(15,15,20,0.97)',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        borderBottom: '1px solid #252530',
+        paddingTop: 'env(safe-area-inset-top, 0px)',
+        zIndex: 10,
+      }}>
+        <div style={{ height: 56, paddingLeft: 16, paddingRight: 16, display: 'flex', alignItems: 'center', gap: 10 }}>
+          <button
+            type="button"
+            aria-label="กลับ"
             onClick={onClose}
-            style={{ position: 'fixed', inset: 0, zIndex: 40, background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(6px)' }}
-          />
-          <motion.div
-            initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
-            transition={{ type: 'spring', damping: 30, stiffness: 320 }}
-            drag="y" dragConstraints={{ top: 0 }}
-            dragElastic={{ top: 0, bottom: 0.25 }}
-            onDragEnd={(_, i) => { if (i.offset.y > 80) onClose() }}
             style={{
-              position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)',
-              width: '100%', maxWidth: 430, zIndex: 50, maxHeight: '92dvh',
-              display: 'flex', flexDirection: 'column',
-              background: '#1a1a22', borderTop: '1px solid #252530', borderRadius: '24px 24px 0 0',
+              width: 36, height: 36, borderRadius: 11,
+              background: '#1a1a22', border: '1px solid #252530',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              cursor: 'pointer', flexShrink: 0,
             }}
           >
-            <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0 4px' }}>
-              <div style={{ width: 36, height: 4, borderRadius: 99, background: '#3b3b50' }} />
+            <ArrowLeft size={16} color="#f0f0f8" />
+          </button>
+          <h1 style={{ fontSize: 20, fontWeight: 800, color: '#f0f0f8', letterSpacing: '-0.3px', margin: 0 }}>
+            {isEdit ? 'แก้ไข Subscription' : 'Subscription ใหม่'}
+          </h1>
+        </div>
+      </div>
+
+      {/* ── Scrollable fields ── */}
+      <div
+        className="no-scrollbar"
+        style={{ flex: 1, overflowY: 'auto', padding: '20px 20px 24px', display: 'flex', flexDirection: 'column', gap: 22 }}
+      >
+        {/* Popular presets */}
+        {!isEdit && (
+          <div>
+            <label style={lbl}>บริการยอดนิยม</label>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              {POPULAR_SUBS.map((item) => {
+                const active = form.name === item.name
+                return (
+                  <button
+                    key={item.name}
+                    type="button"
+                    onClick={() => { set('name', item.name); set('color', item.color) }}
+                    style={{
+                      height: 36, padding: '0 14px', borderRadius: 10,
+                      background: active ? item.color : `${item.color}22`,
+                      color: active ? '#fff' : item.color,
+                      fontSize: 13, fontWeight: 700,
+                      border: `1.5px solid ${active ? item.color : `${item.color}55`}`,
+                      cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.15s',
+                    }}
+                  >{item.name}</button>
+                )
+              })}
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 20px 12px' }}>
-              <h2 style={{ fontSize: 19, fontWeight: 700, color: '#f0f0f8', margin: 0 }}>
-                {isEdit ? 'แก้ไข Subscription' : 'Subscription ใหม่'}
-              </h2>
-              <button onClick={onClose} style={{ width: 36, height: 36, borderRadius: 12, background: '#252530', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-                <X size={16} color="#6b6b88" />
-              </button>
-            </div>
+          </div>
+        )}
 
-            <div className="no-scrollbar" style={{ overflowY: 'auto', flex: 1, padding: '4px 20px 32px', display: 'flex', flexDirection: 'column', gap: 20 }}>
-              {/* Popular presets */}
-              {!isEdit && (
-                <div>
-                  <label style={lbl}>บริการยอดนิยม</label>
-                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                    {POPULAR_SUBS.map((item) => {
-                      const active = form.name === item.name
-                      return (
-                        <button key={item.name}
-                          onClick={() => { set('name', item.name); set('color', item.color) }}
-                          style={{
-                            height: 36, padding: '0 14px', borderRadius: 10,
-                            background: active ? item.color : `${item.color}22`,
-                            color: active ? '#fff' : item.color,
-                            fontSize: 13, fontWeight: 700,
-                            border: `1.5px solid ${active ? item.color : `${item.color}55`}`,
-                            cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.15s',
-                          }}
-                        >{item.name}</button>
-                      )
-                    })}
-                  </div>
-                </div>
-              )}
+        {/* Name */}
+        <div>
+          <label style={lbl}>ชื่อ</label>
+          <input
+            value={form.name}
+            onChange={(e) => set('name', e.target.value)}
+            placeholder="ชื่อ subscription..."
+            style={inp}
+            onFocus={(e) => (e.target.style.borderColor = '#3b82f6')}
+            onBlur={(e) => (e.target.style.borderColor = '#252530')}
+          />
+        </div>
 
-              {/* Name */}
-              <div>
-                <label style={lbl}>ชื่อ</label>
-                <input autoFocus value={form.name} onChange={(e) => set('name', e.target.value)}
-                  placeholder="ชื่อ subscription..." style={inp}
-                  onFocus={(e) => (e.target.style.borderColor = '#3b82f6')}
-                  onBlur={(e) => (e.target.style.borderColor = '#252530')} />
-              </div>
+        {/* Amount */}
+        <div>
+          <label style={lbl}>ราคา (บาท)</label>
+          <input
+            type="number"
+            inputMode="decimal"
+            value={form.amount}
+            onChange={(e) => set('amount', e.target.value)}
+            placeholder="0"
+            style={inp}
+            onFocus={(e) => (e.target.style.borderColor = '#3b82f6')}
+            onBlur={(e) => (e.target.style.borderColor = '#252530')}
+          />
+        </div>
 
-              {/* Amount */}
-              <div>
-                <label style={lbl}>ราคา (บาท)</label>
-                <input type="number" inputMode="decimal" value={form.amount}
-                  onChange={(e) => set('amount', e.target.value)} placeholder="0" style={inp}
-                  onFocus={(e) => (e.target.style.borderColor = '#3b82f6')}
-                  onBlur={(e) => (e.target.style.borderColor = '#252530')} />
-              </div>
-
-              {/* Billing cycle */}
-              <div>
-                <label style={lbl}>รอบจ่าย</label>
-                <div style={{ display: 'flex', gap: 8 }}>
-                  {BILLING_CYCLES.map((b) => {
-                    const a = form.billingCycle === b.id
-                    return (
-                      <button key={b.id} onClick={() => set('billingCycle', b.id)}
-                        style={{
-                          flex: 1, height: 48, borderRadius: 13,
-                          border: `1.5px solid ${a ? '#3b82f6' : '#252530'}`,
-                          background: a ? '#3b82f61a' : '#0f0f14',
-                          color: a ? '#3b82f6' : '#6b6b88',
-                          fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.15s',
-                        }}
-                      >{b.label}</button>
-                    )
-                  })}
-                </div>
-              </div>
-
-              {/* Next billing date */}
-              <div>
-                <label style={lbl}>วันจ่ายครั้งถัดไป</label>
-                <input type="date" value={form.nextBillingDate}
-                  onChange={(e) => set('nextBillingDate', e.target.value)} style={{ ...inp }}
-                  onFocus={(e) => (e.target.style.borderColor = '#3b82f6')}
-                  onBlur={(e) => (e.target.style.borderColor = '#252530')} />
-              </div>
-
-              {/* Payment method */}
-              <div>
-                <label style={lbl}>ช่องทางชำระเงิน</label>
-                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                  {PAYMENT_METHODS.map((m) => {
-                    const a = form.paymentMethod === m
-                    return (
-                      <button key={m} onClick={() => set('paymentMethod', m)}
-                        style={{
-                          height: 44, padding: '0 16px', borderRadius: 12,
-                          border: `1.5px solid ${a ? '#3b82f6' : '#252530'}`,
-                          background: a ? '#3b82f61a' : '#0f0f14',
-                          color: a ? '#3b82f6' : '#6b6b88',
-                          fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
-                        }}
-                      >{m}</button>
-                    )
-                  })}
-                </div>
-              </div>
-
-              {/* Status */}
-              <div>
-                <label style={lbl}>สถานะ</label>
-                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                  {Object.entries(STATUS_LABEL).map(([key, val]) => {
-                    const a = form.status === key
-                    const c = STATUS_COLOR[key]
-                    return (
-                      <button key={key} onClick={() => set('status', key)}
-                        style={{
-                          height: 44, padding: '0 16px', borderRadius: 12,
-                          border: `1.5px solid ${a ? c : '#252530'}`,
-                          background: a ? `${c}1a` : '#0f0f14',
-                          color: a ? c : '#6b6b88',
-                          fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
-                        }}
-                      >{val}</button>
-                    )
-                  })}
-                </div>
-              </div>
-
-              {/* Alert days */}
-              <div>
-                <label style={lbl}>แจ้งเตือนล่วงหน้า: {form.alertDays} วัน</label>
-                <input type="range" min="1" max="14" value={form.alertDays}
-                  onChange={(e) => set('alertDays', parseInt(e.target.value))}
-                  style={{ width: '100%', accentColor: '#3b82f6' }} />
-              </div>
-
-              {/* Delete */}
-              {isEdit && (
-                <button onClick={() => { deleteSubscription(sub.id); onClose() }}
+        {/* Billing cycle */}
+        <div>
+          <label style={lbl}>รอบจ่าย</label>
+          <div style={{ display: 'flex', gap: 8 }}>
+            {BILLING_CYCLES.map((b) => {
+              const a = form.billingCycle === b.id
+              return (
+                <button
+                  key={b.id}
+                  type="button"
+                  onClick={() => set('billingCycle', b.id)}
                   style={{
-                    width: '100%', height: 44, borderRadius: 13,
-                    border: '1px solid rgba(239,68,68,0.3)', background: 'rgba(239,68,68,0.08)',
-                    color: '#f87171', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
+                    flex: 1, height: 48, borderRadius: 13,
+                    border: `1.5px solid ${a ? '#3b82f6' : '#252530'}`,
+                    background: a ? '#3b82f61a' : '#0f0f14',
+                    color: a ? '#3b82f6' : '#6b6b88',
+                    fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.15s',
                   }}
-                >ลบ Subscription</button>
-              )}
+                >{b.label}</button>
+              )
+            })}
+          </div>
+        </div>
 
-              {/* Submit */}
-              <button onClick={submit}
-                className="active:scale-[0.98] transition-transform"
-                style={{
-                  width: '100%', height: 54, borderRadius: 15,
-                  background: '#3b82f6', border: 'none',
-                  color: '#fff', fontSize: 17, fontWeight: 700,
-                  cursor: 'pointer', fontFamily: 'inherit',
-                  boxShadow: '0 4px 20px rgba(59,130,246,0.35)',
-                }}
-              >{isEdit ? 'บันทึก' : 'เพิ่ม Subscription'}</button>
-            </div>
-          </motion.div>
-        </>
-      )}
-    </AnimatePresence>,
-    document.body
+        {/* Next billing date */}
+        <div>
+          <label style={lbl}>วันจ่ายครั้งถัดไป</label>
+          <input
+            type="date"
+            value={form.nextBillingDate}
+            onChange={(e) => set('nextBillingDate', e.target.value)}
+            style={{ ...inp }}
+            onFocus={(e) => (e.target.style.borderColor = '#3b82f6')}
+            onBlur={(e) => (e.target.style.borderColor = '#252530')}
+          />
+        </div>
+
+        {/* Payment method */}
+        <div>
+          <label style={lbl}>ช่องทางชำระเงิน</label>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            {PAYMENT_METHODS.map((m) => {
+              const a = form.paymentMethod === m
+              return (
+                <button
+                  key={m}
+                  type="button"
+                  onClick={() => set('paymentMethod', m)}
+                  style={{
+                    height: 44, padding: '0 16px', borderRadius: 12,
+                    border: `1.5px solid ${a ? '#3b82f6' : '#252530'}`,
+                    background: a ? '#3b82f61a' : '#0f0f14',
+                    color: a ? '#3b82f6' : '#6b6b88',
+                    fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
+                  }}
+                >{m}</button>
+              )
+            })}
+          </div>
+        </div>
+
+        {/* Status */}
+        <div>
+          <label style={lbl}>สถานะ</label>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            {Object.entries(STATUS_LABEL).map(([key, val]) => {
+              const a = form.status === key
+              const c = STATUS_COLOR[key]
+              return (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => set('status', key)}
+                  style={{
+                    height: 44, padding: '0 16px', borderRadius: 12,
+                    border: `1.5px solid ${a ? c : '#252530'}`,
+                    background: a ? `${c}1a` : '#0f0f14',
+                    color: a ? c : '#6b6b88',
+                    fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
+                  }}
+                >{val}</button>
+              )
+            })}
+          </div>
+        </div>
+
+        {/* Alert days */}
+        <div>
+          <label style={lbl}>แจ้งเตือนล่วงหน้า: {form.alertDays} วัน</label>
+          <input
+            type="range"
+            min="1"
+            max="14"
+            value={form.alertDays}
+            onChange={(e) => set('alertDays', parseInt(e.target.value))}
+            style={{ width: '100%', accentColor: '#3b82f6' }}
+          />
+        </div>
+
+        {/* Delete (edit mode) */}
+        {isEdit && (
+          <button
+            type="button"
+            onClick={handleDelete}
+            style={{
+              width: '100%', height: 48, borderRadius: 13,
+              border: '1px solid rgba(239,68,68,0.3)', background: 'rgba(239,68,68,0.08)',
+              color: '#f87171', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
+            }}
+          >ลบ Subscription</button>
+        )}
+      </div>
+
+      {/* ── Sticky submit ── */}
+      <div style={{
+        flexShrink: 0,
+        padding: '12px 20px',
+        paddingBottom: 'max(12px, env(safe-area-inset-bottom, 12px))',
+        borderTop: '1px solid #252530',
+        background: 'rgba(15,15,20,0.97)',
+        backdropFilter: 'blur(16px)',
+        WebkitBackdropFilter: 'blur(16px)',
+      }}>
+        <motion.button
+          type="button"
+          onClick={submit}
+          whileTap={{ scale: canSubmit ? 0.97 : 1 }}
+          style={{
+            width: '100%', height: 54, borderRadius: 15,
+            background: canSubmit ? '#3b82f6' : '#1e1e28',
+            border: 'none',
+            color: canSubmit ? '#fff' : '#3b3b50',
+            fontSize: 17, fontWeight: 700,
+            cursor: canSubmit ? 'pointer' : 'default',
+            fontFamily: 'inherit',
+            transition: 'background 0.2s, color 0.2s',
+            boxShadow: canSubmit ? '0 4px 20px rgba(59,130,246,0.35)' : 'none',
+          }}
+        >
+          {isEdit ? 'บันทึก' : 'เพิ่ม Subscription'}
+        </motion.button>
+      </div>
+    </div>
   )
 }
 
@@ -411,6 +463,7 @@ export function Subscriptions({ onTabChange }) {
 
   const handleTap = (sub) => { setEditSub(sub); setFormOpen(true) }
   const openNew  = () => { setEditSub(null); setFormOpen(true) }
+  const closeForm = () => { setFormOpen(false); setEditSub(null) }
 
   /* ── Header right: monthly amount pill ── */
   const headerRight = !loading && monthly > 0 ? (
@@ -425,7 +478,8 @@ export function Subscriptions({ onTabChange }) {
   ) : null
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+    /* position:relative lets the form overlay sit inside this view */
+    <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', height: '100%' }}>
       <PageHeader title="Subscriptions" right={headerRight} />
 
       <div className="no-scrollbar" style={{ flex: 1, overflowY: 'auto', padding: '16px 16px 140px', display: 'flex', flexDirection: 'column' }}>
@@ -434,39 +488,35 @@ export function Subscriptions({ onTabChange }) {
         ) : subscriptions.length === 0 ? (
           /* Empty state */
           <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <motion.div
-            initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }}
-            style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20, textAlign: 'center' }}
-          >
             <motion.div
-              initial={{ scale: 0.75, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ delay: 0.08, type: 'spring', stiffness: 260, damping: 22 }}
-              style={{
-                width: 84, height: 84, borderRadius: 24,
-                background: 'linear-gradient(145deg, rgba(139,92,246,0.16) 0%, rgba(99,102,241,0.08) 100%)',
-                border: '1px solid rgba(139,92,246,0.24)',
-                boxShadow: '0 0 36px rgba(139,92,246,0.12), inset 0 1px 0 rgba(255,255,255,0.06)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}
+              initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }}
+              style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20, textAlign: 'center' }}
             >
-              <svg width="40" height="40" viewBox="0 0 40 40" fill="none" strokeLinecap="round" strokeLinejoin="round">
-                {/* Card body */}
-                <rect x="4" y="10" width="32" height="22" rx="5.5" stroke="#8b5cf6" strokeWidth="1.8"/>
-                {/* Stripe */}
-                <path d="M4 17h32" stroke="#8b5cf6" strokeWidth="1.8"/>
-                {/* Chip */}
-                <rect x="8" y="22.5" width="10" height="5.5" rx="2" fill="rgba(139,92,246,0.22)" stroke="#8b5cf6" strokeWidth="1.6"/>
-                {/* Contactless dots */}
-                <path d="M28 22.5a3 3 0 0 1 0 5.5" stroke="#8b5cf6" strokeWidth="1.6" strokeOpacity="0.7"/>
-                <path d="M31 20.5a6 6 0 0 1 0 9.5" stroke="#8b5cf6" strokeWidth="1.6" strokeOpacity="0.4"/>
-              </svg>
+              <motion.div
+                initial={{ scale: 0.75, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ delay: 0.08, type: 'spring', stiffness: 260, damping: 22 }}
+                style={{
+                  width: 84, height: 84, borderRadius: 24,
+                  background: 'linear-gradient(145deg, rgba(139,92,246,0.16) 0%, rgba(99,102,241,0.08) 100%)',
+                  border: '1px solid rgba(139,92,246,0.24)',
+                  boxShadow: '0 0 36px rgba(139,92,246,0.12), inset 0 1px 0 rgba(255,255,255,0.06)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}
+              >
+                <svg width="40" height="40" viewBox="0 0 40 40" fill="none" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="4" y="10" width="32" height="22" rx="5.5" stroke="#8b5cf6" strokeWidth="1.8"/>
+                  <path d="M4 17h32" stroke="#8b5cf6" strokeWidth="1.8"/>
+                  <rect x="8" y="22.5" width="10" height="5.5" rx="2" fill="rgba(139,92,246,0.22)" stroke="#8b5cf6" strokeWidth="1.6"/>
+                  <path d="M28 22.5a3 3 0 0 1 0 5.5" stroke="#8b5cf6" strokeWidth="1.6" strokeOpacity="0.7"/>
+                  <path d="M31 20.5a6 6 0 0 1 0 9.5" stroke="#8b5cf6" strokeWidth="1.6" strokeOpacity="0.4"/>
+                </svg>
+              </motion.div>
+              <div>
+                <p style={{ fontSize: 18, fontWeight: 700, color: '#f0f0f8', marginBottom: 6 }}>ยังไม่มี Subscription</p>
+                <p style={{ fontSize: 14, color: '#6b6b88' }}>กดปุ่ม + เพื่อเพิ่มรายการแรก</p>
+              </div>
             </motion.div>
-            <div>
-              <p style={{ fontSize: 18, fontWeight: 700, color: '#f0f0f8', marginBottom: 6 }}>ยังไม่มี Subscription</p>
-              <p style={{ fontSize: 14, color: '#6b6b88' }}>กดปุ่ม + เพื่อเพิ่มรายการแรก</p>
-            </div>
-          </motion.div>
           </div>
         ) : (
           <>
@@ -521,19 +571,31 @@ export function Subscriptions({ onTabChange }) {
         )}
       </div>
 
-      <QuickAddFAB
-        defaultAction="sub"
-        onSelect={(type) => {
-          if (type === 'sub') openNew()
-          if (type === 'task') onTabChange?.('tasks')
-        }}
-      />
+      {/* FAB — hidden while form is open */}
+      {!formOpen && (
+        <QuickAddFAB
+          defaultAction="sub"
+          onSelect={(type) => {
+            if (type === 'sub') openNew()
+            if (type === 'task') onTabChange?.('tasks')
+          }}
+        />
+      )}
 
-      <SubForm
-        open={formOpen}
-        onClose={() => { setFormOpen(false); setEditSub(null) }}
-        sub={editSub}
-      />
+      {/* ── Full-page form: slides in from right ── */}
+      <AnimatePresence>
+        {formOpen && (
+          <motion.div
+            initial={{ x: '100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '100%' }}
+            transition={{ type: 'spring', stiffness: 340, damping: 34 }}
+            style={{ position: 'absolute', inset: 0, zIndex: 20 }}
+          >
+            <SubForm onClose={closeForm} sub={editSub} />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }
