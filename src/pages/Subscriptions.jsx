@@ -46,9 +46,11 @@ const POPULAR_SUBS = [
   { name: 'Netflix',         color: '#E50914' },
   { name: 'Spotify',         color: '#1DB954' },
   { name: 'YouTube Premium', color: '#FF0000' },
-  { name: 'iCloud',          color: '#3b82f6' },
+  { name: 'iCloud+',         color: '#0071E3' },
   { name: 'ChatGPT',         color: '#10a37f' },
-  { name: 'Adobe',           color: '#FF0000' },
+  { name: 'Adobe CC',        color: '#FA0F00' },
+  { name: 'Claude',          color: '#D97706' },
+  { name: 'LINE TV',         color: '#06C755' },
 ]
 
 /* ─── Input styles (shared in form) ─── */
@@ -230,21 +232,33 @@ function SubForm({ onClose, sub }) {
             <label style={lbl}>บริการยอดนิยม</label>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               {POPULAR_SUBS.map((item) => {
-                const active = form.name === item.name
+                const isActive = form.name === item.name
                 return (
                   <button
                     key={item.name}
                     type="button"
                     onClick={() => { set('name', item.name); set('color', item.color) }}
                     style={{
-                      height: 36, padding: '0 14px', borderRadius: 10,
-                      background: active ? item.color : `${item.color}22`,
-                      color: active ? '#fff' : item.color,
-                      fontSize: 13, fontWeight: 700,
-                      border: `1.5px solid ${active ? item.color : `${item.color}55`}`,
-                      cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.15s',
+                      height: 36, padding: '0 12px 0 10px',
+                      borderRadius: 10,
+                      background: isActive ? `${item.color}18` : '#1a1a22',
+                      color: isActive ? item.color : '#8b8ba8',
+                      fontSize: 13, fontWeight: 600,
+                      border: `1.5px solid ${isActive ? `${item.color}55` : '#252530'}`,
+                      cursor: 'pointer', fontFamily: 'inherit',
+                      transition: 'all 0.18s',
+                      display: 'flex', alignItems: 'center', gap: 7,
                     }}
-                  >{item.name}</button>
+                  >
+                    {/* Brand dot */}
+                    <span style={{
+                      width: 7, height: 7, borderRadius: '50%', flexShrink: 0,
+                      background: item.color,
+                      opacity: isActive ? 1 : 0.45,
+                      transition: 'opacity 0.18s',
+                    }} />
+                    {item.name}
+                  </button>
                 )
               })}
             </div>
