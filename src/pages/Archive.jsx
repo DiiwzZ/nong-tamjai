@@ -106,6 +106,8 @@ export function Archive({ onTabChange }) {
         {/* Title row */}
         <div style={{ height: 56, paddingLeft: 16, paddingRight: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
           <button
+            type="button"
+            aria-label="กลับ"
             onClick={() => onTabChange?.('tasks')}
             style={{
               width: 36, height: 36, borderRadius: 11,
@@ -179,19 +181,22 @@ export function Archive({ onTabChange }) {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="ค้นหา..."
+            aria-label="ค้นหา task"
             style={{
               width: '100%', height: 42,
               background: '#1a1a22',
               border: '1px solid #252530',
               borderRadius: 12,
               padding: '0 40px 0 38px',
-              fontSize: 14, color: '#f0f0f8',
+              fontSize: 16, color: '#f0f0f8',  /* 16px prevents iOS auto-zoom */
               outline: 'none', fontFamily: 'inherit',
               colorScheme: 'dark',
             }}
           />
           {search && (
             <button
+              type="button"
+              aria-label="ล้างคำค้นหา"
               onClick={() => setSearch('')}
               style={{
                 position: 'absolute', right: 28, top: '50%', transform: 'translateY(-60%)',
