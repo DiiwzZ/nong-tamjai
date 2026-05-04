@@ -55,7 +55,7 @@ const POPULAR_SUBS = [
 
 /* ─── Input styles (shared in form) ─── */
 const inp = {
-  width: '100%', height: 52,
+  width: '100%', minWidth: 0, boxSizing: 'border-box', height: 52,
   background: '#0f0f14', border: '1px solid #252530',
   borderRadius: 14, padding: '0 16px',
   fontSize: 16, fontWeight: 500, color: '#f0f0f8',
@@ -388,14 +388,23 @@ function SubForm({ onClose, sub }) {
         {/* Next billing date */}
         <div>
           <label style={lbl}>วันจ่ายครั้งถัดไป</label>
-          <input
-            type="date"
-            value={form.nextBillingDate}
-            onChange={(e) => set('nextBillingDate', e.target.value)}
-            style={{ ...inp }}
-            onFocus={(e) => (e.target.style.borderColor = '#3b82f6')}
-            onBlur={(e) => (e.target.style.borderColor = '#252530')}
-          />
+          <div style={{ position: 'relative' }}>
+            <svg
+              width="15" height="15" viewBox="0 0 24 24" fill="none"
+              stroke="#6b6b88" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+              style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', zIndex: 1 }}
+            >
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+            </svg>
+            <input
+              type="date"
+              value={form.nextBillingDate}
+              onChange={(e) => set('nextBillingDate', e.target.value)}
+              style={{ ...inp, paddingLeft: 42 }}
+              onFocus={(e) => (e.target.style.borderColor = '#3b82f6')}
+              onBlur={(e) => (e.target.style.borderColor = '#252530')}
+            />
+          </div>
         </div>
 
         {/* Payment method */}

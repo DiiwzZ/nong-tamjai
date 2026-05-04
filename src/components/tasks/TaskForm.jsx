@@ -16,7 +16,7 @@ const lbl = {
 
 /* 16px min → prevents iOS auto-zoom on focus */
 const inp = {
-  width: '100%',
+  width: '100%', minWidth: 0, boxSizing: 'border-box',
   background: '#1a1a22',
   border: '1px solid #252530',
   borderRadius: 14,
