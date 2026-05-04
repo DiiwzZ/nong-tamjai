@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
+import { registerSW } from '@/lib/notifications'
 import { StoreProvider, useStore } from '@/store/useStore'
 import { BottomNav } from '@/components/layout/BottomNav'
 import { Onboarding } from '@/components/Onboarding'
@@ -28,6 +29,9 @@ function AppInner() {
   const [tab, setTab] = useState('tasks')
   const [settingsOpen, setSettingsOpen] = useState(false)
   const { onboardingDone } = useStore()
+
+  // Register service worker once on mount
+  useEffect(() => { registerSW() }, [])
   const Page = PAGES[tab]
 
   const showSettings = SETTINGS_TABS.includes(tab)

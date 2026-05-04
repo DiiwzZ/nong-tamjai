@@ -7,6 +7,7 @@ import { db } from './firebase'
 // Firestore structure:
 //   /users/{uid}/tasks/{taskId}
 //   /users/{uid}/subscriptions/{subId}
+//   /pushSubs/{uid}           ← one doc per user (flat, easy for cron to read)
 
 function tasksRef(uid) {
   return collection(db, 'users', uid, 'tasks')
@@ -52,4 +53,17 @@ export async function saveSub(uid, sub) {
 
 export async function removeSub(uid, subId) {
   await deleteDoc(doc(subsRef(uid), subId))
+}
+
+// --- Push subscriptions (flat /pushSubs/{uid} — one doc per user) ---
+
+export async function savePushSub(uid, { endpoint, p256dh, auth }) {
+  await setDoc(doc(db, 'pushSubs', uid), {
+    uid, endpoint, p256dh, auth,
+    updatedAt: serverTimestamp(),
+  })
+}
+
+export async function removePushSub(uid) {
+  await deleteDoc(doc(db, 'pushSubs', uid))
 }

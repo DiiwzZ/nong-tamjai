@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import { ArrowLeft, Trash2, Plus, Check } from 'lucide-react'
 import { useStore } from '@/store/useStore'
+import { requestPermission, subscribeToPush, unsubscribeFromPush } from '@/lib/notifications'
 
 /* ── Color palette for categories ── */
 const COLORS = [
@@ -234,55 +235,108 @@ function AddCategoryRow({ onAdd }) {
   )
 }
 
-/* ── Notification permission row ── */
-function NotificationRow() {
-  const [status, setStatus] = useState(() => {
+/* ── Notification permission + push subscription row ── */
+function NotificationRow({ uid }) {
+  const [permission, setPermission] = useState(() => {
     if (!('Notification' in window)) return 'unsupported'
     return Notification.permission
   })
+  const [subscribed, setSubscribed] = useState(false)
+  const [loading, setLoading] = useState(false)
 
-  const requestPermission = async () => {
-    if (!('Notification' in window)) return
-    const result = await Notification.requestPermission()
-    setStatus(result)
+  // Check if already subscribed on mount
+  useEffect(() => {
+    if (permission !== 'granted' || !('serviceWorker' in navigator)) return
+    navigator.serviceWorker.ready.then((reg) => {
+      reg.pushManager.getSubscription().then((sub) => setSubscribed(!!sub))
+    })
+  }, [permission])
+
+  const handleEnable = async () => {
+    if (!uid) return
+    setLoading(true)
+    try {
+      const perm = await requestPermission()
+      setPermission(perm)
+      if (perm === 'granted') {
+        const result = await subscribeToPush(uid)
+        setSubscribed(result.ok)
+      }
+    } finally {
+      setLoading(false)
+    }
   }
 
-  const statusLabel = {
-    granted: 'เปิดอยู่',
-    denied: 'ถูกบล็อก',
-    default: 'ยังไม่ได้อนุญาต',
-    unsupported: 'ไม่รองรับ',
-  }[status]
+  const handleUnsubscribe = async () => {
+    setLoading(true)
+    try {
+      await unsubscribeFromPush(uid)
+      setSubscribed(false)
+    } finally {
+      setLoading(false)
+    }
+  }
 
-  const statusColor = {
-    granted: '#4ade80',
-    denied: '#f87171',
-    default: '#f59e0b',
-    unsupported: '#6b6b88',
-  }[status]
+  /* ── Labels & colours ── */
+  let statusLabel, statusColor
+  if (permission === 'unsupported') {
+    statusLabel = 'ไม่รองรับในเบราว์เซอร์นี้'; statusColor = '#6b6b88'
+  } else if (permission === 'denied') {
+    statusLabel = 'ถูกบล็อก — แก้ไขในการตั้งค่าเบราว์เซอร์'; statusColor = '#f87171'
+  } else if (subscribed) {
+    statusLabel = 'เปิดการแจ้งเตือนอยู่'; statusColor = '#4ade80'
+  } else if (permission === 'granted') {
+    statusLabel = 'อนุญาตแล้ว — กด "เปิด" เพื่อลงทะเบียน'; statusColor = '#f59e0b'
+  } else {
+    statusLabel = 'ยังไม่ได้อนุญาต'; statusColor = '#f59e0b'
+  }
+
+  const showEnable = !subscribed && permission !== 'denied' && permission !== 'unsupported'
 
   return (
     <div style={{
       background: '#1a1a22', borderRadius: 14, marginBottom: 2,
       padding: '13px 14px',
-      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+      display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
     }}>
-      <div>
+      <div style={{ flex: 1, minWidth: 0 }}>
         <p style={{ fontSize: 15, fontWeight: 600, color: '#f0f0f8', marginBottom: 2 }}>การแจ้งเตือน</p>
-        <p style={{ fontSize: 12, color: statusColor, fontWeight: 600 }}>{statusLabel}</p>
+        <p style={{ fontSize: 12, color: statusColor, fontWeight: 600, lineHeight: 1.3 }}>{statusLabel}</p>
       </div>
-      {status === 'default' && (
+
+      {showEnable && (
         <button
           type="button"
-          onClick={requestPermission}
+          onClick={handleEnable}
+          disabled={loading || !uid}
           style={{
-            height: 34, padding: '0 14px', borderRadius: 10,
+            flexShrink: 0, height: 34, padding: '0 14px', borderRadius: 10,
             background: 'rgba(59,130,246,0.12)', border: '1px solid rgba(59,130,246,0.25)',
-            color: '#3b82f6', fontSize: 13, fontWeight: 700,
-            cursor: 'pointer', fontFamily: 'inherit',
+            color: (loading || !uid) ? '#6b6b88' : '#3b82f6',
+            fontSize: 13, fontWeight: 700,
+            cursor: (loading || !uid) ? 'default' : 'pointer', fontFamily: 'inherit',
+            transition: 'all 0.15s',
           }}
         >
-          เปิดใช้งาน
+          {loading ? '…' : 'เปิด'}
+        </button>
+      )}
+
+      {subscribed && (
+        <button
+          type="button"
+          onClick={handleUnsubscribe}
+          disabled={loading}
+          style={{
+            flexShrink: 0, height: 34, padding: '0 14px', borderRadius: 10,
+            background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)',
+            color: loading ? '#6b6b88' : '#f87171',
+            fontSize: 13, fontWeight: 700,
+            cursor: loading ? 'default' : 'pointer', fontFamily: 'inherit',
+            transition: 'all 0.15s',
+          }}
+        >
+          {loading ? '…' : 'ปิด'}
         </button>
       )}
     </div>
@@ -292,6 +346,7 @@ function NotificationRow() {
 /* ── Main Settings page ── */
 export function Settings({ onClose }) {
   const {
+    uid,
     userName, setUserName,
     categories, addCategory, updateCategory, deleteCategory,
     tasks, subscriptions,
@@ -396,7 +451,7 @@ export function Settings({ onClose }) {
 
         {/* ─ การแจ้งเตือน ─ */}
         <SectionLabel>การแจ้งเตือน</SectionLabel>
-        <NotificationRow />
+        <NotificationRow uid={uid} />
 
         {/* ─ หมวดหมู่ ─ */}
         <SectionLabel>หมวดหมู่งาน</SectionLabel>
