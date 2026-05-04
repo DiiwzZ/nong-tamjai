@@ -206,7 +206,6 @@ export function StoreProvider({ children }) {
     update,
     addTask, updateTask, deleteTask, completeTask, uncompleteTask, toggleTaskComplete, archiveTask, clearArchive,
     addSubscription, updateSubscription, deleteSubscription,
-    addCategory,
     setUserName,
     markSplitPaid,
     addCategory, updateCategory, deleteCategory,

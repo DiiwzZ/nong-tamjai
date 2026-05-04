@@ -435,7 +435,6 @@ export function Settings({ onClose }) {
           <input
             value={nameVal}
             onChange={(e) => setNameVal(e.target.value)}
-            onBlur={handleNameBlur}
             placeholder="ชื่อของคุณ..."
             style={{
               flex: 1, height: 40,
@@ -445,7 +444,7 @@ export function Settings({ onClose }) {
               outline: 'none', fontFamily: 'inherit', colorScheme: 'dark',
             }}
             onFocus={(e) => (e.target.style.borderColor = '#3b82f6')}
-            onBlur={(e) => { handleNameBlur(); e.target.style.borderColor = '#252530' }}
+            onBlur={(e) => { handleNameBlur(); e.target.style.borderColor = '#252530'; }}
           />
         </div>
 
