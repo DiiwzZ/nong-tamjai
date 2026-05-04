@@ -3,9 +3,9 @@
  * Schedule: runs daily at 08:00 ICT (01:00 UTC) via vercel.json crons
  */
 
-const webpush = require('web-push')
-const { initializeApp, getApps, cert } = require('firebase-admin/app')
-const { getFirestore } = require('firebase-admin/firestore')
+import webpush from 'web-push'
+import { initializeApp, getApps, cert } from 'firebase-admin/app'
+import { getFirestore } from 'firebase-admin/firestore'
 
 /* ── Helpers ── */
 function sameDay(a, b) {
@@ -23,8 +23,13 @@ function isWithinHours(dateStr, hours) {
   return diff >= 0 && diff <= hours * 60 * 60 * 1000
 }
 
+/* ── Send helper ── */
+async function send(pushSub, payload) {
+  return webpush.sendNotification(pushSub, JSON.stringify(payload))
+}
+
 /* ── Main handler ── */
-module.exports = async function handler(req, res) {
+export default async function handler(req, res) {
   // Allow GET (browser/cron test) or authenticated POST
   if (
     req.method !== 'GET' &&
@@ -57,7 +62,7 @@ module.exports = async function handler(req, res) {
     return res.status(500).json({ error: 'Firebase init failed', detail: err.message })
   }
 
-  /* ── Init web-push (inside handler so env vars are guaranteed) ── */
+  /* ── Init web-push ── */
   try {
     webpush.setVapidDetails(`mailto:${VAPID_EMAIL}`, VITE_VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY)
   } catch (err) {
@@ -146,9 +151,4 @@ module.exports = async function handler(req, res) {
 
   console.log(`[notify] sent=${ok} failed=${fail}`)
   return res.json({ sent: ok, failed: fail })
-}
-
-/* ── Send helper ── */
-async function send(pushSub, payload) {
-  return webpush.sendNotification(pushSub, JSON.stringify(payload))
 }
