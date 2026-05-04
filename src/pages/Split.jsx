@@ -14,11 +14,28 @@ const UsersIcon = () => (
   </svg>
 )
 
+/* ── Chevron icon ── */
+const ChevronIcon = ({ open }) => (
+  <motion.svg
+    animate={{ rotate: open ? 180 : 0 }}
+    transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+    width="16" height="16" viewBox="0 0 24 24" fill="none"
+    stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"
+    style={{ display: 'block', flexShrink: 0 }}
+  >
+    <path d="M6 9l6 6 6-6" />
+  </motion.svg>
+)
+
 /* ── PersonCard ── */
 function PersonCard({ name, items, onTogglePaid }) {
-  const unpaidItems = items.filter(({ member }) => !member.paid)
-  const totalOwed   = unpaidItems.reduce((s, { member }) => s + (member.share || 0), 0)
-  const allDone     = unpaidItems.length === 0
+  const unpaidItems  = items.filter(({ member }) => !member.paid)
+  const totalOwed    = unpaidItems.reduce((s, { member }) => s + (member.share || 0), 0)
+  const allDone      = unpaidItems.length === 0
+  const multiSub     = items.length > 1
+
+  // Auto-expand: single sub → open by default; multiple → closed (user taps to see breakdown)
+  const [expanded, setExpanded] = useState(!multiSub)
 
   return (
     <motion.div
@@ -35,78 +52,120 @@ function PersonCard({ name, items, onTogglePaid }) {
         overflow: 'hidden',
       }}
     >
-      {/* Person header */}
-      <div style={{ padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 12 }}>
+      {/* ── Person header — tappable ── */}
+      <div
+        onClick={() => setExpanded((v) => !v)}
+        style={{
+          padding: '14px 16px',
+          display: 'flex', alignItems: 'center', gap: 12,
+          cursor: 'pointer',
+          WebkitTapHighlightColor: 'transparent',
+          userSelect: 'none',
+        }}
+      >
+        {/* Avatar */}
         <div style={{
-          width: 40, height: 40, borderRadius: 12, flexShrink: 0,
+          width: 44, height: 44, borderRadius: 14, flexShrink: 0,
           background: allDone ? 'rgba(74,222,128,0.10)' : 'rgba(59,130,246,0.12)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: 16, fontWeight: 800,
+          fontSize: 17, fontWeight: 800,
           color: allDone ? '#4ade80' : '#3b82f6',
         }}>
           {name[0]?.toUpperCase()}
         </div>
 
-        <div style={{ flex: 1 }}>
+        {/* Name + status */}
+        <div style={{ flex: 1, minWidth: 0 }}>
           <p style={{ fontSize: 16, fontWeight: 700, color: '#f0f0f8', marginBottom: 2 }}>{name}</p>
           <p style={{ fontSize: 12, fontWeight: 600, color: allDone ? '#4ade80' : '#f87171' }}>
             {allDone ? '✓ ครบแล้ว' : `ค้าง ${formatCurrency(totalOwed)}`}
           </p>
         </div>
 
-        {!allDone && (
-          <span style={{ fontSize: 20, fontWeight: 800, color: '#f0f0f8', letterSpacing: '-0.5px' }}>
-            {formatCurrency(totalOwed)}
-          </span>
-        )}
-      </div>
-
-      {/* Subscription rows */}
-      <div style={{ borderTop: '1px solid #252530' }}>
-        {items.map(({ sub, member }, idx) => (
-          <div
-            key={`${sub.id}-${member.id}`}
-            style={{
-              display: 'flex', alignItems: 'center', gap: 10,
-              padding: '11px 16px',
-              borderBottom: idx < items.length - 1 ? '1px solid rgba(37,37,48,0.6)' : 'none',
-              opacity: member.paid ? 0.4 : 1,
-              transition: 'opacity 0.2s',
-            }}
-          >
-            {/* Brand dot */}
-            <div style={{
-              width: 8, height: 8, borderRadius: '50%', flexShrink: 0,
-              background: sub.color || '#6b7280',
-            }} />
-
-            <span style={{ flex: 1, fontSize: 14, fontWeight: 500, color: '#d0d0e0',
-              overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+        {/* Amount + sub count badge + chevron */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+          {multiSub && (
+            <span style={{
+              fontSize: 11, fontWeight: 700, padding: '2px 7px', borderRadius: 7,
+              background: 'rgba(59,130,246,0.12)', color: '#3b82f6',
             }}>
-              {sub.name}
+              {items.length} subs
             </span>
-
-            <span style={{ fontSize: 14, fontWeight: 700, color: '#f0f0f8', marginRight: 8, flexShrink: 0 }}>
-              {formatCurrency(member.share || 0)}
+          )}
+          {!allDone && (
+            <span style={{ fontSize: 19, fontWeight: 800, color: '#f0f0f8', letterSpacing: '-0.5px' }}>
+              {formatCurrency(totalOwed)}
             </span>
-
-            <button
-              type="button"
-              onClick={() => onTogglePaid(sub.id, member.id, !member.paid)}
-              style={{
-                height: 30, padding: '0 11px', borderRadius: 9, flexShrink: 0,
-                background: member.paid ? 'rgba(74,222,128,0.10)' : '#252530',
-                border: `1px solid ${member.paid ? 'rgba(74,222,128,0.28)' : '#3b3b50'}`,
-                color: member.paid ? '#4ade80' : '#6b6b88',
-                fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
-                whiteSpace: 'nowrap', transition: 'all 0.18s',
-              }}
-            >
-              {member.paid ? '✓ ได้รับ' : 'ได้รับแล้ว?'}
-            </button>
-          </div>
-        ))}
+          )}
+          <span style={{ color: '#3b3b50' }}>
+            <ChevronIcon open={expanded} />
+          </span>
+        </div>
       </div>
+
+      {/* ── Subscription rows (collapsible) ── */}
+      <AnimatePresence initial={false}>
+        {expanded && (
+          <motion.div
+            key="rows"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.22, ease: [0.25, 0.46, 0.45, 0.94] }}
+            style={{ overflow: 'hidden' }}
+          >
+            <div style={{ borderTop: '1px solid #252530' }}>
+              {items.map(({ sub, member }, idx) => (
+                <div
+                  key={`${sub.id}-${member.id}`}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 10,
+                    padding: '12px 16px',
+                    borderBottom: idx < items.length - 1 ? '1px solid rgba(37,37,48,0.6)' : 'none',
+                    opacity: member.paid ? 0.4 : 1,
+                    transition: 'opacity 0.2s',
+                  }}
+                >
+                  {/* Brand dot */}
+                  <div style={{
+                    width: 8, height: 8, borderRadius: '50%', flexShrink: 0,
+                    background: sub.color || '#6b7280',
+                  }} />
+
+                  <span style={{
+                    flex: 1, fontSize: 14, fontWeight: 500, color: '#d0d0e0',
+                    overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                  }}>
+                    {sub.name}
+                  </span>
+
+                  <span style={{ fontSize: 14, fontWeight: 700, color: '#f0f0f8', marginRight: 6, flexShrink: 0 }}>
+                    {formatCurrency(member.share || 0)}
+                  </span>
+
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      onTogglePaid(sub.id, member.id, !member.paid)
+                    }}
+                    style={{
+                      height: 32, padding: '0 12px', borderRadius: 10, flexShrink: 0,
+                      background: member.paid ? 'rgba(74,222,128,0.10)' : '#252530',
+                      border: `1px solid ${member.paid ? 'rgba(74,222,128,0.28)' : '#3b3b50'}`,
+                      color: member.paid ? '#4ade80' : '#6b6b88',
+                      fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
+                      whiteSpace: 'nowrap', transition: 'all 0.18s',
+                    }}
+                  >
+                    {member.paid ? '✓ ได้รับ' : 'ได้รับแล้ว?'}
+                  </button>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   )
 }
