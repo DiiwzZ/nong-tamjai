@@ -692,9 +692,9 @@ function SubForm({ onClose, sub }) {
               type="button"
               onClick={() => { updateSubscription(sub.id, { status: 'cancelled' }); onClose() }}
               style={{
-                flex: 1, height: 44, borderRadius: 13,
+                flex: 1, height: 54, borderRadius: 16,
                 border: '1px solid #252530', background: '#1a1a22',
-                color: '#6b6b88', fontSize: 14, fontWeight: 600,
+                color: '#6b6b88', fontSize: 15, fontWeight: 700,
                 cursor: 'pointer', fontFamily: 'inherit',
               }}
             >
@@ -704,10 +704,10 @@ function SubForm({ onClose, sub }) {
               type="button"
               onClick={handleDelete}
               style={{
-                flex: 1, height: 44, borderRadius: 13,
+                flex: 1, height: 54, borderRadius: 16,
                 border: '1px solid rgba(239,68,68,0.30)',
                 background: 'rgba(239,68,68,0.08)',
-                color: '#f87171', fontSize: 14, fontWeight: 600,
+                color: '#f87171', fontSize: 15, fontWeight: 700,
                 cursor: 'pointer', fontFamily: 'inherit',
               }}
             >
