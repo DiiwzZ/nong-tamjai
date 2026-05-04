@@ -19,7 +19,7 @@ function AnimatedNumber({ value, format = String }) {
       onUpdate: (v) => setDisplay(format(v)),
     })
     return ctrl.stop
-  }, [value])
+  }, [value, format, mv])
 
   return <span>{display}</span>
 }
