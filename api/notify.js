@@ -1,37 +1,11 @@
 /**
  * Vercel Serverless Function — Web Push cron
  * Schedule: runs daily at 08:00 ICT (01:00 UTC) via vercel.json crons
- *
- * What it does:
- *   1. Reads all push subscriptions from Firestore /pushSubs
- *   2. For each user → checks tasks due today + subs with alertDays matching today
- *   3. Sends Web Push via Apple APNs (via web-push library)
- *
- * Required env vars in Vercel dashboard:
- *   VITE_VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, VAPID_EMAIL
- *   FIREBASE_SERVICE_ACCOUNT  (stringified service account JSON)
  */
 
-const webpush    = require('web-push')
+const webpush = require('web-push')
 const { initializeApp, getApps, cert } = require('firebase-admin/app')
 const { getFirestore } = require('firebase-admin/firestore')
-
-/* ── Init Firebase Admin (singleton) ── */
-function getAdminDb() {
-  if (!getApps().length) {
-    initializeApp({
-      credential: cert(JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT)),
-    })
-  }
-  return getFirestore()
-}
-
-/* ── Init web-push ── */
-webpush.setVapidDetails(
-  `mailto:${process.env.VAPID_EMAIL}`,
-  process.env.VITE_VAPID_PUBLIC_KEY,
-  process.env.VAPID_PRIVATE_KEY
-)
 
 /* ── Helpers ── */
 function sameDay(a, b) {
@@ -51,8 +25,7 @@ function isWithinHours(dateStr, hours) {
 
 /* ── Main handler ── */
 module.exports = async function handler(req, res) {
-  // Vercel automatically injects Authorization header for cron requests
-  // On Hobby plan cron doesn't send auth — allow GET from Vercel infra
+  // Allow GET (browser/cron test) or authenticated POST
   if (
     req.method !== 'GET' &&
     req.headers['authorization'] !== `Bearer ${process.env.CRON_SECRET}`
@@ -60,12 +33,50 @@ module.exports = async function handler(req, res) {
     return res.status(401).json({ error: 'Unauthorized' })
   }
 
-  const db  = getAdminDb()
-  const now = new Date()
+  /* ── Check env vars ── */
+  const { FIREBASE_SERVICE_ACCOUNT, VITE_VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, VAPID_EMAIL } = process.env
+  if (!FIREBASE_SERVICE_ACCOUNT || !VITE_VAPID_PUBLIC_KEY || !VAPID_PRIVATE_KEY || !VAPID_EMAIL) {
+    const missing = [
+      !FIREBASE_SERVICE_ACCOUNT && 'FIREBASE_SERVICE_ACCOUNT',
+      !VITE_VAPID_PUBLIC_KEY    && 'VITE_VAPID_PUBLIC_KEY',
+      !VAPID_PRIVATE_KEY        && 'VAPID_PRIVATE_KEY',
+      !VAPID_EMAIL              && 'VAPID_EMAIL',
+    ].filter(Boolean)
+    return res.status(500).json({ error: 'Missing env vars', missing })
+  }
+
+  /* ── Init Firebase Admin (lazy singleton) ── */
+  let db
+  try {
+    if (!getApps().length) {
+      initializeApp({ credential: cert(JSON.parse(FIREBASE_SERVICE_ACCOUNT)) })
+    }
+    db = getFirestore()
+  } catch (err) {
+    console.error('[notify] Firebase init error:', err.message)
+    return res.status(500).json({ error: 'Firebase init failed', detail: err.message })
+  }
+
+  /* ── Init web-push (inside handler so env vars are guaranteed) ── */
+  try {
+    webpush.setVapidDetails(`mailto:${VAPID_EMAIL}`, VITE_VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY)
+  } catch (err) {
+    console.error('[notify] VAPID init error:', err.message)
+    return res.status(500).json({ error: 'VAPID init failed', detail: err.message })
+  }
+
+  const now   = new Date()
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
 
   /* ── Fetch all push subscriptions ── */
-  const pushSnap = await db.collection('pushSubs').get()
+  let pushSnap
+  try {
+    pushSnap = await db.collection('pushSubs').get()
+  } catch (err) {
+    console.error('[notify] Firestore error:', err.message)
+    return res.status(500).json({ error: 'Firestore read failed', detail: err.message })
+  }
+
   if (pushSnap.empty) return res.json({ sent: 0, reason: 'no-subscribers' })
 
   const results = []
@@ -76,57 +87,62 @@ module.exports = async function handler(req, res) {
 
     const pushSub = { endpoint, keys: { p256dh, auth } }
 
-    /* ── Check tasks due today ── */
-    const tasksSnap = await db.collection(`users/${uid}/tasks`).get()
-    for (const t of tasksSnap.docs) {
-      const task = t.data()
-      if (task.status !== 'active' || !task.dueDate) continue
+    /* ── Tasks due today ── */
+    try {
+      const tasksSnap = await db.collection(`users/${uid}/tasks`).get()
+      for (const t of tasksSnap.docs) {
+        const task = t.data()
+        if (task.status !== 'active' || !task.dueDate) continue
 
-      const dueDate = new Date(task.dueDate)
+        const dueDate = new Date(task.dueDate)
 
-      // Notify if task is due within next 2 hours
-      if (isWithinHours(task.dueDate, 2)) {
-        const mins = Math.round((dueDate - now) / 60000)
-        results.push(send(pushSub, {
-          title: `⏰ ${task.title}`,
-          body:  `ครบกำหนดใน ${mins} นาที`,
-        }))
+        if (isWithinHours(task.dueDate, 2)) {
+          const mins = Math.round((dueDate - now) / 60000)
+          results.push(send(pushSub, { title: `⏰ ${task.title}`, body: `ครบกำหนดใน ${mins} นาที` }))
+        } else if (sameDay(dueDate, today) && now.getHours() <= 9) {
+          results.push(send(pushSub, {
+            title: `📋 ${task.title}`,
+            body:  `ครบกำหนดวันนี้ ${dueDate.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })}`,
+          }))
+        }
       }
-
-      // Notify if task is due today (morning reminder)
-      else if (sameDay(dueDate, today) && now.getHours() <= 9) {
-        results.push(send(pushSub, {
-          title: `📋 ${task.title}`,
-          body:  `ครบกำหนดวันนี้ ${dueDate.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })}`,
-        }))
-      }
+    } catch (err) {
+      console.error(`[notify] tasks fetch error uid=${uid}:`, err.message)
     }
 
-    /* ── Check subscriptions needing payment alert ── */
-    const subsSnap = await db.collection(`users/${uid}/subscriptions`).get()
-    for (const s of subsSnap.docs) {
-      const sub = s.data()
-      if (!sub.nextBillingDate || sub.status === 'cancelled') continue
+    /* ── Subscriptions billing alert ── */
+    try {
+      const subsSnap = await db.collection(`users/${uid}/subscriptions`).get()
+      for (const s of subsSnap.docs) {
+        const sub = s.data()
+        if (!sub.nextBillingDate || sub.status === 'cancelled') continue
 
-      const dueDate  = new Date(sub.nextBillingDate)
-      const alertDay = new Date(dueDate)
-      alertDay.setDate(alertDay.getDate() - (sub.alertDays ?? 3))
+        const dueDate  = new Date(sub.nextBillingDate)
+        const alertDay = new Date(dueDate)
+        alertDay.setDate(alertDay.getDate() - (sub.alertDays ?? 3))
 
-      if (sameDay(alertDay, today)) {
-        const daysLeft = Math.round((dueDate - today) / 86400000)
-        results.push(send(pushSub, {
-          title: `💳 ${sub.name}`,
-          body:  daysLeft === 0
-            ? `ครบกำหนดจ่ายวันนี้ ฿${sub.amount.toLocaleString()}`
-            : `จ่ายอีก ${daysLeft} วัน — ฿${sub.amount.toLocaleString()}`,
-        }))
+        if (sameDay(alertDay, today)) {
+          const daysLeft = Math.round((dueDate - today) / 86400000)
+          results.push(send(pushSub, {
+            title: `💳 ${sub.name}`,
+            body:  daysLeft === 0
+              ? `ครบกำหนดจ่ายวันนี้ ฿${sub.amount.toLocaleString()}`
+              : `จ่ายอีก ${daysLeft} วัน — ฿${sub.amount.toLocaleString()}`,
+          }))
+        }
       }
+    } catch (err) {
+      console.error(`[notify] subs fetch error uid=${uid}:`, err.message)
     }
   }
 
-  const sent = await Promise.allSettled(results)
-  const ok   = sent.filter((r) => r.status === 'fulfilled').length
-  const fail = sent.filter((r) => r.status === 'rejected').length
+  const settled = await Promise.allSettled(results)
+  const ok   = settled.filter((r) => r.status === 'fulfilled').length
+  const fail = settled.filter((r) => r.status === 'rejected').length
+
+  settled.filter((r) => r.status === 'rejected').forEach((r) => {
+    console.error('[notify] push failed:', r.reason?.message)
+  })
 
   console.log(`[notify] sent=${ok} failed=${fail}`)
   return res.json({ sent: ok, failed: fail })
