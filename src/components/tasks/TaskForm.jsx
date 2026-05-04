@@ -98,7 +98,11 @@ export function TaskForm({ onClose, task }) {
       {/* ── Scrollable body ── */}
       <div
         className="no-scrollbar"
-        style={{ flex: 1, overflowY: 'auto', padding: '28px 20px 32px', display: 'flex', flexDirection: 'column', gap: 22 }}
+        style={{
+          flex: 1, overflowY: 'auto', overflowX: 'hidden',
+          padding: '28px 20px 32px', display: 'flex', flexDirection: 'column', gap: 22,
+          touchAction: 'pan-y', overscrollBehavior: 'none',
+        }}
       >
 
         {/* Title */}

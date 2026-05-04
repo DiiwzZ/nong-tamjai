@@ -180,7 +180,7 @@ export function Tasks({ onTabChange, onSettings }) {
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ type: 'spring', stiffness: 340, damping: 34 }}
-            style={{ position: 'absolute', inset: 0, zIndex: 20 }}
+            style={{ position: 'absolute', inset: 0, zIndex: 20, overflow: 'hidden' }}
           >
             <TaskForm onClose={closeForm} task={editTask} />
           </motion.div>

@@ -292,7 +292,7 @@ function SubForm({ onClose, sub }) {
       {/* ── Scrollable fields ── */}
       <div
         className="no-scrollbar"
-        style={{ flex: 1, overflowY: 'auto', padding: '20px 20px 24px', display: 'flex', flexDirection: 'column', gap: 22 }}
+        style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '20px 20px 24px', display: 'flex', flexDirection: 'column', gap: 22, touchAction: 'pan-y', overscrollBehavior: 'none' }}
       >
         {/* Popular presets */}
         {!isEdit && (
@@ -888,7 +888,7 @@ export function Subscriptions({ onTabChange, onSettings }) {
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ type: 'spring', stiffness: 340, damping: 34 }}
-            style={{ position: 'absolute', inset: 0, zIndex: 20 }}
+            style={{ position: 'absolute', inset: 0, zIndex: 20, overflow: 'hidden' }}
           >
             <SubForm onClose={closeForm} sub={editSub} />
           </motion.div>
