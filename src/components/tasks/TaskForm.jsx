@@ -148,7 +148,7 @@ export function TaskForm({ onClose, task }) {
               type="datetime-local"
               value={form.dueDate}
               onChange={(e) => set('dueDate', e.target.value)}
-              style={{ ...inp, height: 52, paddingLeft: 42 }}
+              style={{ ...inp, height: 52, paddingLeft: 42, WebkitAppearance: 'none', appearance: 'none' }}
               onFocus={(e) => (e.target.style.borderColor = '#3b82f6')}
               onBlur={(e)  => (e.target.style.borderColor = '#252530')}
             />

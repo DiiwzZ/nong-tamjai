@@ -400,7 +400,7 @@ function SubForm({ onClose, sub }) {
               type="date"
               value={form.nextBillingDate}
               onChange={(e) => set('nextBillingDate', e.target.value)}
-              style={{ ...inp, paddingLeft: 42 }}
+              style={{ ...inp, paddingLeft: 42, WebkitAppearance: 'none', appearance: 'none' }}
               onFocus={(e) => (e.target.style.borderColor = '#3b82f6')}
               onBlur={(e) => (e.target.style.borderColor = '#252530')}
             />
