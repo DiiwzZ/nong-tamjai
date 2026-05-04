@@ -419,11 +419,12 @@ function SubForm({ onClose, sub }) {
                   type="button"
                   onClick={() => set('paymentMethod', m)}
                   style={{
-                    height: 44, padding: '0 16px', borderRadius: 12,
+                    height: 48, padding: '0 18px', borderRadius: 13,
                     border: `1.5px solid ${a ? '#3b82f6' : '#252530'}`,
                     background: a ? '#3b82f61a' : '#0f0f14',
                     color: a ? '#3b82f6' : '#6b6b88',
                     fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
+                    transition: 'all 0.15s',
                   }}
                 >{m}</button>
               )
@@ -444,11 +445,12 @@ function SubForm({ onClose, sub }) {
                   type="button"
                   onClick={() => set('status', key)}
                   style={{
-                    height: 44, padding: '0 16px', borderRadius: 12,
+                    height: 48, padding: '0 18px', borderRadius: 13,
                     border: `1.5px solid ${a ? c : '#252530'}`,
                     background: a ? `${c}1a` : '#0f0f14',
                     color: a ? c : '#6b6b88',
                     fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
+                    transition: 'all 0.15s',
                   }}
                 >{val}</button>
               )
@@ -544,7 +546,7 @@ function SubForm({ onClose, sub }) {
                         type="button"
                         onClick={() => setSplit({ type: t.id })}
                         style={{
-                          flex: 1, height: 42, borderRadius: 12,
+                          flex: 1, height: 48, borderRadius: 13,
                           border: `1.5px solid ${a ? '#3b82f6' : '#252530'}`,
                           background: a ? '#3b82f61a' : '#0f0f14',
                           color: a ? '#3b82f6' : '#6b6b88',
@@ -576,7 +578,7 @@ function SubForm({ onClose, sub }) {
                             }}
                             placeholder={isUser ? 'ชื่อคุณ...' : 'ชื่อเพื่อน...'}
                             style={{
-                              ...inp, height: 46,
+                              ...inp, height: 50,
                               paddingRight: isUser ? 52 : 16,
                             }}
                             onFocus={(e) => (e.target.style.borderColor = '#3b82f6')}
@@ -595,7 +597,7 @@ function SubForm({ onClose, sub }) {
                         {form.split.type === 'equal' ? (
                           <span style={{
                             fontSize: 14, fontWeight: 700, color: '#3b82f6',
-                            minWidth: 68, textAlign: 'right', flexShrink: 0,
+                            minWidth: 80, textAlign: 'right', flexShrink: 0,
                           }}>
                             {shareDisplay}
                           </span>
@@ -607,7 +609,7 @@ function SubForm({ onClose, sub }) {
                             onChange={(e) => updateMember(member.id, 'share', e.target.value)}
                             placeholder="0"
                             style={{
-                              ...inp, height: 46, width: 90, flexShrink: 0,
+                              ...inp, height: 50, width: 96, flexShrink: 0,
                               padding: '0 12px', textAlign: 'right',
                             }}
                             onFocus={(e) => (e.target.style.borderColor = '#3b82f6')}
@@ -621,7 +623,7 @@ function SubForm({ onClose, sub }) {
                             type="button"
                             onClick={() => removeMember(member.id)}
                             style={{
-                              width: 34, height: 34, borderRadius: 10, flexShrink: 0,
+                              width: 40, height: 40, borderRadius: 12, flexShrink: 0,
                               background: 'rgba(239,68,68,0.08)',
                               border: '1px solid rgba(239,68,68,0.2)',
                               display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -631,7 +633,7 @@ function SubForm({ onClose, sub }) {
                             <X size={14} color="#f87171" />
                           </button>
                         ) : (
-                          <div style={{ width: 34, flexShrink: 0 }} />
+                          <div style={{ width: 40, flexShrink: 0 }} />
                         )}
                       </div>
                     )
@@ -643,7 +645,7 @@ function SubForm({ onClose, sub }) {
                   type="button"
                   onClick={addMember}
                   style={{
-                    width: '100%', height: 44, borderRadius: 12,
+                    width: '100%', height: 48, borderRadius: 13,
                     border: '1.5px dashed #3b3b50',
                     background: 'transparent', color: '#6b6b88',
                     fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
@@ -651,7 +653,7 @@ function SubForm({ onClose, sub }) {
                     marginBottom: 12,
                   }}
                 >
-                  <Plus size={14} />
+                  <Plus size={15} />
                   เพิ่มคน
                 </button>
 
@@ -675,7 +677,7 @@ function SubForm({ onClose, sub }) {
                       color: form.split.type === 'equal' || Math.abs(customDiff) < 0.01 ? '#4ade80' : '#f87171',
                     }}>
                       {form.split.type === 'equal'
-                        ? `คุณได้รับ ${formatCurrency(totalAmt - (equalShare * (memberCount - 1)))}`
+                        ? `คุณจ่าย ${formatCurrency(totalAmt - (equalShare * (memberCount - 1)))}`
                         : `${formatCurrency(customTotal)} / ${formatCurrency(totalAmt)}`}
                     </span>
                   </div>
