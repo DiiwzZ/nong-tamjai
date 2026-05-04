@@ -685,17 +685,35 @@ function SubForm({ onClose, sub }) {
           </AnimatePresence>
         </div>
 
-        {/* Delete (edit mode) */}
+        {/* Archive / Delete (edit mode) — mirrors TaskForm layout */}
         {isEdit && (
-          <button
-            type="button"
-            onClick={handleDelete}
-            style={{
-              width: '100%', height: 48, borderRadius: 13,
-              border: '1px solid rgba(239,68,68,0.3)', background: 'rgba(239,68,68,0.08)',
-              color: '#f87171', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
-            }}
-          >ลบ Subscription</button>
+          <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
+            <button
+              type="button"
+              onClick={() => { updateSubscription(sub.id, { status: 'cancelled' }); onClose() }}
+              style={{
+                flex: 1, height: 44, borderRadius: 13,
+                border: '1px solid #252530', background: '#1a1a22',
+                color: '#6b6b88', fontSize: 14, fontWeight: 600,
+                cursor: 'pointer', fontFamily: 'inherit',
+              }}
+            >
+              ยกเลิก Sub
+            </button>
+            <button
+              type="button"
+              onClick={handleDelete}
+              style={{
+                flex: 1, height: 44, borderRadius: 13,
+                border: '1px solid rgba(239,68,68,0.30)',
+                background: 'rgba(239,68,68,0.08)',
+                color: '#f87171', fontSize: 14, fontWeight: 600,
+                cursor: 'pointer', fontFamily: 'inherit',
+              }}
+            >
+              ลบ Subscription
+            </button>
+          </div>
         )}
       </div>
 
