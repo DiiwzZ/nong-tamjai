@@ -169,6 +169,154 @@ function SpendingChart({ subscriptions }) {
   )
 }
 
+function BillingRow({ sub, onOpenSubscriptions, onMarkPaid, onUndoPaid }) {
+  const canMarkPaid = canMarkSubscriptionPaid(sub)
+  const paidState = getManualSubscriptionPaidState(sub)
+
+  return (
+    <div
+      onClick={onOpenSubscriptions}
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 12,
+        padding: '13px 16px',
+        cursor: 'pointer',
+      }}
+    >
+      <div
+        style={{
+          width: 38,
+          height: 38,
+          borderRadius: 11,
+          flexShrink: 0,
+          background: sub.color || '#6b7280',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: 15,
+          fontWeight: 800,
+          color: '#fff',
+        }}
+      >
+        {sub.name?.[0]?.toUpperCase()}
+      </div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2, flexWrap: 'wrap' }}>
+          <p
+            style={{
+              fontSize: 15,
+              fontWeight: 600,
+              color: '#f0f0f8',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {sub.name}
+          </p>
+          <span
+            style={{
+              fontSize: 10,
+              fontWeight: 700,
+              padding: '2px 7px',
+              borderRadius: 999,
+              background: sub.timeline.isManual ? 'rgba(248,113,113,0.12)' : 'rgba(59,130,246,0.12)',
+              color: sub.timeline.isManual ? '#f87171' : '#3b82f6',
+              flexShrink: 0,
+            }}
+          >
+            {sub.timeline.isManual ? 'Manual' : 'Auto'}
+          </span>
+        </div>
+        <p
+          style={{
+            fontSize: 12,
+            fontWeight: 500,
+            color: sub.timeline.days !== null && sub.timeline.days <= 1 ? '#f87171' : '#6b6b88',
+          }}
+        >
+          {sub.timeline.shortLabel}
+        </p>
+      </div>
+      <p style={{ fontSize: 15, fontWeight: 700, color: '#f0f0f8', flexShrink: 0 }}>
+        {formatCurrency(sub.amount)}
+      </p>
+      {canMarkPaid && (
+        <button
+          type="button"
+          onClick={(event) => {
+            event.stopPropagation()
+            onMarkPaid(sub.id)
+          }}
+          style={{
+            height: 30,
+            padding: '0 10px',
+            borderRadius: 9,
+            border: '1px solid rgba(74,222,128,0.24)',
+            background: 'rgba(74,222,128,0.12)',
+            color: '#4ade80',
+            fontSize: 11,
+            fontWeight: 700,
+            cursor: 'pointer',
+            fontFamily: 'inherit',
+            flexShrink: 0,
+          }}
+        >
+          จ่ายแล้ว
+        </button>
+      )}
+      {!canMarkPaid && paidState.isPaidThisCycle && (
+        <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+          <span
+            style={{
+              height: 30,
+              padding: '0 10px',
+              borderRadius: 9,
+              border: '1px solid rgba(74,222,128,0.20)',
+              background: 'rgba(74,222,128,0.10)',
+              color: '#4ade80',
+              fontSize: 11,
+              fontWeight: 700,
+              fontFamily: 'inherit',
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+            }}
+          >
+            {paidState.label}
+          </span>
+          {paidState.isUndoable && (
+            <button
+              type="button"
+              onClick={(event) => {
+                event.stopPropagation()
+                onUndoPaid(sub.id)
+              }}
+              style={{
+                height: 30,
+                padding: '0 10px',
+                borderRadius: 9,
+                border: '1px solid rgba(248,113,113,0.24)',
+                background: 'rgba(248,113,113,0.10)',
+                color: '#f87171',
+                fontSize: 11,
+                fontWeight: 700,
+                cursor: 'pointer',
+                fontFamily: 'inherit',
+                flexShrink: 0,
+              }}
+            >
+              ย้อนกลับ
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
 export function Dashboard({ onTabChange }) {
   const { tasks, subscriptions, categories, markSubscriptionPaid, undoSubscriptionPaid } = useStore()
 
@@ -176,18 +324,45 @@ export function Dashboard({ onTabChange }) {
   const overdueTasks = useMemo(() => activeTasks.filter((t) => isOverdue(t.dueDate)), [activeTasks])
 
   const activeSubs = useMemo(() => subscriptions.filter((s) => s.status !== 'cancelled'), [subscriptions])
+  const activeSubTimelines = useMemo(
+    () => activeSubs.map((sub) => ({ ...sub, timeline: getSubscriptionTimeline(sub) })),
+    [activeSubs],
+  )
+  const manualSubs = useMemo(
+    () => activeSubTimelines.filter((sub) => sub.timeline.isManual),
+    [activeSubTimelines],
+  )
+  const autoSubs = useMemo(
+    () => activeSubTimelines.filter((sub) => !sub.timeline.isManual),
+    [activeSubTimelines],
+  )
   const monthly = useMemo(() =>
     activeSubs.reduce((sum, s) => sum + getSubscriptionMonthlyAmount(s), 0),
   [activeSubs])
+  const manualMonthly = useMemo(
+    () => manualSubs.reduce((sum, sub) => sum + getSubscriptionMonthlyAmount(sub), 0),
+    [manualSubs],
+  )
+  const autoMonthly = useMemo(
+    () => autoSubs.reduce((sum, sub) => sum + getSubscriptionMonthlyAmount(sub), 0),
+    [autoSubs],
+  )
 
   /* Upcoming payments ≤7 days */
-  const upcoming = useMemo(() =>
-    subscriptions
-      .filter((s) => s.status !== 'cancelled' && s.nextBillingDate)
-      .map((s) => ({ ...s, timeline: getSubscriptionTimeline(s) }))
-      .filter((s) => s.timeline.days !== null && s.timeline.days >= 0 && s.timeline.days <= 7)
-      .sort((a, b) => a.timeline.days - b.timeline.days),
-  [subscriptions])
+  const manualBilling = useMemo(
+    () =>
+      manualSubs
+        .filter((sub) => sub.timeline.days !== null && sub.timeline.days <= 7)
+        .sort((a, b) => a.timeline.days - b.timeline.days),
+    [manualSubs],
+  )
+  const autoBilling = useMemo(
+    () =>
+      autoSubs
+        .filter((sub) => sub.timeline.days !== null && sub.timeline.days >= 0 && sub.timeline.days <= 7)
+        .sort((a, b) => a.timeline.days - b.timeline.days),
+    [autoSubs],
+  )
 
   /* Urgent tasks: overdue or due today/tomorrow */
   const urgentTasks = useMemo(() =>
@@ -269,12 +444,54 @@ export function Dashboard({ onTabChange }) {
       </motion.div>
 
       {/* Spending chart — shown when there are any subs */}
+      {activeSubs.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 14 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.28, delay: 0.04 }}
+          style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 20 }}
+        >
+          <div
+            style={{
+              background: 'rgba(248,113,113,0.06)',
+              border: '1px solid rgba(248,113,113,0.16)',
+              borderRadius: 18,
+              padding: '16px 14px',
+            }}
+          >
+            <p style={{ fontSize: 11, fontWeight: 700, color: '#f87171', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>
+              Manual pay
+            </p>
+            <p style={{ fontSize: 24, fontWeight: 800, color: '#f0f0f8', lineHeight: 1, marginBottom: 6 }}>
+              {manualSubs.length}
+            </p>
+            <p style={{ fontSize: 12, color: '#6b6b88' }}>{formatCurrency(manualMonthly)}/mo</p>
+          </div>
+          <div
+            style={{
+              background: 'rgba(59,130,246,0.06)',
+              border: '1px solid rgba(59,130,246,0.16)',
+              borderRadius: 18,
+              padding: '16px 14px',
+            }}
+          >
+            <p style={{ fontSize: 11, fontWeight: 700, color: '#3b82f6', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>
+              Auto billing
+            </p>
+            <p style={{ fontSize: 24, fontWeight: 800, color: '#f0f0f8', lineHeight: 1, marginBottom: 6 }}>
+              {autoSubs.length}
+            </p>
+            <p style={{ fontSize: 12, color: '#6b6b88' }}>{formatCurrency(autoMonthly)}/mo</p>
+          </div>
+        </motion.div>
+      )}
+
       {subscriptions.length > 0 && (
         <SpendingChart subscriptions={subscriptions} />
       )}
 
       {/* Upcoming payments */}
-      {upcoming.length > 0 && (
+      {(manualBilling.length > 0 || autoBilling.length > 0) && (
         <motion.div
           initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.28, delay: 0.06 }}
@@ -283,10 +500,20 @@ export function Dashboard({ onTabChange }) {
           <p style={{
             fontSize: 12, fontWeight: 700, color: '#6b6b88',
             textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10,
-          }}>Upcoming billing</p>
+          }}>Billing this week</p>
 
-          <div style={{ background: '#1a1a22', border: '1px solid #252530', borderRadius: 18, overflow: 'hidden' }}>
-            {upcoming.map((sub, i) => {
+          {manualBilling.length > 0 && (
+            <div style={{ background: '#1a1a22', border: '1px solid rgba(248,113,113,0.16)', borderRadius: 18, overflow: 'hidden' }}>
+              <div style={{ padding: '12px 16px', borderBottom: '1px solid rgba(248,113,113,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div>
+                  <p style={{ fontSize: 13, fontWeight: 700, color: '#f0f0f8', marginBottom: 2 }}>Manual to pay</p>
+                  <p style={{ fontSize: 12, color: '#6b6b88' }}>รายการที่ต้องเช็กและกดจ่ายเอง</p>
+                </div>
+                <span style={{ fontSize: 11, fontWeight: 700, color: '#f87171', background: 'rgba(248,113,113,0.10)', border: '1px solid rgba(248,113,113,0.16)', borderRadius: 999, padding: '4px 8px' }}>
+                  {manualBilling.length} items
+                </span>
+              </div>
+            {manualBilling.map((sub, i) => {
               const canMarkPaid = canMarkSubscriptionPaid(sub)
               const paidState = getManualSubscriptionPaidState(sub)
 
@@ -297,7 +524,7 @@ export function Dashboard({ onTabChange }) {
                 style={{
                   display: 'flex', alignItems: 'center', gap: 12,
                   padding: '13px 16px', cursor: 'pointer',
-                  borderBottom: i < upcoming.length - 1 ? '1px solid #252530' : 'none',
+                  borderBottom: i < manualBilling.length - 1 ? '1px solid #252530' : 'none',
                 }}
               >
                 <div style={{
@@ -397,7 +624,32 @@ export function Dashboard({ onTabChange }) {
               </div>
               )
             })}
-          </div>
+            </div>
+          )}
+
+          {autoBilling.length > 0 && (
+            <div style={{ background: '#1a1a22', border: '1px solid rgba(59,130,246,0.16)', borderRadius: 18, overflow: 'hidden', marginTop: 12 }}>
+              <div style={{ padding: '12px 16px', borderBottom: '1px solid rgba(59,130,246,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div>
+                  <p style={{ fontSize: 13, fontWeight: 700, color: '#f0f0f8', marginBottom: 2 }}>Auto charges</p>
+                  <p style={{ fontSize: 12, color: '#6b6b88' }}>รายการที่ระบบจะตัดอัตโนมัติ</p>
+                </div>
+                <span style={{ fontSize: 11, fontWeight: 700, color: '#3b82f6', background: 'rgba(59,130,246,0.10)', border: '1px solid rgba(59,130,246,0.16)', borderRadius: 999, padding: '4px 8px' }}>
+                  {autoBilling.length} items
+                </span>
+              </div>
+              {autoBilling.map((sub, index) => (
+                <div key={sub.id} style={{ borderBottom: index < autoBilling.length - 1 ? '1px solid #252530' : 'none' }}>
+                  <BillingRow
+                    sub={sub}
+                    onOpenSubscriptions={() => onTabChange?.('subscriptions')}
+                    onMarkPaid={markSubscriptionPaid}
+                    onUndoPaid={undoSubscriptionPaid}
+                  />
+                </div>
+              ))}
+            </div>
+          )}
         </motion.div>
       )}
 
