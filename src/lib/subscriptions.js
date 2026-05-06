@@ -10,18 +10,66 @@ function startOfDay(value = new Date()) {
   return new Date(value.getFullYear(), value.getMonth(), value.getDate())
 }
 
-function addBillingCycle(date, cycle) {
-  const next = new Date(date)
-  if (cycle === 'yearly') next.setFullYear(next.getFullYear() + 1)
-  else next.setMonth(next.getMonth() + 1)
-  return next
+function getLastDayOfMonth(year, month) {
+  return new Date(year, month + 1, 0).getDate()
 }
 
-function subtractBillingCycle(date, cycle) {
-  const previous = new Date(date)
-  if (cycle === 'yearly') previous.setFullYear(previous.getFullYear() - 1)
-  else previous.setMonth(previous.getMonth() - 1)
-  return previous
+function getSubscriptionAnchor(sub, fallbackDate = null) {
+  const fallback = toDate(fallbackDate) || toDate(sub?.nextBillingDate)
+  return {
+    day: sub?.billingAnchorDay || fallback?.getDate() || 1,
+    month: sub?.billingAnchorMonth ?? fallback?.getMonth() ?? 0,
+  }
+}
+
+function addBillingCycle(date, cycle, anchor = {}) {
+  const source = toDate(date)
+  if (!source) return null
+
+  const anchorDay = anchor.day || source.getDate()
+  const anchorMonth = anchor.month ?? source.getMonth()
+  const hours = source.getHours()
+  const minutes = source.getMinutes()
+  const seconds = source.getSeconds()
+  const ms = source.getMilliseconds()
+
+  if (cycle === 'yearly') {
+    const targetYear = source.getFullYear() + 1
+    const targetMonth = anchorMonth
+    const targetDay = Math.min(anchorDay, getLastDayOfMonth(targetYear, targetMonth))
+    return new Date(targetYear, targetMonth, targetDay, hours, minutes, seconds, ms)
+  }
+
+  const targetMonthIndex = source.getMonth() + 1
+  const targetYear = source.getFullYear() + Math.floor(targetMonthIndex / 12)
+  const targetMonth = ((targetMonthIndex % 12) + 12) % 12
+  const targetDay = Math.min(anchorDay, getLastDayOfMonth(targetYear, targetMonth))
+  return new Date(targetYear, targetMonth, targetDay, hours, minutes, seconds, ms)
+}
+
+function subtractBillingCycle(date, cycle, anchor = {}) {
+  const source = toDate(date)
+  if (!source) return null
+
+  const anchorDay = anchor.day || source.getDate()
+  const anchorMonth = anchor.month ?? source.getMonth()
+  const hours = source.getHours()
+  const minutes = source.getMinutes()
+  const seconds = source.getSeconds()
+  const ms = source.getMilliseconds()
+
+  if (cycle === 'yearly') {
+    const targetYear = source.getFullYear() - 1
+    const targetMonth = anchorMonth
+    const targetDay = Math.min(anchorDay, getLastDayOfMonth(targetYear, targetMonth))
+    return new Date(targetYear, targetMonth, targetDay, hours, minutes, seconds, ms)
+  }
+
+  const targetMonthIndex = source.getMonth() - 1
+  const targetYear = source.getFullYear() + Math.floor(targetMonthIndex / 12)
+  const targetMonth = ((targetMonthIndex % 12) + 12) % 12
+  const targetDay = Math.min(anchorDay, getLastDayOfMonth(targetYear, targetMonth))
+  return new Date(targetYear, targetMonth, targetDay, hours, minutes, seconds, ms)
 }
 
 function sameDay(a, b) {
@@ -35,7 +83,12 @@ function sameDay(a, b) {
 export function advanceSubscriptionToNextCycle(sub, paidAt = new Date()) {
   const baseDate = toDate(sub?.nextBillingDate) || toDate(paidAt)
   if (!baseDate) return null
-  return addBillingCycle(baseDate, getSubscriptionBillingCycle(sub)).toISOString()
+  const next = addBillingCycle(
+    baseDate,
+    getSubscriptionBillingCycle(sub),
+    getSubscriptionAnchor(sub, baseDate),
+  )
+  return next?.toISOString() || null
 }
 
 export function getSubscriptionPaymentMode(sub) {
@@ -59,10 +112,11 @@ export function getEffectiveNextBillingDate(sub, now = new Date()) {
   if (sub?.status === 'cancelled') return rawDate.toISOString()
 
   let next = new Date(rawDate)
+  const anchor = getSubscriptionAnchor(sub, rawDate)
   if (getSubscriptionPaymentMode(sub) === 'auto') {
     const today = startOfDay(now)
     while (startOfDay(next) < today) {
-      next = addBillingCycle(next, getSubscriptionBillingCycle(sub))
+      next = addBillingCycle(next, getSubscriptionBillingCycle(sub), anchor)
     }
   }
 
@@ -104,7 +158,11 @@ export function getManualSubscriptionPaidState(sub, now = new Date()) {
     return { isPaidThisCycle: false, label: '' }
   }
 
-  const previousCycleStart = subtractBillingCycle(nextBillingDate, getSubscriptionBillingCycle(sub))
+  const previousCycleStart = subtractBillingCycle(
+    nextBillingDate,
+    getSubscriptionBillingCycle(sub),
+    getSubscriptionAnchor(sub, nextBillingDate),
+  )
   if (lastPaidAt < previousCycleStart || lastPaidAt >= nextBillingDate) {
     return { isPaidThisCycle: false, label: '' }
   }
@@ -162,6 +220,7 @@ export function normalizeSubscription(sub, now = new Date()) {
 
   const paymentMode = getSubscriptionPaymentMode(sub)
   const billingCycle = getSubscriptionBillingCycle(sub)
+  const anchor = getSubscriptionAnchor(sub)
   const nextBillingDate = sub.nextBillingDate
     ? getEffectiveNextBillingDate({ ...sub, paymentMode, billingCycle }, now)
     : null
@@ -170,6 +229,8 @@ export function normalizeSubscription(sub, now = new Date()) {
     ...sub,
     paymentMode,
     billingCycle,
+    billingAnchorDay: anchor.day,
+    billingAnchorMonth: anchor.month,
     nextBillingDate,
   }
 }
