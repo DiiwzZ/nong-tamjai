@@ -1,5 +1,6 @@
 import { useState, useEffect, createContext, useContext } from 'react'
 import { DEFAULT_CATEGORIES } from '@/lib/utils'
+import { normalizeSubscription, normalizeSubscriptions } from '@/lib/subscriptions'
 import { scheduleTaskReminder, scheduleSubReminder } from '@/lib/notifications'
 import { signInAnon, onAuthReady } from '@/lib/firebase'
 import { fetchTasks, saveTask, removeTask, fetchSubs, saveSub, removeSub } from '@/lib/db'
@@ -10,7 +11,13 @@ const STORAGE_KEY = 'myflow_data'
 function loadFromStorage() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
-    return raw ? JSON.parse(raw) : null
+    if (!raw) return null
+    const parsed = JSON.parse(raw)
+    if (!parsed) return null
+    return {
+      ...parsed,
+      subscriptions: normalizeSubscriptions(parsed.subscriptions),
+    }
   } catch { return null }
 }
 
@@ -56,7 +63,11 @@ export function StoreProvider({ children }) {
           fetchSubs(user.uid),
         ])
         // Firestore wins — overwrite local state with cloud data
-        setState((s) => ({ ...s, tasks, subscriptions }))
+        setState((s) => ({
+          ...s,
+          tasks,
+          subscriptions: normalizeSubscriptions(subscriptions),
+        }))
       } catch (err) {
         console.error('Firestore fetch failed, using localStorage:', err)
       }
@@ -123,13 +134,13 @@ export function StoreProvider({ children }) {
   // --- Subscriptions ---
 
   const addSubscription = (sub) => {
-    const newSub = {
+    const newSub = normalizeSubscription({
       id: crypto.randomUUID(),
       createdAt: new Date().toISOString(),
       status: 'active',
       currency: 'THB',
       ...sub,
-    }
+    })
     update({ subscriptions: [...state.subscriptions, newSub] })
     if (uid) saveSub(uid, newSub).catch(console.error)
     scheduleSubReminder(newSub)
@@ -137,7 +148,7 @@ export function StoreProvider({ children }) {
 
   const updateSubscription = (id, patch) => {
     const subscriptions = state.subscriptions.map((s) =>
-      s.id === id ? { ...s, ...patch } : s
+      s.id === id ? normalizeSubscription({ ...s, ...patch }) : s
     )
     update({ subscriptions })
     if (uid) {

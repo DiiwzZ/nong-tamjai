@@ -3,6 +3,7 @@ import { motion, useMotionValue, animate } from 'motion/react'
 import { useStore } from '@/store/useStore'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { formatCurrency, daysUntil, isOverdue } from '@/lib/utils'
+import { getSubscriptionMonthlyAmount, getSubscriptionTimeline } from '@/lib/subscriptions'
 
 /* ── Animated counting number ── */
 function AnimatedNumber({ value, format = String }) {
@@ -42,8 +43,7 @@ function SpendingChart({ subscriptions }) {
       subscriptions.forEach((s) => {
         if (s.status === 'cancelled') return
         if (new Date(s.createdAt) > monthEnd) return
-        if (s.billingCycle === 'monthly') total += Number(s.amount) || 0
-        else if (s.billingCycle === 'yearly') total += (Number(s.amount) || 0) / 12
+        total += getSubscriptionMonthlyAmount(s)
       })
 
       return {
@@ -172,20 +172,16 @@ export function Dashboard({ onTabChange }) {
 
   const activeSubs = useMemo(() => subscriptions.filter((s) => s.status !== 'cancelled'), [subscriptions])
   const monthly = useMemo(() =>
-    activeSubs.reduce((sum, s) => {
-      if (s.billingCycle === 'yearly')  return sum + s.amount / 12
-      if (s.billingCycle === 'monthly') return sum + s.amount
-      return sum
-    }, 0),
+    activeSubs.reduce((sum, s) => sum + getSubscriptionMonthlyAmount(s), 0),
   [activeSubs])
 
   /* Upcoming payments ≤7 days */
   const upcoming = useMemo(() =>
     subscriptions
       .filter((s) => s.status !== 'cancelled' && s.nextBillingDate)
-      .map((s) => ({ ...s, days: daysUntil(s.nextBillingDate) }))
-      .filter((s) => s.days !== null && s.days >= 0 && s.days <= 7)
-      .sort((a, b) => a.days - b.days),
+      .map((s) => ({ ...s, timeline: getSubscriptionTimeline(s) }))
+      .filter((s) => s.timeline.days !== null && s.timeline.days >= 0 && s.timeline.days <= 7)
+      .sort((a, b) => a.timeline.days - b.timeline.days),
   [subscriptions])
 
   /* Urgent tasks: overdue or due today/tomorrow */
@@ -282,7 +278,7 @@ export function Dashboard({ onTabChange }) {
           <p style={{
             fontSize: 12, fontWeight: 700, color: '#6b6b88',
             textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10,
-          }}>จ่ายเงินเร็วๆ นี้</p>
+          }}>Upcoming billing</p>
 
           <div style={{ background: '#1a1a22', border: '1px solid #252530', borderRadius: 18, overflow: 'hidden' }}>
             {upcoming.map((sub, i) => (
@@ -310,9 +306,9 @@ export function Dashboard({ onTabChange }) {
                   }}>{sub.name}</p>
                   <p style={{
                     fontSize: 12, fontWeight: 500,
-                    color: sub.days <= 1 ? '#f87171' : '#6b6b88',
+                    color: sub.timeline.days <= 1 ? '#f87171' : '#6b6b88',
                   }}>
-                    {sub.days === 0 ? 'จ่ายวันนี้' : sub.days === 1 ? 'จ่ายพรุ่งนี้' : `อีก ${sub.days} วัน`}
+                    {sub.timeline.shortLabel}
                   </p>
                 </div>
                 <p style={{ fontSize: 15, fontWeight: 700, color: '#f0f0f8', flexShrink: 0 }}>

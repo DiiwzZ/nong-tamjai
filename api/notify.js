@@ -6,6 +6,7 @@
 import webpush from 'web-push'
 import { initializeApp, getApps, cert } from 'firebase-admin/app'
 import { getFirestore } from 'firebase-admin/firestore'
+import { getSubscriptionTimeline, normalizeSubscription } from '../src/lib/subscriptions.js'
 
 /* ── Helpers ── */
 function sameDay(a, b) {
@@ -120,7 +121,7 @@ export default async function handler(req, res) {
     try {
       const subsSnap = await db.collection(`users/${uid}/subscriptions`).get()
       for (const s of subsSnap.docs) {
-        const sub = s.data()
+        const sub = normalizeSubscription(s.data(), today)
         if (!sub.nextBillingDate || sub.status === 'cancelled') continue
 
         const dueDate  = new Date(sub.nextBillingDate)
@@ -128,12 +129,14 @@ export default async function handler(req, res) {
         alertDay.setDate(alertDay.getDate() - (sub.alertDays ?? 3))
 
         if (sameDay(alertDay, today)) {
-          const daysLeft = Math.round((dueDate - today) / 86400000)
+          const timeline = getSubscriptionTimeline(sub, today)
+          const daysLeft = timeline.days ?? Math.round((dueDate - today) / 86400000)
+          const action = timeline.isManual ? 'จ่าย' : 'ตัด'
           results.push(send(pushSub, {
             title: `💳 ${sub.name}`,
             body:  daysLeft === 0
-              ? `ครบกำหนดจ่ายวันนี้ ฿${sub.amount.toLocaleString()}`
-              : `จ่ายอีก ${daysLeft} วัน — ฿${sub.amount.toLocaleString()}`,
+              ? `${action}${timeline.isManual ? '' : 'บัตร'}วันนี้ ฿${sub.amount.toLocaleString()}`
+              : `${action}อีก ${daysLeft} วัน — ฿${sub.amount.toLocaleString()}`,
           }))
         }
       }

@@ -1,4 +1,5 @@
 import { savePushSub, removePushSub } from './db'
+import { getSubscriptionTimeline, normalizeSubscription } from './subscriptions'
 
 const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY
 
@@ -101,13 +102,19 @@ export function scheduleTaskReminder(task) {
 }
 
 export function scheduleSubReminder(sub) {
-  if (!sub.nextBillingDate || !sub.alertDays) return
-  const fireAt = new Date(sub.nextBillingDate)
-  fireAt.setDate(fireAt.getDate() - sub.alertDays)
+  const normalized = normalizeSubscription(sub)
+  if (!normalized.nextBillingDate || !normalized.alertDays) return
+
+  const fireAt = new Date(normalized.nextBillingDate)
+  fireAt.setDate(fireAt.getDate() - normalized.alertDays)
   fireAt.setHours(9, 0, 0, 0)
+
+  const timeline = getSubscriptionTimeline(normalized, fireAt)
+  const action = timeline.isManual ? 'จ่าย' : 'ตัด'
+
   scheduleLocalNotification(
-    `💳 จ่าย ${sub.name} ใน ${sub.alertDays} วัน`,
-    `฿${sub.amount.toLocaleString()} — ${new Date(sub.nextBillingDate).toLocaleDateString('th-TH')}`,
+    `💳 ${action} ${normalized.name} ใน ${normalized.alertDays} วัน`,
+    `฿${normalized.amount.toLocaleString()} — ${new Date(normalized.nextBillingDate).toLocaleDateString('th-TH')}`,
     fireAt
   )
 }
