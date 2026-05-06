@@ -103,6 +103,11 @@ function getPaymentModeLabel(sub) {
   return PAYMENT_MODES.find((item) => item.id === getSubscriptionPaymentMode(sub))?.label || ''
 }
 
+function formatLastPaidLabel(value) {
+  if (!value) return ''
+  return `${formatDate(value)} at ${formatTime(value)}`
+}
+
 function formatPaidTimestamp(value) {
   if (!value) return ''
   return `${formatDate(value)} เวลา ${formatTime(value)}`
@@ -136,7 +141,8 @@ function TogglePill({ active, children, onClick, color = '#3b82f6', flex = 1 }) 
 function SubCard({ sub, onTap, onMarkPaid, onUndoPaid }) {
   const timeline = getSubscriptionTimeline(sub)
   const paidState = getManualSubscriptionPaidState(sub)
-  const lastPaidLabel = sub.lastPaidAt ? formatPaidTimestamp(sub.lastPaidAt) : ''
+  const lastPaidLabel = ''
+  const lastPaidSummary = sub.lastPaidAt ? `Last paid ${formatLastPaidLabel(sub.lastPaidAt)}` : ''
   const isCancelled = sub.status === 'cancelled'
   const showMarkPaid = canMarkSubscriptionPaid(sub)
   const statusColor = STATUS_COLOR[sub.status] || STATUS_COLOR.active
@@ -266,6 +272,11 @@ function SubCard({ sub, onTap, onMarkPaid, onUndoPaid }) {
               </span>
             )}
           </div>
+          {lastPaidSummary && (
+            <p style={{ marginTop: 6, fontSize: 11, color: '#4a4a62' }}>
+              {lastPaidSummary}
+            </p>
+          )}
           {lastPaidLabel && (
             <p style={{ marginTop: 6, fontSize: 11, color: '#4a4a62' }}>
               จ่ายล่าสุด {lastPaidLabel}
@@ -355,7 +366,8 @@ function SubCard({ sub, onTap, onMarkPaid, onUndoPaid }) {
 function SubForm({ onClose, sub }) {
   const { addSubscription, updateSubscription, deleteSubscription, userName, setUserName } = useStore()
   const isEdit = !!sub
-  const lastPaidLabel = sub?.lastPaidAt ? formatPaidTimestamp(sub.lastPaidAt) : ''
+  const lastPaidLabel = ''
+  const lastPaidSummary = sub?.lastPaidAt ? `Last paid ${formatLastPaidLabel(sub.lastPaidAt)}` : ''
 
   const blank = {
     name: '',
@@ -656,6 +668,35 @@ function SubForm({ onClose, sub }) {
             />
           </div>
         </div>
+
+        {isEdit && lastPaidSummary && (
+          <div
+            style={{
+              padding: '12px 14px',
+              borderRadius: 14,
+              background: 'rgba(74,222,128,0.06)',
+              border: '1px solid rgba(74,222,128,0.18)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 4,
+            }}
+          >
+            <span
+              style={{
+                fontSize: 11,
+                fontWeight: 700,
+                color: '#4ade80',
+                textTransform: 'uppercase',
+                letterSpacing: '0.08em',
+              }}
+            >
+              Last payment
+            </span>
+            <span style={{ fontSize: 14, fontWeight: 600, color: '#f0f0f8' }}>
+              {lastPaidSummary}
+            </span>
+          </div>
+        )}
 
         {isEdit && lastPaidLabel && (
           <div
@@ -1198,7 +1239,7 @@ export function Subscriptions({ onTabChange, onSettings }) {
                 <AnimatedNumber value={monthly} format={(value) => formatCurrency(value)} />
               </p>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <span style={{ fontSize: 13, color: '#6b6b88' }}>{active.length} subscriptions</span>
+                <span style={{ fontSize: 13, color: '#6b6b88' }}>{active.length} active subscriptions</span>
                 {yearly > 0 && (
                   <>
                     <span style={{ fontSize: 13, color: '#3b3b50' }}>•</span>

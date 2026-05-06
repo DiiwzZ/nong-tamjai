@@ -439,7 +439,7 @@ export function Dashboard({ onTabChange }) {
           }}>
             <AnimatedNumber value={monthly} format={(v) => formatCurrency(v)} />
           </p>
-          <p style={{ fontSize: 12, color: '#6b6b88' }}>{activeSubs.length} subs</p>
+          <p style={{ fontSize: 12, color: '#6b6b88' }}>{activeSubs.length} subscriptions</p>
         </div>
       </motion.div>
 
@@ -460,12 +460,12 @@ export function Dashboard({ onTabChange }) {
             }}
           >
             <p style={{ fontSize: 11, fontWeight: 700, color: '#f87171', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>
-              Manual pay
+              Manual payments
             </p>
             <p style={{ fontSize: 24, fontWeight: 800, color: '#f0f0f8', lineHeight: 1, marginBottom: 6 }}>
               {manualSubs.length}
             </p>
-            <p style={{ fontSize: 12, color: '#6b6b88' }}>{formatCurrency(manualMonthly)}/mo</p>
+            <p style={{ fontSize: 12, color: '#6b6b88' }}>{formatCurrency(manualMonthly)}/month</p>
           </div>
           <div
             style={{
@@ -476,12 +476,12 @@ export function Dashboard({ onTabChange }) {
             }}
           >
             <p style={{ fontSize: 11, fontWeight: 700, color: '#3b82f6', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>
-              Auto billing
+              Auto charges
             </p>
             <p style={{ fontSize: 24, fontWeight: 800, color: '#f0f0f8', lineHeight: 1, marginBottom: 6 }}>
               {autoSubs.length}
             </p>
-            <p style={{ fontSize: 12, color: '#6b6b88' }}>{formatCurrency(autoMonthly)}/mo</p>
+            <p style={{ fontSize: 12, color: '#6b6b88' }}>{formatCurrency(autoMonthly)}/month</p>
           </div>
         </motion.div>
       )}
@@ -506,11 +506,11 @@ export function Dashboard({ onTabChange }) {
             <div style={{ background: '#1a1a22', border: '1px solid rgba(248,113,113,0.16)', borderRadius: 18, overflow: 'hidden' }}>
               <div style={{ padding: '12px 16px', borderBottom: '1px solid rgba(248,113,113,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <div>
-                  <p style={{ fontSize: 13, fontWeight: 700, color: '#f0f0f8', marginBottom: 2 }}>Manual to pay</p>
+                    <p style={{ fontSize: 13, fontWeight: 700, color: '#f0f0f8', marginBottom: 2 }}>Manual payments due</p>
                   <p style={{ fontSize: 12, color: '#6b6b88' }}>รายการที่ต้องเช็กและกดจ่ายเอง</p>
                 </div>
                 <span style={{ fontSize: 11, fontWeight: 700, color: '#f87171', background: 'rgba(248,113,113,0.10)', border: '1px solid rgba(248,113,113,0.16)', borderRadius: 999, padding: '4px 8px' }}>
-                  {manualBilling.length} items
+                    {manualBilling.length} subscriptions
                 </span>
               </div>
             {manualBilling.map((sub, i) => {
@@ -631,11 +631,11 @@ export function Dashboard({ onTabChange }) {
             <div style={{ background: '#1a1a22', border: '1px solid rgba(59,130,246,0.16)', borderRadius: 18, overflow: 'hidden', marginTop: 12 }}>
               <div style={{ padding: '12px 16px', borderBottom: '1px solid rgba(59,130,246,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <div>
-                  <p style={{ fontSize: 13, fontWeight: 700, color: '#f0f0f8', marginBottom: 2 }}>Auto charges</p>
+                    <p style={{ fontSize: 13, fontWeight: 700, color: '#f0f0f8', marginBottom: 2 }}>Auto charges due</p>
                   <p style={{ fontSize: 12, color: '#6b6b88' }}>รายการที่ระบบจะตัดอัตโนมัติ</p>
                 </div>
                 <span style={{ fontSize: 11, fontWeight: 700, color: '#3b82f6', background: 'rgba(59,130,246,0.10)', border: '1px solid rgba(59,130,246,0.16)', borderRadius: 999, padding: '4px 8px' }}>
-                  {autoBilling.length} items
+                  {autoBilling.length} subscriptions
                 </span>
               </div>
               {autoBilling.map((sub, index) => (
