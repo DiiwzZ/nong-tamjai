@@ -1,4 +1,3 @@
-import { useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 
 const COLORS = ['#f59e0b', '#3b82f6', '#10b981', '#f43f5e', '#8b5cf6', '#06b6d4']
