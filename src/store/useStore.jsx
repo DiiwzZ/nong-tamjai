@@ -2,6 +2,7 @@ import { useState, useEffect, createContext, useContext } from 'react'
 import { DEFAULT_CATEGORIES } from '@/lib/utils'
 import {
   advanceSubscriptionToNextCycle,
+  canMarkSubscriptionPaid,
   normalizeSubscription,
   normalizeSubscriptions,
 } from '@/lib/subscriptions'
@@ -169,6 +170,7 @@ export function StoreProvider({ children }) {
   const markSubscriptionPaid = (id, paidAt = new Date().toISOString()) => {
     const subscriptions = state.subscriptions.map((subscription) => {
       if (subscription.id !== id) return subscription
+      if (!canMarkSubscriptionPaid(subscription, new Date(paidAt))) return subscription
 
       const nextBillingDate = advanceSubscriptionToNextCycle(subscription, paidAt)
       return normalizeSubscription({

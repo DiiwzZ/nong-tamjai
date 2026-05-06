@@ -6,7 +6,9 @@ import { SubSkeleton } from '@/components/ui/Skeleton'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { formatCurrency } from '@/lib/utils'
 import {
+  canMarkSubscriptionPaid,
   getSubscriptionBillingCycle,
+  getManualSubscriptionPaidState,
   getSubscriptionMonthlyAmount,
   getSubscriptionPaymentMode,
   getSubscriptionTimeline,
@@ -128,8 +130,9 @@ function TogglePill({ active, children, onClick, color = '#3b82f6', flex = 1 }) 
 
 function SubCard({ sub, onTap, onMarkPaid }) {
   const timeline = getSubscriptionTimeline(sub)
+  const paidState = getManualSubscriptionPaidState(sub)
   const isCancelled = sub.status === 'cancelled'
-  const showMarkPaid = timeline.isManual && !isCancelled && !!timeline.nextBillingDate
+  const showMarkPaid = canMarkSubscriptionPaid(sub)
   const statusColor = STATUS_COLOR[sub.status] || STATUS_COLOR.active
   const statusLabel = STATUS_LABEL[sub.status] || 'Active'
   const billingLabel = getBillingCycleLabel(sub)
@@ -287,6 +290,26 @@ function SubCard({ sub, onTap, onMarkPaid }) {
             >
               จ่ายแล้ว
             </button>
+          )}
+          {!showMarkPaid && paidState.isPaidThisCycle && (
+            <span
+              style={{
+                display: 'inline-flex',
+                marginTop: 8,
+                height: 28,
+                padding: '0 10px',
+                borderRadius: 9,
+                border: '1px solid rgba(74,222,128,0.20)',
+                background: 'rgba(74,222,128,0.10)',
+                color: '#4ade80',
+                fontSize: 11,
+                fontWeight: 700,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              {paidState.label}
+            </span>
           )}
         </div>
       </div>

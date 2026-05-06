@@ -17,6 +17,21 @@ function addBillingCycle(date, cycle) {
   return next
 }
 
+function subtractBillingCycle(date, cycle) {
+  const previous = new Date(date)
+  if (cycle === 'yearly') previous.setFullYear(previous.getFullYear() - 1)
+  else previous.setMonth(previous.getMonth() - 1)
+  return previous
+}
+
+function sameDay(a, b) {
+  return (
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate()
+  )
+}
+
 export function advanceSubscriptionToNextCycle(sub, paidAt = new Date()) {
   const baseDate = toDate(sub?.nextBillingDate) || toDate(paidAt)
   if (!baseDate) return null
@@ -61,6 +76,43 @@ export function getSubscriptionDaysUntil(sub, now = new Date()) {
   const dueDay = startOfDay(due)
   const nowDay = startOfDay(now)
   return Math.round((dueDay - nowDay) / DAY_MS)
+}
+
+export function canMarkSubscriptionPaid(sub, now = new Date()) {
+  if (getSubscriptionPaymentMode(sub) !== 'manual') return false
+  if (sub?.status === 'cancelled') return false
+  if (!getEffectiveNextBillingDate(sub, now)) return false
+
+  const days = getSubscriptionDaysUntil(sub, now)
+  return days !== null && days <= 0
+}
+
+export function getManualSubscriptionPaidState(sub, now = new Date()) {
+  if (getSubscriptionPaymentMode(sub) !== 'manual') {
+    return { isPaidThisCycle: false, label: '' }
+  }
+
+  const nextBillingDate = toDate(getEffectiveNextBillingDate(sub, now))
+  const lastPaidAt = toDate(sub?.lastPaidAt)
+  if (!nextBillingDate || !lastPaidAt) {
+    return { isPaidThisCycle: false, label: '' }
+  }
+
+  const nowDay = startOfDay(now)
+  const nextDay = startOfDay(nextBillingDate)
+  if (nowDay >= nextDay) {
+    return { isPaidThisCycle: false, label: '' }
+  }
+
+  const previousCycleStart = subtractBillingCycle(nextBillingDate, getSubscriptionBillingCycle(sub))
+  if (lastPaidAt < previousCycleStart || lastPaidAt >= nextBillingDate) {
+    return { isPaidThisCycle: false, label: '' }
+  }
+
+  return {
+    isPaidThisCycle: true,
+    label: sameDay(lastPaidAt, now) ? 'จ่ายแล้ววันนี้' : 'จ่ายแล้ว',
+  }
 }
 
 export function getSubscriptionTimeline(sub, now = new Date()) {

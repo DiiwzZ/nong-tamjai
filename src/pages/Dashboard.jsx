@@ -3,7 +3,12 @@ import { motion, useMotionValue, animate } from 'motion/react'
 import { useStore } from '@/store/useStore'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { formatCurrency, daysUntil, isOverdue } from '@/lib/utils'
-import { getSubscriptionMonthlyAmount, getSubscriptionTimeline } from '@/lib/subscriptions'
+import {
+  canMarkSubscriptionPaid,
+  getManualSubscriptionPaidState,
+  getSubscriptionMonthlyAmount,
+  getSubscriptionTimeline,
+} from '@/lib/subscriptions'
 
 /* ── Animated counting number ── */
 function AnimatedNumber({ value, format = String }) {
@@ -281,7 +286,11 @@ export function Dashboard({ onTabChange }) {
           }}>Upcoming billing</p>
 
           <div style={{ background: '#1a1a22', border: '1px solid #252530', borderRadius: 18, overflow: 'hidden' }}>
-            {upcoming.map((sub, i) => (
+            {upcoming.map((sub, i) => {
+              const canMarkPaid = canMarkSubscriptionPaid(sub)
+              const paidState = getManualSubscriptionPaidState(sub)
+
+              return (
               <div
                 key={sub.id}
                 onClick={() => onTabChange?.('subscriptions')}
@@ -314,7 +323,7 @@ export function Dashboard({ onTabChange }) {
                 <p style={{ fontSize: 15, fontWeight: 700, color: '#f0f0f8', flexShrink: 0 }}>
                   {formatCurrency(sub.amount)}
                 </p>
-                {sub.timeline.isManual && (
+                {canMarkPaid && (
                   <button
                     type="button"
                     onClick={(event) => {
@@ -338,8 +347,30 @@ export function Dashboard({ onTabChange }) {
                     จ่ายแล้ว
                   </button>
                 )}
+                {!canMarkPaid && paidState.isPaidThisCycle && (
+                  <span
+                    style={{
+                      height: 30,
+                      padding: '0 10px',
+                      borderRadius: 9,
+                      border: '1px solid rgba(74,222,128,0.20)',
+                      background: 'rgba(74,222,128,0.10)',
+                      color: '#4ade80',
+                      fontSize: 11,
+                      fontWeight: 700,
+                      fontFamily: 'inherit',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0,
+                    }}
+                  >
+                    {paidState.label}
+                  </span>
+                )}
               </div>
-            ))}
+              )
+            })}
           </div>
         </motion.div>
       )}
