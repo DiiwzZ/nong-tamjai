@@ -170,7 +170,7 @@ function SpendingChart({ subscriptions }) {
 }
 
 export function Dashboard({ onTabChange }) {
-  const { tasks, subscriptions, categories, markSubscriptionPaid } = useStore()
+  const { tasks, subscriptions, categories, markSubscriptionPaid, undoSubscriptionPaid } = useStore()
 
   const activeTasks = useMemo(() => tasks.filter((t) => t.status === 'active'), [tasks])
   const overdueTasks = useMemo(() => activeTasks.filter((t) => isOverdue(t.dueDate)), [activeTasks])
@@ -348,25 +348,51 @@ export function Dashboard({ onTabChange }) {
                   </button>
                 )}
                 {!canMarkPaid && paidState.isPaidThisCycle && (
-                  <span
-                    style={{
-                      height: 30,
-                      padding: '0 10px',
-                      borderRadius: 9,
-                      border: '1px solid rgba(74,222,128,0.20)',
-                      background: 'rgba(74,222,128,0.10)',
-                      color: '#4ade80',
-                      fontSize: 11,
-                      fontWeight: 700,
-                      fontFamily: 'inherit',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      flexShrink: 0,
-                    }}
-                  >
-                    {paidState.label}
-                  </span>
+                  <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+                    <span
+                      style={{
+                        height: 30,
+                        padding: '0 10px',
+                        borderRadius: 9,
+                        border: '1px solid rgba(74,222,128,0.20)',
+                        background: 'rgba(74,222,128,0.10)',
+                        color: '#4ade80',
+                        fontSize: 11,
+                        fontWeight: 700,
+                        fontFamily: 'inherit',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0,
+                      }}
+                    >
+                      {paidState.label}
+                    </span>
+                    {paidState.isUndoable && (
+                      <button
+                        type="button"
+                        onClick={(event) => {
+                          event.stopPropagation()
+                          undoSubscriptionPaid(sub.id)
+                        }}
+                        style={{
+                          height: 30,
+                          padding: '0 10px',
+                          borderRadius: 9,
+                          border: '1px solid rgba(248,113,113,0.24)',
+                          background: 'rgba(248,113,113,0.10)',
+                          color: '#f87171',
+                          fontSize: 11,
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          fontFamily: 'inherit',
+                          flexShrink: 0,
+                        }}
+                      >
+                        ย้อนกลับ
+                      </button>
+                    )}
+                  </div>
                 )}
               </div>
               )

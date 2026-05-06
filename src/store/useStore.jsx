@@ -5,6 +5,8 @@ import {
   canMarkSubscriptionPaid,
   normalizeSubscription,
   normalizeSubscriptions,
+  rewindSubscriptionToPreviousCycle,
+  getManualSubscriptionPaidState,
 } from '@/lib/subscriptions'
 import { scheduleTaskReminder, scheduleSubReminder } from '@/lib/notifications'
 import { signInAnon, onAuthReady } from '@/lib/firebase'
@@ -187,6 +189,28 @@ export function StoreProvider({ children }) {
     }
   }
 
+  const undoSubscriptionPaid = (id, now = new Date().toISOString()) => {
+    const subscriptions = state.subscriptions.map((subscription) => {
+      if (subscription.id !== id) return subscription
+
+      const paidState = getManualSubscriptionPaidState(subscription, new Date(now))
+      if (!paidState.isUndoable) return subscription
+
+      const nextBillingDate = rewindSubscriptionToPreviousCycle(subscription)
+      return normalizeSubscription({
+        ...subscription,
+        lastPaidAt: null,
+        nextBillingDate: nextBillingDate || subscription.nextBillingDate,
+      })
+    })
+
+    update({ subscriptions })
+    if (uid) {
+      const sub = subscriptions.find((s) => s.id === id)
+      if (sub) saveSub(uid, sub).catch(console.error)
+    }
+  }
+
   // --- Categories ---
 
   const addCategory = (cat) =>
@@ -241,7 +265,7 @@ export function StoreProvider({ children }) {
     uid,
     update,
     addTask, updateTask, deleteTask, completeTask, uncompleteTask, toggleTaskComplete, archiveTask, clearArchive,
-    addSubscription, updateSubscription, deleteSubscription, markSubscriptionPaid,
+    addSubscription, updateSubscription, deleteSubscription, markSubscriptionPaid, undoSubscriptionPaid,
     setUserName,
     markSplitPaid,
     addCategory, updateCategory, deleteCategory,

@@ -14,6 +14,14 @@ function getLastDayOfMonth(year, month) {
   return new Date(year, month + 1, 0).getDate()
 }
 
+function sameDay(a, b) {
+  return (
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate()
+  )
+}
+
 function getSubscriptionAnchor(sub, fallbackDate = null) {
   const fallback = toDate(fallbackDate) || toDate(sub?.nextBillingDate)
   return {
@@ -72,12 +80,18 @@ function subtractBillingCycle(date, cycle, anchor = {}) {
   return new Date(targetYear, targetMonth, targetDay, hours, minutes, seconds, ms)
 }
 
-function sameDay(a, b) {
-  return (
-    a.getFullYear() === b.getFullYear() &&
-    a.getMonth() === b.getMonth() &&
-    a.getDate() === b.getDate()
-  )
+export function getSubscriptionPaymentMode(sub) {
+  if (sub?.paymentMode === 'manual' || sub?.paymentMode === 'auto') return sub.paymentMode
+  return sub?.billingCycle === 'manual' ? 'manual' : 'auto'
+}
+
+export function getSubscriptionBillingCycle(sub) {
+  return sub?.billingCycle === 'yearly' ? 'yearly' : 'monthly'
+}
+
+export function getSubscriptionMonthlyAmount(sub) {
+  const amount = Number(sub?.amount) || 0
+  return getSubscriptionBillingCycle(sub) === 'yearly' ? amount / 12 : amount
 }
 
 export function advanceSubscriptionToNextCycle(sub, paidAt = new Date()) {
@@ -91,18 +105,15 @@ export function advanceSubscriptionToNextCycle(sub, paidAt = new Date()) {
   return next?.toISOString() || null
 }
 
-export function getSubscriptionPaymentMode(sub) {
-  if (sub?.paymentMode === 'manual' || sub?.paymentMode === 'auto') return sub.paymentMode
-  return sub?.billingCycle === 'manual' ? 'manual' : 'auto'
-}
-
-export function getSubscriptionBillingCycle(sub) {
-  return sub?.billingCycle === 'yearly' ? 'yearly' : 'monthly'
-}
-
-export function getSubscriptionMonthlyAmount(sub) {
-  const amount = Number(sub?.amount) || 0
-  return getSubscriptionBillingCycle(sub) === 'yearly' ? amount / 12 : amount
+export function rewindSubscriptionToPreviousCycle(sub) {
+  const baseDate = toDate(sub?.nextBillingDate)
+  if (!baseDate) return null
+  const previous = subtractBillingCycle(
+    baseDate,
+    getSubscriptionBillingCycle(sub),
+    getSubscriptionAnchor(sub, baseDate),
+  )
+  return previous?.toISOString() || null
 }
 
 export function getEffectiveNextBillingDate(sub, now = new Date()) {
@@ -143,19 +154,19 @@ export function canMarkSubscriptionPaid(sub, now = new Date()) {
 
 export function getManualSubscriptionPaidState(sub, now = new Date()) {
   if (getSubscriptionPaymentMode(sub) !== 'manual') {
-    return { isPaidThisCycle: false, label: '' }
+    return { isPaidThisCycle: false, isUndoable: false, label: '' }
   }
 
   const nextBillingDate = toDate(getEffectiveNextBillingDate(sub, now))
   const lastPaidAt = toDate(sub?.lastPaidAt)
   if (!nextBillingDate || !lastPaidAt) {
-    return { isPaidThisCycle: false, label: '' }
+    return { isPaidThisCycle: false, isUndoable: false, label: '' }
   }
 
   const nowDay = startOfDay(now)
   const nextDay = startOfDay(nextBillingDate)
   if (nowDay >= nextDay) {
-    return { isPaidThisCycle: false, label: '' }
+    return { isPaidThisCycle: false, isUndoable: false, label: '' }
   }
 
   const previousCycleStart = subtractBillingCycle(
@@ -164,11 +175,12 @@ export function getManualSubscriptionPaidState(sub, now = new Date()) {
     getSubscriptionAnchor(sub, nextBillingDate),
   )
   if (lastPaidAt < previousCycleStart || lastPaidAt >= nextBillingDate) {
-    return { isPaidThisCycle: false, label: '' }
+    return { isPaidThisCycle: false, isUndoable: false, label: '' }
   }
 
   return {
     isPaidThisCycle: true,
+    isUndoable: sameDay(lastPaidAt, now),
     label: sameDay(lastPaidAt, now) ? 'จ่ายแล้ววันนี้' : 'จ่ายแล้ว',
   }
 }

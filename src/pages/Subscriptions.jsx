@@ -128,7 +128,7 @@ function TogglePill({ active, children, onClick, color = '#3b82f6', flex = 1 }) 
   )
 }
 
-function SubCard({ sub, onTap, onMarkPaid }) {
+function SubCard({ sub, onTap, onMarkPaid, onUndoPaid }) {
   const timeline = getSubscriptionTimeline(sub)
   const paidState = getManualSubscriptionPaidState(sub)
   const isCancelled = sub.status === 'cancelled'
@@ -292,24 +292,48 @@ function SubCard({ sub, onTap, onMarkPaid }) {
             </button>
           )}
           {!showMarkPaid && paidState.isPaidThisCycle && (
-            <span
-              style={{
-                display: 'inline-flex',
-                marginTop: 8,
-                height: 28,
-                padding: '0 10px',
-                borderRadius: 9,
-                border: '1px solid rgba(74,222,128,0.20)',
-                background: 'rgba(74,222,128,0.10)',
-                color: '#4ade80',
-                fontSize: 11,
-                fontWeight: 700,
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              {paidState.label}
-            </span>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 6, marginTop: 8 }}>
+              <span
+                style={{
+                  display: 'inline-flex',
+                  height: 28,
+                  padding: '0 10px',
+                  borderRadius: 9,
+                  border: '1px solid rgba(74,222,128,0.20)',
+                  background: 'rgba(74,222,128,0.10)',
+                  color: '#4ade80',
+                  fontSize: 11,
+                  fontWeight: 700,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                {paidState.label}
+              </span>
+              {paidState.isUndoable && (
+                <button
+                  type="button"
+                  onClick={(event) => {
+                    event.stopPropagation()
+                    onUndoPaid?.(sub.id)
+                  }}
+                  style={{
+                    height: 28,
+                    padding: '0 10px',
+                    borderRadius: 9,
+                    border: '1px solid rgba(248,113,113,0.24)',
+                    background: 'rgba(248,113,113,0.10)',
+                    color: '#f87171',
+                    fontSize: 11,
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    fontFamily: 'inherit',
+                  }}
+                >
+                  ย้อนกลับ
+                </button>
+              )}
+            </div>
           )}
         </div>
       </div>
@@ -987,7 +1011,7 @@ function SubForm({ onClose, sub }) {
 }
 
 export function Subscriptions({ onTabChange, onSettings }) {
-  const { subscriptions, markSubscriptionPaid } = useStore()
+  const { subscriptions, markSubscriptionPaid, undoSubscriptionPaid } = useStore()
   const [formOpen, setFormOpen] = useState(false)
   const [editSub, setEditSub] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -1153,7 +1177,12 @@ export function Subscriptions({ onTabChange, onSettings }) {
                   exit={{ opacity: 0, y: -6, filter: 'blur(3px)', height: 0, marginBottom: 0 }}
                   transition={{ delay: index * 0.05, type: 'spring', stiffness: 350, damping: 28 }}
                 >
-                  <SubCard sub={sub} onTap={handleTap} onMarkPaid={markSubscriptionPaid} />
+                  <SubCard
+                    sub={sub}
+                    onTap={handleTap}
+                    onMarkPaid={markSubscriptionPaid}
+                    onUndoPaid={undoSubscriptionPaid}
+                  />
                 </motion.div>
               ))}
             </AnimatePresence>
