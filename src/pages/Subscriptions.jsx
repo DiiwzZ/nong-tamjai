@@ -4,7 +4,7 @@ import { ArrowLeft, Plus, X } from 'lucide-react'
 import { QuickAddFAB } from '@/components/ui/QuickAdd'
 import { SubSkeleton } from '@/components/ui/Skeleton'
 import { PageHeader } from '@/components/layout/PageHeader'
-import { formatCurrency } from '@/lib/utils'
+import { formatCurrency, formatDate, formatTime } from '@/lib/utils'
 import {
   canMarkSubscriptionPaid,
   getSubscriptionBillingCycle,
@@ -103,6 +103,11 @@ function getPaymentModeLabel(sub) {
   return PAYMENT_MODES.find((item) => item.id === getSubscriptionPaymentMode(sub))?.label || ''
 }
 
+function formatPaidTimestamp(value) {
+  if (!value) return ''
+  return `${formatDate(value)} เวลา ${formatTime(value)}`
+}
+
 function TogglePill({ active, children, onClick, color = '#3b82f6', flex = 1 }) {
   return (
     <button
@@ -131,6 +136,7 @@ function TogglePill({ active, children, onClick, color = '#3b82f6', flex = 1 }) 
 function SubCard({ sub, onTap, onMarkPaid, onUndoPaid }) {
   const timeline = getSubscriptionTimeline(sub)
   const paidState = getManualSubscriptionPaidState(sub)
+  const lastPaidLabel = sub.lastPaidAt ? formatPaidTimestamp(sub.lastPaidAt) : ''
   const isCancelled = sub.status === 'cancelled'
   const showMarkPaid = canMarkSubscriptionPaid(sub)
   const statusColor = STATUS_COLOR[sub.status] || STATUS_COLOR.active
@@ -260,6 +266,11 @@ function SubCard({ sub, onTap, onMarkPaid, onUndoPaid }) {
               </span>
             )}
           </div>
+          {lastPaidLabel && (
+            <p style={{ marginTop: 6, fontSize: 11, color: '#4a4a62' }}>
+              จ่ายล่าสุด {lastPaidLabel}
+            </p>
+          )}
         </div>
 
         <div style={{ textAlign: 'right', flexShrink: 0 }}>
@@ -344,6 +355,7 @@ function SubCard({ sub, onTap, onMarkPaid, onUndoPaid }) {
 function SubForm({ onClose, sub }) {
   const { addSubscription, updateSubscription, deleteSubscription, userName, setUserName } = useStore()
   const isEdit = !!sub
+  const lastPaidLabel = sub?.lastPaidAt ? formatPaidTimestamp(sub.lastPaidAt) : ''
 
   const blank = {
     name: '',
@@ -644,6 +656,35 @@ function SubForm({ onClose, sub }) {
             />
           </div>
         </div>
+
+        {isEdit && lastPaidLabel && (
+          <div
+            style={{
+              padding: '12px 14px',
+              borderRadius: 14,
+              background: 'rgba(74,222,128,0.06)',
+              border: '1px solid rgba(74,222,128,0.18)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 4,
+            }}
+          >
+            <span
+              style={{
+                fontSize: 11,
+                fontWeight: 700,
+                color: '#4ade80',
+                textTransform: 'uppercase',
+                letterSpacing: '0.08em',
+              }}
+            >
+              Paid status
+            </span>
+            <span style={{ fontSize: 14, fontWeight: 600, color: '#f0f0f8' }}>
+              จ่ายล่าสุด {lastPaidLabel}
+            </span>
+          </div>
+        )}
 
         <div>
           <label style={lbl}>ช่องทางชำระเงิน</label>
