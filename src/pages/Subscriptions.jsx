@@ -126,9 +126,10 @@ function TogglePill({ active, children, onClick, color = '#3b82f6', flex = 1 }) 
   )
 }
 
-function SubCard({ sub, onTap }) {
+function SubCard({ sub, onTap, onMarkPaid }) {
   const timeline = getSubscriptionTimeline(sub)
   const isCancelled = sub.status === 'cancelled'
+  const showMarkPaid = timeline.isManual && !isCancelled && !!timeline.nextBillingDate
   const statusColor = STATUS_COLOR[sub.status] || STATUS_COLOR.active
   const statusLabel = STATUS_LABEL[sub.status] || 'Active'
   const billingLabel = getBillingCycleLabel(sub)
@@ -263,6 +264,30 @@ function SubCard({ sub, onTap }) {
             {formatCurrency(sub.amount)}
           </p>
           <p style={{ fontSize: 11, color: '#6b6b88', marginTop: 2 }}>{billingLabel}</p>
+          {showMarkPaid && (
+            <button
+              type="button"
+              onClick={(event) => {
+                event.stopPropagation()
+                onMarkPaid?.(sub.id)
+              }}
+              style={{
+                marginTop: 8,
+                height: 28,
+                padding: '0 10px',
+                borderRadius: 9,
+                border: '1px solid rgba(74,222,128,0.24)',
+                background: 'rgba(74,222,128,0.12)',
+                color: '#4ade80',
+                fontSize: 11,
+                fontWeight: 700,
+                cursor: 'pointer',
+                fontFamily: 'inherit',
+              }}
+            >
+              จ่ายแล้ว
+            </button>
+          )}
         </div>
       </div>
     </div>
@@ -939,7 +964,7 @@ function SubForm({ onClose, sub }) {
 }
 
 export function Subscriptions({ onTabChange, onSettings }) {
-  const { subscriptions } = useStore()
+  const { subscriptions, markSubscriptionPaid } = useStore()
   const [formOpen, setFormOpen] = useState(false)
   const [editSub, setEditSub] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -1105,7 +1130,7 @@ export function Subscriptions({ onTabChange, onSettings }) {
                   exit={{ opacity: 0, y: -6, filter: 'blur(3px)', height: 0, marginBottom: 0 }}
                   transition={{ delay: index * 0.05, type: 'spring', stiffness: 350, damping: 28 }}
                 >
-                  <SubCard sub={sub} onTap={handleTap} />
+                  <SubCard sub={sub} onTap={handleTap} onMarkPaid={markSubscriptionPaid} />
                 </motion.div>
               ))}
             </AnimatePresence>

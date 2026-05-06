@@ -17,6 +17,12 @@ function addBillingCycle(date, cycle) {
   return next
 }
 
+export function advanceSubscriptionToNextCycle(sub, paidAt = new Date()) {
+  const baseDate = toDate(sub?.nextBillingDate) || toDate(paidAt)
+  if (!baseDate) return null
+  return addBillingCycle(baseDate, getSubscriptionBillingCycle(sub)).toISOString()
+}
+
 export function getSubscriptionPaymentMode(sub) {
   if (sub?.paymentMode === 'manual' || sub?.paymentMode === 'auto') return sub.paymentMode
   return sub?.billingCycle === 'manual' ? 'manual' : 'auto'

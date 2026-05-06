@@ -165,7 +165,7 @@ function SpendingChart({ subscriptions }) {
 }
 
 export function Dashboard({ onTabChange }) {
-  const { tasks, subscriptions, categories } = useStore()
+  const { tasks, subscriptions, categories, markSubscriptionPaid } = useStore()
 
   const activeTasks = useMemo(() => tasks.filter((t) => t.status === 'active'), [tasks])
   const overdueTasks = useMemo(() => activeTasks.filter((t) => isOverdue(t.dueDate)), [activeTasks])
@@ -314,6 +314,30 @@ export function Dashboard({ onTabChange }) {
                 <p style={{ fontSize: 15, fontWeight: 700, color: '#f0f0f8', flexShrink: 0 }}>
                   {formatCurrency(sub.amount)}
                 </p>
+                {sub.timeline.isManual && (
+                  <button
+                    type="button"
+                    onClick={(event) => {
+                      event.stopPropagation()
+                      markSubscriptionPaid(sub.id)
+                    }}
+                    style={{
+                      height: 30,
+                      padding: '0 10px',
+                      borderRadius: 9,
+                      border: '1px solid rgba(74,222,128,0.24)',
+                      background: 'rgba(74,222,128,0.12)',
+                      color: '#4ade80',
+                      fontSize: 11,
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      fontFamily: 'inherit',
+                      flexShrink: 0,
+                    }}
+                  >
+                    จ่ายแล้ว
+                  </button>
+                )}
               </div>
             ))}
           </div>

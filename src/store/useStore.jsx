@@ -1,6 +1,10 @@
 import { useState, useEffect, createContext, useContext } from 'react'
 import { DEFAULT_CATEGORIES } from '@/lib/utils'
-import { normalizeSubscription, normalizeSubscriptions } from '@/lib/subscriptions'
+import {
+  advanceSubscriptionToNextCycle,
+  normalizeSubscription,
+  normalizeSubscriptions,
+} from '@/lib/subscriptions'
 import { scheduleTaskReminder, scheduleSubReminder } from '@/lib/notifications'
 import { signInAnon, onAuthReady } from '@/lib/firebase'
 import { fetchTasks, saveTask, removeTask, fetchSubs, saveSub, removeSub } from '@/lib/db'
@@ -162,6 +166,25 @@ export function StoreProvider({ children }) {
     if (uid) removeSub(uid, id).catch(console.error)
   }
 
+  const markSubscriptionPaid = (id, paidAt = new Date().toISOString()) => {
+    const subscriptions = state.subscriptions.map((subscription) => {
+      if (subscription.id !== id) return subscription
+
+      const nextBillingDate = advanceSubscriptionToNextCycle(subscription, paidAt)
+      return normalizeSubscription({
+        ...subscription,
+        lastPaidAt: paidAt,
+        nextBillingDate: nextBillingDate || subscription.nextBillingDate,
+      })
+    })
+
+    update({ subscriptions })
+    if (uid) {
+      const sub = subscriptions.find((s) => s.id === id)
+      if (sub) saveSub(uid, sub).catch(console.error)
+    }
+  }
+
   // --- Categories ---
 
   const addCategory = (cat) =>
@@ -216,7 +239,7 @@ export function StoreProvider({ children }) {
     uid,
     update,
     addTask, updateTask, deleteTask, completeTask, uncompleteTask, toggleTaskComplete, archiveTask, clearArchive,
-    addSubscription, updateSubscription, deleteSubscription,
+    addSubscription, updateSubscription, deleteSubscription, markSubscriptionPaid,
     setUserName,
     markSplitPaid,
     addCategory, updateCategory, deleteCategory,
