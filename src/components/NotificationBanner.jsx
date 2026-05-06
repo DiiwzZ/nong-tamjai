@@ -1,9 +1,12 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
-import { requestPermission } from '@/lib/notifications'
+import { requestPermission, subscribeToPush } from '@/lib/notifications'
+import { useStore } from '@/store/useStore'
 
 export function NotificationBanner() {
+  const { uid } = useStore()
   const [show, setShow] = useState(false)
+  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     if (!('Notification' in window)) return
@@ -14,8 +17,19 @@ export function NotificationBanner() {
   }, [])
 
   const allow = async () => {
-    await requestPermission()
-    setShow(false)
+    if (!uid || loading) return
+    setLoading(true)
+    try {
+      const permission = await requestPermission()
+      if (permission !== 'granted') return
+
+      const result = await subscribeToPush(uid)
+      if (result.ok) {
+        setShow(false)
+      }
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -60,14 +74,15 @@ export function NotificationBanner() {
               <div style={{ display: 'flex', gap: 8 }}>
                 <button
                   onClick={allow}
+                  disabled={loading || !uid}
                   style={{
                     height: 36, padding: '0 16px', borderRadius: 10,
-                    background: '#3b82f6', border: 'none',
-                    color: '#fff', fontSize: 13, fontWeight: 700,
-                    cursor: 'pointer', fontFamily: 'inherit',
+                    background: (loading || !uid) ? '#1f2532' : '#3b82f6', border: 'none',
+                    color: (loading || !uid) ? '#6b6b88' : '#fff', fontSize: 13, fontWeight: 700,
+                    cursor: (loading || !uid) ? 'default' : 'pointer', fontFamily: 'inherit',
                   }}
                 >
-                  อนุญาต
+                  {loading ? 'กำลังเปิด...' : 'อนุญาต'}
                 </button>
                 <button
                   onClick={() => setShow(false)}

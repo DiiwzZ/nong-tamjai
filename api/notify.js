@@ -30,11 +30,12 @@ async function send(pushSub, payload) {
 
 /* ── Main handler ── */
 export default async function handler(req, res) {
-  // Allow GET (browser/cron test) or authenticated POST
-  if (
-    req.method !== 'GET' &&
-    req.headers['authorization'] !== `Bearer ${process.env.CRON_SECRET}`
-  ) {
+  if (req.method !== 'GET' && req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' })
+  }
+
+  const authHeader = req.headers['authorization']
+  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
     return res.status(401).json({ error: 'Unauthorized' })
   }
 
