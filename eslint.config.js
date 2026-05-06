@@ -49,6 +49,14 @@ export default defineConfig([
     },
   },
   {
+    files: ['scripts/**/*.mjs'],
+    languageOptions: {
+      ecmaVersion: 'latest',
+      sourceType: 'module',
+      globals: globals.node,
+    },
+  },
+  {
     // Vercel serverless functions — Node.js runtime (not browser)
     files: ['api/**/*.js'],
     languageOptions: {
