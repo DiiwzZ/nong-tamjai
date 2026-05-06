@@ -206,7 +206,7 @@ export function Dashboard({ onTabChange }) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      <PageHeader title="ภาพรวม" right={dateRight} />
+      <PageHeader title="Overview" right={dateRight} />
 
       <div
         className="no-scrollbar"

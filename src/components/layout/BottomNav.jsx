@@ -3,7 +3,7 @@ import { motion } from 'motion/react'
 const tabs = [
   {
     id: 'tasks',
-    label: 'งาน',
+    label: 'Tasks',
     icon: (
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
         <rect x="3" y="3" width="18" height="18" rx="3"/>
@@ -35,7 +35,7 @@ const tabs = [
   },
   {
     id: 'dashboard',
-    label: 'ภาพรวม',
+    label: 'Overview',
     icon: (
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
         <rect x="3" y="3" width="7" height="7" rx="1.5"/>
@@ -74,7 +74,6 @@ export function BottomNav({ active, onChange }) {
                 color: isActive ? '#3b82f6' : 'rgba(107,107,136,0.6)',
               }}
             >
-              {/* Spring-sliding active background */}
               {isActive && (
                 <motion.div
                   layoutId="nav-pill"
@@ -87,7 +86,6 @@ export function BottomNav({ active, onChange }) {
                 />
               )}
 
-              {/* Icon */}
               <motion.div
                 animate={{
                   scale: isActive ? 1.12 : 1,
@@ -99,7 +97,6 @@ export function BottomNav({ active, onChange }) {
                 {icon}
               </motion.div>
 
-              {/* Label */}
               <motion.span
                 animate={{ opacity: isActive ? 1 : 0.38 }}
                 transition={{ duration: 0.18 }}

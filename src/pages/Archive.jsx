@@ -120,7 +120,7 @@ export function Archive({ onTabChange }) {
           </button>
 
           <h1 style={{ fontSize: 20, fontWeight: 800, color: '#f0f0f8', letterSpacing: '-0.3px', flex: 1, margin: 0 }}>
-            งานที่เสร็จแล้ว
+            Completed
           </h1>
 
           {/* Count badge */}

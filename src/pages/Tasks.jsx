@@ -111,7 +111,7 @@ export function Tasks({ onTabChange, onSettings }) {
       {confetti && <Confetti trigger={true} x={confetti.x} y={confetti.y} />}
 
       {/* ── Main list ── */}
-      <PageHeader title="งาน" right={headerRight} onSettings={onSettings} />
+      <PageHeader title="Tasks" right={headerRight} onSettings={onSettings} />
 
       <div
         className="no-scrollbar"

@@ -1,11 +1,11 @@
 /**
- * Shared sticky page header — used by Tasks, Subscriptions, Split, Dashboard.
+ * Shared sticky page header - used by Tasks, Subscriptions, Split, Dashboard.
  *
  * Props:
- *   title       — main heading text
- *   right       — optional JSX for the right slot (badges, counts)
- *   sub         — optional JSX for a second row below the title row
- *   onSettings  — if provided, renders a gear icon button on the far right
+ *   title       - main heading text
+ *   right       - optional JSX for the right slot (badges, counts)
+ *   sub         - optional JSX for a second row below the title row
+ *   onSettings  - if provided, renders a gear icon button on the far right
  */
 export function PageHeader({ title, right, sub, onSettings }) {
   return (
@@ -20,7 +20,6 @@ export function PageHeader({ title, right, sub, onSettings }) {
         zIndex: 10,
       }}
     >
-      {/* Main row */}
       <div
         style={{
           height: 56,
@@ -45,18 +44,16 @@ export function PageHeader({ title, right, sub, onSettings }) {
           {title}
         </h1>
 
-        {/* Status badges */}
         {right && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
             {right}
           </div>
         )}
 
-        {/* Settings gear — only when onSettings is provided */}
         {onSettings && (
           <button
             type="button"
-            aria-label="ตั้งค่า"
+            aria-label="Settings"
             onClick={onSettings}
             style={{
               width: 36, height: 36, borderRadius: 11, flexShrink: 0,
@@ -73,7 +70,6 @@ export function PageHeader({ title, right, sub, onSettings }) {
         )}
       </div>
 
-      {/* Optional second row */}
       {sub && (
         <div style={{ paddingLeft: 20, paddingRight: 16, paddingBottom: 12 }}>
           {sub}

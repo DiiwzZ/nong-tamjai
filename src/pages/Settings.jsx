@@ -410,7 +410,7 @@ export function Settings({ onClose }) {
             <ArrowLeft size={16} color="#f0f0f8" />
           </button>
           <h1 style={{ fontSize: 20, fontWeight: 800, color: '#f0f0f8', letterSpacing: '-0.3px', margin: 0 }}>
-            ตั้งค่า
+            Settings
           </h1>
         </div>
       </div>
