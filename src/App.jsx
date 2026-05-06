@@ -1,16 +1,20 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, lazy, Suspense } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { registerSW } from '@/lib/notifications'
 import { StoreProvider, useStore } from '@/store/useStore'
 import { BottomNav } from '@/components/layout/BottomNav'
 import { Onboarding } from '@/components/Onboarding'
 import { NotificationBanner } from '@/components/NotificationBanner'
+
+// Tasks loads eagerly — it's the first tab the user sees
 import { Tasks } from '@/pages/Tasks'
-import { Subscriptions } from '@/pages/Subscriptions'
-import { Split } from '@/pages/Split'
-import { Dashboard } from '@/pages/Dashboard'
-import { Archive } from '@/pages/Archive'
-import { Settings } from '@/pages/Settings'
+
+// All other pages are lazy — only bundled/loaded when first visited
+const Subscriptions = lazy(() => import('@/pages/Subscriptions').then((m) => ({ default: m.Subscriptions })))
+const Split        = lazy(() => import('@/pages/Split').then((m) => ({ default: m.Split })))
+const Dashboard    = lazy(() => import('@/pages/Dashboard').then((m) => ({ default: m.Dashboard })))
+const Archive      = lazy(() => import('@/pages/Archive').then((m) => ({ default: m.Archive })))
+const Settings     = lazy(() => import('@/pages/Settings').then((m) => ({ default: m.Settings })))
 
 const PAGES = {
   tasks: Tasks,
@@ -51,10 +55,12 @@ function AppInner() {
           exit={{ opacity: 0, scale: 0.97 }}
           transition={{ duration: 0.22, ease: [0.25, 0.46, 0.45, 0.94] }}
         >
-          <Page
-            onTabChange={setTab}
-            onSettings={showSettings ? () => setSettingsOpen(true) : undefined}
-          />
+          <Suspense fallback={null}>
+            <Page
+              onTabChange={setTab}
+              onSettings={showSettings ? () => setSettingsOpen(true) : undefined}
+            />
+          </Suspense>
         </motion.div>
       </AnimatePresence>
 
@@ -75,7 +81,9 @@ function AppInner() {
             transition={{ type: 'spring', stiffness: 340, damping: 34 }}
             style={{ position: 'absolute', inset: 0, zIndex: 60 }}
           >
-            <Settings onClose={() => setSettingsOpen(false)} />
+            <Suspense fallback={null}>
+              <Settings onClose={() => setSettingsOpen(false)} />
+            </Suspense>
           </motion.div>
         )}
       </AnimatePresence>
